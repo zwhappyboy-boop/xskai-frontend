@@ -124,61 +124,80 @@
 <script src="libs/katex/katex.min.js"></script>
 <script src="libs/katex/auto-render.min.js"></script>
 <script>
-var SYSTEM = "你是一名大学数学老师（高等数学/线性代数）。只返回JSON（不要其他文字、不要markdown代码块），格式：{\"problem_latex\":\"题目LaTeX\",\"analysis\":\"思路分析：考查什么、用什么方法、为什么\",\"steps\":[{\"t\":\"步骤标题\",\"c\":\"推导内容\",\"kp\":\"知识点\"}],\"pitfalls\":[\"易错点\"],\"summary\":\"总结\",\"verify\":{\"method\":\"验算方法\",\"result\":\"验算过程与结论\"}}。要求：1. LaTeX行内用\(...\)，独立行用\[...\]；2. verify必须用真实方法验算（代入具体数值、求导还原积分、特殊值检验等），给出过程和✓/✗结论，不许只写经检验正确；3. 题目有歧义时按最常见理解解答并注明。";
+var SYSTEM = "你是一名大学数学老师（高等数学/线性代数）。只返回JSON（不要其他文字、不要markdown代码块），格式：{\"problem_latex\":\"题目LaTeX\",\"analysis\":\"思路分析：考查什么、用什么方法、为什么\",\"steps\":[{\"t\":\"步骤标题\",\"c\":\"推导内容\",\"kp\":\"知识点\"}],\"pitfalls\":[\"易错点\"],\"summary\":\"总结\",\"verify\":{\"method\":\"验算方法\",\"result\":\"验算过程与结论\"}}。要求：1. LaTeX行内用\\(...\\)，独立行用\\[...\\]；2. verify必须用真实方法验算（代入具体数值、求导还原积分、特殊值检验等），给出过程和✓/✗结论，不许只写经检验正确；3. 题目有歧义时按最常见理解解答并注明。";
 
 var lastProblem = '', lastSubject = '';
 
 var DEMO_LINES = [
 "【思路分析】",
-"这是一道 $\\\\frac{0}{0}$ 型未定式极限题。看到三角函数 $\\\\sin$，第一反应是重要极限 $\\\\lim_{u \\\\to 0}\\\\frac{\\\\sin u}{u} = 1$。但分子是 $\\\\sin 3x$ 而分母是 $x$，需要通过“配凑”把分母也变成 $3x$。",
+"这是一道 $\\frac{0}{0}$ 型未定式极限题。看到三角函数 $\\sin$，第一反应是重要极限 $\\lim_{u \\to 0}\\frac{\\sin u}{u} = 1$。但分子是 $\\sin 3x$ 而分母是 $x$，需要通过“配凑”把分母也变成 $3x$。",
 "",
 "【分步解答】",
 "步骤 1：判定未定式类型",
-"当 $x \\\\to 0$ 时，$\\\\sin 3x \\\\to 0$，$x \\\\to 0$，故为 $\\\\frac{0}{0}$ 型未定式。【知识点：未定式判定】",
+"当 $x \\to 0$ 时，$\\sin 3x \\to 0$，$x \\to 0$，故为 $\\frac{0}{0}$ 型未定式。【知识点：未定式判定】",
 "",
 "步骤 2：配凑重要极限的形式",
-"$$\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{x} = \\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{3x} \\\\cdot 3$$",
+"$$\\lim_{x \\to 0}\\frac{\\sin 3x}{x} = \\lim_{x \\to 0}\\frac{\\sin 3x}{3x} \\cdot 3$$",
 "【知识点：配凑法】",
 "",
 "步骤 3：应用重要极限",
-"令 $u = 3x$，当 $x \\\\to 0$ 时 $u \\\\to 0$，由 $\\\\lim_{u \\\\to 0}\\\\frac{\\\\sin u}{u} = 1$ 得",
-"$$\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{3x} = 1$$",
+"令 $u = 3x$，当 $x \\to 0$ 时 $u \\to 0$，由 $\\lim_{u \\to 0}\\frac{\\sin u}{u} = 1$ 得",
+"$$\\lim_{x \\to 0}\\frac{\\sin 3x}{3x} = 1$$",
 "【知识点：重要极限、换元法】",
 "",
 "步骤 4：得出结果",
-"$$原式 = 1 \\\\cdot 3 = 3$$",
+"$$原式 = 1 \\cdot 3 = 3$$",
 "",
 "【易错点】",
-"1. 不要直接把 $\\\\sin 3x$ 约掉——$\\\\sin 3x$ 不是乘积，不能约分；",
+"1. 不要直接把 $\\sin 3x$ 约掉——$\\sin 3x$ 不是乘积，不能约分；",
 "2. 配凑时分子分母要同乘，漏乘一边是常见错误；",
-"3. 本题也可用等价无穷小：$x \\\\to 0$ 时 $\\\\sin 3x \\\\sim 3x$，直接得 3。",
+"3. 本题也可用等价无穷小：$x \\to 0$ 时 $\\sin 3x \\sim 3x$，直接得 3。",
 "",
 "【总结】",
-"$$\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{x} = 3$$",
+"$$\\lim_{x \\to 0}\\frac{\\sin 3x}{x} = 3$$",
 "本题核心：【知识点：重要极限】+【知识点：配凑法】。“凑”出标准形式是极限题的通用思想。",
 "",
 "【自验算】",
 "方法：代入具体数值检验。取 x=0.001，sin0.003/0.001≈2.9999955≈3，✓ 与答案 3 一致。"
 ];
 
+function fixLatex(s){
+  if(!s) return s;
+  // AI 偶发返回双重转义（JSON 字符串中 \\frac、\\lim 等），还原为单反斜杠供 KaTeX 使用
+  return s.replace(/\\\\/g, '\\');
+}
+function delimField(s){
+  // 兜底：若整段是裸 LaTeX（无定界符），自动包上 \(...\)，避免 KaTeX 无法渲染
+  if(!s) return s;
+  var t = String(s).trim();
+  if(!t) return s;
+  if(/\\\(|\\\[|^\s*\$|\$\$/.test(t)) return s; // 已有定界符
+  if(/\\[a-zA-Z]/.test(t)) return '\\(' + t + '\\)'; // 含 LaTeX 命令则包裹
+  return s;
+}
 function renderJSON(t){
   var o;
   try{
-    var m = t.match(/\{[\s\S]*\}/);
-    o = JSON.parse(m ? m[0] : t);
+    // 去除可能的 markdown 代码块围栏后提取 JSON
+    var clean = String(t).replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
+    var m = clean.match(/\{[\s\S]*\}/);
+    o = JSON.parse(m ? m[0] : clean);
     if(!o.steps || !o.steps.length) throw 0;
-  }catch(e){ return '<div>'+fmt(t)+'</div>'; }
+  }catch(e){
+    // 解析失败时也尝试渲染其中的 LaTeX 公式
+    return '<div class="raw">'+fmt(fixLatex(String(t)))+'</div>';
+  }
   var h = '';
-  if(o.problem_latex) h += '<h4>\U0001F4DD \u9898\u76EE</h4><div>'+o.problem_latex+'</div>';
-  if(o.analysis) h += '<h4>\U0001F4A1 \u601D\u8DEF\u5206\u6790</h4><p>'+o.analysis+'</p>';
-  h += '<h4>\U0001F4CB \u5206\u6B65\u63A8\u5BFC</h4>';
+  if(o.problem_latex) h += '<h4>📝 \u9898\u76EE</h4><div>'+delimField(fixLatex(o.problem_latex))+'</div>';
+  if(o.analysis) h += '<h4>💡 \u601D\u8DEF\u5206\u6790</h4><p>'+delimField(fixLatex(o.analysis))+'</p>';
+  h += '<h4>📋 \u5206\u6B65\u63A8\u5BFC</h4>';
   o.steps.forEach(function(st,i){
-    h += '<p><b>\u6B65\u9AA4'+(i+1)+'\uFF1A'+st.t+'</b><br>'+st.c+'</p>';
-    if(st.kp) h += '<span class="kp">\U0001F4DA '+st.kp+'</span>';
+    h += '<p><b>\u6B65\u9AA4'+(i+1)+'\uFF1A'+delimField(fixLatex(st.t))+'</b><br>'+delimField(fixLatex(st.c))+'</p>';
+    if(st.kp) h += '<span class="kp">📚 '+fixLatex(st.kp)+'</span>';
   });
-  if(o.pitfalls && o.pitfalls.length) h += '<h4>\u26A0\uFE0F \u6613\u9519\u70B9</h4><ul>'+o.pitfalls.map(function(p){return '<li>'+p+'</li>';}).join('')+'</ul>';
-  if(o.summary) h += '<h4>\u2705 \u603B\u7ED3</h4><p>'+o.summary+'</p>';
-  if(o.verify) h += '<h4>\U0001F50D \u81EA\u9A8C\u7B97</h4><p><b>\u65B9\u6CD5\uFF1A</b>'+o.verify.method+'<br><b>\u7ED3\u679C\uFF1A</b>'+o.verify.result+'</p>';
+  if(o.pitfalls && o.pitfalls.length) h += '<h4>\u26A0\uFE0F \u6613\u9519\u70B9</h4><ul>'+o.pitfalls.map(function(p){return '<li>'+delimField(fixLatex(p))+'</li>';}).join('')+'</ul>';
+  if(o.summary) h += '<h4>\u2705 \u603B\u7ED3</h4><p>'+delimField(fixLatex(o.summary))+'</p>';
+  if(o.verify) h += '<h4>🔍 \u81EA\u9A8C\u7B97</h4><p><b>\u65B9\u6CD5\uFF1A</b>'+delimField(fixLatex(o.verify.method))+'<br><b>\u7ED3\u679C\uFF1A</b>'+delimField(fixLatex(o.verify.result))+'</p>';
   return h;
 }
 function fmt(t){
@@ -223,7 +242,7 @@ function apiHeaders(){
 function startDemo(){
   showResult();
   var sol = document.getElementById('solution');
-  sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">📝 示例：求极限 $\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{x}$ 的详细解答</div><div>'+fmt(DEMO_LINES.join('\n'))+'</div></div>';
+  sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">📝 示例：求极限 $\\lim_{x \\to 0}\\frac{\\sin 3x}{x}$ 的详细解答</div><div>'+fmt(DEMO_LINES.join('\n'))+'</div></div>';
   renderLatex(sol);
   document.getElementById('resultBtns').style.display='flex';
   sol.scrollIntoView({behavior:'smooth'});
@@ -305,7 +324,7 @@ var file = input.files && input.files[0];
 if(!file) return;
 var status = document.getElementById('ocrStatus');
 status.style.display = 'block';
-status.textContent = '\U0001F4F7 \u6B63\u5728\u8BC6\u522B\u9898\u76EE\u2026';
+status.textContent = '📷 \u6B63\u5728\u8BC6\u522B\u9898\u76EE\u2026';
 status.style.color = '#fbbf24';
 var img = new Image();
 img.onload = function(){
@@ -346,7 +365,7 @@ return new Promise(function(resolve){
 }
 function ocrViaSpace(dataUrl){
 var status = document.getElementById('ocrStatus');
-status.textContent = '\U0001F4F7 \u5907\u7528\u8BC6\u522B\u4E2D\u2026';
+status.textContent = '📷 \u5907\u7528\u8BC6\u522B\u4E2D\u2026';
 var fd = new FormData();
 fd.append('apikey', 'helloworld');
 fd.append('base64Image', dataUrl);
