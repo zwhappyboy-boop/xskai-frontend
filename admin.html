@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡密管理 · XSKAI（站长专用）</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="style.css">
+<style>
+.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:14px;padding:24px;margin:20px 0;max-width:560px}
+.toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
+.toolbox input,.toolbox select{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
+#out{margin-top:16px;padding:16px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;display:none}
+#out code{font-size:18px;color:#4ade80;letter-spacing:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <article class="block">
+    <h2 class="page-title">🔑 卡密管理</h2>
+    <p class="page-desc">站长专用，不对外公开。生成卡密后通过闲鱼私聊发给买家。</p>
+    <div class="toolbox">
+      <label>Worker 地址</label>
+      <input id="wurl" placeholder="https://xskai-api.xxx.workers.dev">
+      <label>管理员密码（Worker 里设的 ADMIN_KEY）</label>
+      <input id="akey" type="password" placeholder="ADMIN_KEY">
+      <label>卡密类型</label>
+      <select id="quota">
+        <option value="500">次卡 ¥9.9 → 500次</option>
+        <option value="1500">月卡 ¥15 → 1500次（约每天50次）</option>
+        <option value="100">体验卡 → 100次（送人/测试）</option>
+      </select>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn" onclick="gen()">生成卡密</button>
+      </div>
+      <div id="out"></div>
+    </div>
+    <p style="color:#9aa5c0;font-size:13px">建议：这个页面不要放进导航和页脚，收藏地址自己用。闲鱼出单后现生成现发，一单一码。</p>
+  </article>
+</div>
+<script src="config.js"></script>
+<script>
+(function(){ document.getElementById('wurl').value = (typeof SITE_WORKER!=='undefined' ? SITE_WORKER : ''); })();
+function copyCode(){
+  var t = document.getElementById('newcode').textContent;
+  if(navigator.clipboard){ navigator.clipboard.writeText(t); alert('已复制：' + t); }
+  else{ prompt('复制卡密：', t); }
+}
+async function gen(){
+  var w = document.getElementById('wurl').value.trim().replace(/\/$/,'');
+  var k = document.getElementById('akey').value;
+  var q = document.getElementById('quota').value;
+  if(!w || !k){ alert('先填 Worker 地址和管理员密码'); return; }
+  var out = document.getElementById('out');
+  out.style.display = 'block'; out.innerHTML = '生成中…';
+  try{
+    var r = await fetch(w + '/admin/generate', {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({admin_key:k, quota:parseInt(q)})});
+    var d = await r.json();
+    if(!r.ok){ out.innerHTML = '失败：' + (d.error || r.status); return; }
+    out.innerHTML = '卡密：<code id="newcode">' + d.code + '</code> <button class="btn ghost sm" onclick="copyCode()">复制</button><br>次数：' + d.quota + ' 次<br><br>复制发给买家即可。';
+  }catch(e){ out.innerHTML = '失败：' + e.message; }
+}
+</script>
+</body>
+</html>

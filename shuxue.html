@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>苏格拉底数学引导 · 一步步问到你会 · XSKAI</title>
+<meta name="description" content="AI 苏格拉底式数学引导：不直接给答案，一步步提问引导思路，卡住才给提示，附每步知识点。免费。">
+<link rel="stylesheet" href="style.css">
+<style>
+.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:14px;padding:24px;margin:20px 0}
+.toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
+.toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit}
+.toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
+.btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
+.btn.big{padding:12px 28px;font-size:16px}
+.btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:8px;font-size:15px;cursor:pointer}
+#chat{display:none;margin-top:18px}
+.msg{margin:10px 0;padding:12px 16px;border-radius:10px;font-size:14px;line-height:1.8;max-width:92%}
+.msg.tutor{background:#0f1420;border:1px solid #2a3650;color:#dbe4f5}
+.msg.student{background:#1e3a5f;border:1px solid #2d5a8f;color:#fff;margin-left:auto;text-align:right}
+.msg.who{font-size:12px;color:#9fb0cc;margin-bottom:4px}
+.kp{display:inline-block;background:#143d2b;color:#4ade80;font-size:12px;padding:2px 10px;border-radius:10px;margin:4px 4px 0 0}
+#answerRow{display:flex;gap:10px;margin-top:12px}
+#answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
+.loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
+.cfg{margin-top:26px;border-top:1px dashed #2a3650;padding-top:18px}
+.cfg input{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
+.cfg p{font-size:13px;color:#9fb0cc}
+</style>
+</head>
+<body>
+<header class="site">
+<div class="wrap">
+<a class="logo" href="index.html">XSK<b>AI</b></a>
+<nav class="main">
+<a href="index.html">首页</a>
+<a href="zuowen.html">作文批改</a>
+<a href="shuxue.html" class="active">中小学数学</a>
+<a href="gaoshu.html">高数拍照答题</a></nav>
+</div>
+</header>
+
+<div class="wrap">
+<section class="block">
+<h2>🧮 中小学数学引导</h2>
+<p class="sub">不直接给答案，一步步提问引导你想通。卡住点"我卡住了"，只给提示不给答案。每一步都标出涉及的知识点。</p>
+
+<div class="toolbox" id="setup">
+<label>年级</label>
+<select id="grade">
+<option>一年级</option><option>二年级</option>
+<option selected>三年级</option><option>四年级</option>
+<option>五年级</option><option>六年级</option>
+</select>
+<label>输入数学题（手动输入，不支持拍照搜题）</label>
+<textarea id="problem" placeholder="例如：小明有36块糖果，平均分给4位同学，每人分到几块？"></textarea>
+<div class="btn-row">
+<button class="btn big" onclick="start(true)">💬 开始引导</button>
+<button class="btn ghost" onclick="startDemo()">👀 看演示</button>
+<button class="btn ghost" id="voiceBtn" onclick="toggleVoice()">🎤 语音输入题目</button>
+<button class="btn ghost" id="ocrBtn" onclick="document.getElementById('photoInput').click()">📷 拍照识别题目</button>
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
+</div>
+<div class="codebar">
+<span>🔑</span>
+<input id="accessCode" placeholder="卡密（每天免费5次，可不填）">
+<button class="btn ghost sm" onclick="saveCode()">保存</button>
+<a href="pricing.html">买卡密</a>
+<span id="codeOk" style="color:#4ade80"></span>
+</div>
+<p style="font-size:13px;color:#9fb0cc;margin-top:8px">不会打字？点"语音输入题目"说话，或"拍照识别题目"拍作业本（Beta：只识别题目文字，不直接给答案；手写体识别率有限）。</p>
+<div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
+
+<details class="cfg">
+<summary style="cursor:pointer;font-size:13px;color:#9fb0cc">⚙️ 高级设置（可选）：使用自己的 AI 地址</summary>
+<p style="margin-top:8px">默认使用本站提供的免费 AI，直接用就行。想用自己的 Key 就按 <a href="api-setup.html">接入指南</a> 部署后填这里：</p>
+<input id="apiUrl" placeholder="https://你的-worker地址.workers.dev">
+<button class="btn ghost" onclick="saveCfg()">保存</button>
+<span id="cfgOk" style="color:#4ade80;font-size:13px;margin-left:8px"></span>
+</details>
+</div>
+
+<div class="toolbox" id="chat">
+<div id="msgs"></div>
+<div class="loading" id="loading">老师正在思考…</div>
+<div id="answerRow">
+<input id="answer" placeholder="输入你的想法或答案，回车发送…" onkeydown="if(event.key==='Enter')send()">
+<button class="btn" onclick="send()">发送</button>
+<button class="btn ghost" onclick="stuck()">💡 我卡住了</button>
+</div>
+<div class="btn-row">
+<button class="btn ghost" onclick="restart()">↩️ 换一道题</button>
+</div>
+</div>
+
+<div class="tip good">
+<b>给家长的话：</b>这个工具故意不给答案——孩子自己想通的，才是真学会。它的价值是代替你一遍遍讲题，10 遍不耐烦它也不会。建议孩子先独立思考，卡住再点提示。
+</div>
+<div class="tip">
+<b>定位说明：</b>本工具为免费学习辅助。拍照/语音仅用于<b>识别题目文字</b>，不提供搜题、不直接给出答案，仅做苏格拉底式思路引导。
+</div>
+</section>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span>© 2026 XSKAI · xskai.com</span>
+    <nav class="foot">
+      <a href="about.html">关于我们</a>
+      <a href="help.html">使用帮助</a>
+      <a href="pricing.html">定价</a>
+      <a href="api-setup.html">API接入</a>
+      <a href="privacy.html">隐私政策</a>
+      <a href="disclaimer.html">免责声明</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script>
+var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 每一步涉及的知识点用格式标出\n5. 全部完成后，用'🎉 总结'开头列出用到的知识点\n6. 语气亲切鼓励，适合小学生，简洁，每次回复不超过120字";
+var history = [];
+var demoMode = false, demoIdx = 0;
+
+var DEMO = [
+  {w:'student', t:'小明有 36 块糖果，要平均分给 4 位同学，每位同学分到几块？如果每位同学再多分 2 块，小明一共需要准备几块糖果？'},
+  {w:'tutor', t:'我们先看第一问。题目说"平均分给 4 位同学"，你觉得"平均分"是什么意思？'},
+  {w:'student', t:'每人分得一样多'},
+  {w:'tutor', t:'对！每人一样多。那 36 块糖平均分给 4 个人，每人分到几块？用什么运算？【知识点：平均分、除法】'},
+  {w:'student', t:'36÷4=9'},
+  {w:'tutor', t:'完全正确，每人 9 块！再看第二问："每位同学再多分 2 块"，那每位同学现在一共分到几块？【知识点：加法】'},
+  {w:'student', t:'9+2=11'},
+  {w:'tutor', t:'没错！每人 11 块。那 4 位同学一共需要几块糖果？【知识点：乘法】'},
+  {w:'student', t:'11×4=44'},
+  {w:'tutor', t:'太棒了！小明原来只有 36 块，现在需要 44 块，还差几块？【知识点：减法】'},
+  {w:'student', t:'44-36=8'},
+  {w:'tutor', t:'🎉 总结：全部答对！这道题用到的知识点：【知识点：平均分与除法】→【知识点：加法】→【知识点：乘法】→【知识点：减法】。你真厉害！'}
+];
+
+function fmt(t){
+return t.replace(/【知识点：(.*?)】/g, '<span class="kp">📚 $1</span>');
+}
+function addMsg(who, text){
+var d = document.createElement('div');
+d.className = 'msg ' + (who==='tutor'?'tutor':'student');
+d.innerHTML = '<div class="who">'+(who==='tutor'?'🤖 AI 老师':'🧒 你')+'</div><div>'+fmt(text)+'</div>';
+document.getElementById('msgs').appendChild(d);
+d.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function showChat(){
+document.getElementById('setup').style.display='none';
+document.getElementById('chat').style.display='block';
+}
+function getCfg(){
+return {url: localStorage.getItem('zw_apiUrl') || SITE_WORKER};
+}
+function saveCfg(){
+localStorage.setItem('zw_apiUrl', document.getElementById('apiUrl').value.trim());
+document.getElementById('cfgOk').textContent = '已保存（仅存你的浏览器本地）';
+}
+(function(){ document.getElementById('apiUrl').value = getCfg().url; document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||'';})();
+
+function saveCode(){
+  var v = document.getElementById('accessCode').value.trim();
+  localStorage.setItem('xskai_code', v);
+  document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
+}
+function apiHeaders(){
+  var h = {'Content-Type':'application/json'};
+  var c = localStorage.getItem('xskai_code');
+  if(c) h['X-Access-Code'] = c;
+  return h;
+}
+
+function startDemo(){
+  demoMode = true; demoIdx = 0;
+  showChat();
+  document.getElementById('msgs').innerHTML = '';
+  demoStep();
+}
+function demoStep(){
+  if(demoIdx >= DEMO.length){
+    document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">演示结束 ✔ 点"换一道题"开始真实引导。</span> <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>';
+    return;
+  }
+  var m = DEMO[demoIdx++];
+  addMsg(m.w, m.t);
+  document.getElementById('answerRow').innerHTML = '<button class="btn" onclick="demoStep()">▶ 下一步</button> <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>';
+}
+
+async function callAI(){
+var cfg = getCfg();
+var endpoint = cfg.url;
+var headers = apiHeaders();
+var res = await fetch(endpoint, {method:'POST', headers:headers,
+body: JSON.stringify({model:'deepseek-v4-flash', messages:history, temperature:0.5})});
+var data = await res.json();
+if(data.error) throw new Error(data.error);
+return data.choices[0].message.content;
+}
+function start(){
+var p = document.getElementById('problem').value.trim();
+if(p.length < 5){ alert('请先输入一道数学题（至少5个字）。'); return;}
+demoMode = false; history = [];
+var grade = document.getElementById('grade').value;
+history.push({role:'system', content: SYSTEM + "\n学生是"+grade+"学生，题目是："+p});
+history.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
+showChat();
+document.getElementById('msgs').innerHTML = '';
+addMsg('student', p);
+ask();
+}
+async function ask(){
+document.getElementById('loading').style.display='block';
+try{ var t = await callAI(); history.push({role:'assistant', content:t}); addMsg('tutor', t);}
+catch(e){ addMsg('tutor', '出错了：'+e.message+'。检查 API 配置是否正确。');}
+document.getElementById('loading').style.display='none';
+}
+function send(){
+if(demoMode){ alert('演示模式请点"下一步"继续。点"换一道题"开始真实引导。'); return;}
+var v = document.getElementById('answer').value.trim();
+if(!v) return;
+document.getElementById('answer').value = '';
+addMsg('student', v);
+history.push({role:'user', content:v});
+ask();
+}
+function stuck(){
+if(demoMode){ alert('演示模式请点"下一步"继续。'); return;}
+addMsg('student', '💡 我卡住了，给我一个提示吧');
+history.push({role:'user', content:'我这一步卡住了，请给我一个提示（hint），不要直接给答案，用提问的方式引导我。'});
+ask();
+}
+function restart(){ location.reload();}
+
+var recog = null, listening = false;
+function toggleVoice(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert('当前浏览器不支持语音输入，请用 Chrome 或 Edge 打开。'); return; }
+  var btn = document.getElementById('voiceBtn');
+  if(listening){ recog.stop(); return; }
+  recog = new SR();
+  recog.lang = 'zh-CN';
+  recog.interimResults = false;
+  recog.maxAlternatives = 1;
+  recog.onresult = function(e){
+    var t = e.results[0][0].transcript;
+    var ta = document.getElementById('problem');
+    ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + t;
+    ta.focus();
+  };
+  recog.onend = function(){ listening = false; btn.textContent = '🎤 语音输入题目'; };
+  recog.onerror = function(e){
+    listening = false; btn.textContent = '🎤 语音输入题目';
+    if(e.error !== 'aborted') alert('语音识别出错（'+e.error+'），请重试或手动输入。');
+  };
+  try{ recog.start(); listening = true; btn.textContent = '⏹ 停止录音'; }
+  catch(e){ alert('语音启动失败，请重试。'); }
+}
+
+/* 拍照识别题目（Beta）：只做 OCR 文字提取，不搜题不给答案 */
+function ocrPhoto(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var status = document.getElementById('ocrStatus');
+  status.style.display = 'block';
+  status.textContent = '📷 正在识别题目文字…';
+  var img = new Image();
+  img.onload = function(){
+    // 压缩到最长边 1600px
+    var maxSide = 1600, w = img.width, h = img.height;
+    if(Math.max(w,h) > maxSide){ var r = maxSide/Math.max(w,h); w = Math.round(w*r); h = Math.round(h*r); }
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var dataUrl = cv.toDataURL('image/jpeg', 0.85);
+    URL.revokeObjectURL(img.src);
+    var fd = new FormData();
+    fd.append('apikey', 'helloworld');  // OCR.space 公共演示 key，重度使用请去 ocr.space 免费注册自己的 key
+    fd.append('base64Image', dataUrl);
+    fd.append('language', 'chs');
+    fd.append('OCREngine', '2');
+    fetch('https://api.ocr.space/parse/image', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var txt = data && data.ParsedResults && data.ParsedResults[0] && data.ParsedResults[0].ParsedText;
+        txt = (txt||'').trim();
+        if(txt){
+          var ta = document.getElementById('problem');
+          ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + txt.replace(/\s+/g,'');
+          status.textContent = '✔ 识别完成，请检查文字是否准确，手动修正后再点"开始引导"。';
+          status.style.color = '#4ade80';
+        }else{
+          status.textContent = '✘ 没识别出文字，请把题目拍得更清晰、更正，或手动输入。';
+          status.style.color = '#f87171';
+        }
+      })
+      .catch(function(){
+        status.textContent = '✘ 识别服务暂时不可用，请手动输入题目。';
+        status.style.color = '#f87171';
+      });
+    input.value = '';
+  };
+  img.onerror = function(){ status.textContent = '✘ 图片读取失败，请重试。'; status.style.color = '#f87171'; };
+  img.src = URL.createObjectURL(file);
+}
+</script>
+</body>
+</html>

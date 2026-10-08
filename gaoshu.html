@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高等数学拍照答题 · 详细解答 · XSKAI</title>
+<meta name="description" content="AI 高数/线代详细解答：思路分析、分步推导、易错点、总结，LaTeX 公式漂亮渲染，每步标注知识点。免费。">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<style>
+.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:14px;padding:24px;margin:20px 0}
+.toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
+.toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit}
+.toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
+.btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
+.btn.big{padding:12px 28px;font-size:16px}
+.btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:8px;font-size:15px;cursor:pointer}
+#chat{display:none;margin-top:18px}
+.msg{margin:10px 0;padding:12px 16px;border-radius:10px;font-size:15px;line-height:2;max-width:94%}
+.msg.tutor{background:#0f1420;border:1px solid #2a3650;color:#dbe4f5}
+.msg.student{background:#1e3a5f;border:1px solid #2d5a8f;color:#fff;margin-left:auto;text-align:right}
+.msg.who{font-size:12px;color:#9fb0cc;margin-bottom:4px}
+.kp{display:inline-block;background:#143d2b;color:#4ade80;font-size:12px;padding:2px 10px;border-radius:10px;margin:4px 4px 0 0}
+.katex{font-size:1.08em}
+#answerRow{display:flex;gap:10px;margin-top:12px}
+#answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
+.loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
+.cfg{margin-top:26px;border-top:1px dashed #2a3650;padding-top:18px}
+.cfg input{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
+.cfg p{font-size:13px;color:#9fb0cc}
+</style>
+</head>
+<body>
+<header class="site">
+<div class="wrap">
+<a class="logo" href="index.html">XSK<b>AI</b></a>
+<nav class="main">
+<a href="index.html">首页</a>
+<a href="zuowen.html">作文批改</a>
+<a href="shuxue.html">中小学数学</a>
+<a href="gaoshu.html" class="active">高数拍照答题</a></nav>
+</div>
+</header>
+
+<div class="wrap">
+<section class="block">
+<h2>📐 📐 高数 · 线代详细解答</h2>
+<p class="sub">拍下题目照片，直接出详细解答：思路分析 → 分步推导 → 易错点 → 总结。公式 LaTeX 漂亮渲染，每步标注知识点。免费。</p>
+
+<div class="toolbox" id="setup">
+<label>科目</label>
+<select id="subject">
+<option>高等数学</option>
+<option>线性代数</option>
+</select>
+<label>拍下题目（推荐）或手动输入</label>
+<textarea id="problem" placeholder="例如：求极限 lim(x→0) sin3x / x"></textarea>
+<div class="btn-row">
+<button class="btn big" onclick="document.getElementById('photoInput').click()">📷 拍照答题</button>
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
+<button class="btn ghost" onclick="solve()">📝 生成详细解答</button>
+<button class="btn ghost" onclick="startDemo()">👀 看演示</button>
+<button class="btn ghost" id="voiceBtn" onclick="toggleVoice()">🎤 语音输入</button>
+</div>
+<div class="codebar">
+<span>🔑</span>
+<input id="accessCode" placeholder="卡密（每天免费5次，可不填）">
+<button class="btn ghost sm" onclick="saveCode()">保存</button>
+<a href="pricing.html">买卡密</a>
+<span id="codeOk" style="color:#4ade80"></span>
+</div>
+<div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
+
+<details class="cfg">
+<summary style="cursor:pointer;font-size:13px;color:#9fb0cc">⚙️ 高级设置（可选）：使用自己的 AI 地址</summary>
+<p style="margin-top:8px">默认使用本站提供的免费 AI，直接用就行。想用自己的 Key 就按 <a href="api-setup.html">接入指南</a> 部署后填这里：</p>
+<input id="apiUrl" placeholder="https://你的-worker地址.workers.dev">
+<button class="btn ghost" onclick="saveCfg()">保存</button>
+<span id="cfgOk" style="color:#4ade80;font-size:13px;margin-left:8px"></span>
+</details>
+</div>
+
+<div class="toolbox" id="result" style="display:none">
+<div id="solution"></div>
+<div class="loading" id="loading">正在生成详细解答…</div>
+<div class="btn-row" id="resultBtns" style="display:none">
+<button class="btn ghost" onclick="altSolve()">🔄 换种解法</button>
+<button class="btn ghost" onclick="restart()">↩️ 换一道题</button>
+</div>
+</div>
+
+<div class="tip good">
+<b>使用建议：</b>先自己想 5 分钟再开始，引导过程不要跳步——自己推出来的步骤，考试时才写得出来。卡住超过两次，说明前置知识点有缺口，回头补。
+</div>
+</section>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span>© 2026 XSKAI · xskai.com</span>
+    <nav class="foot">
+      <a href="about.html">关于我们</a>
+      <a href="help.html">使用帮助</a>
+      <a href="pricing.html">定价</a>
+      <a href="api-setup.html">API接入</a>
+      <a href="privacy.html">隐私政策</a>
+      <a href="disclaimer.html">免责声明</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+var SYSTEM = "你是一名大学数学老师（高等数学/线性代数）。只返回JSON（不要其他文字、不要markdown代码块），格式：{\"problem_latex\":\"题目LaTeX\",\"analysis\":\"思路分析：考查什么、用什么方法、为什么\",\"steps\":[{\"t\":\"步骤标题\",\"c\":\"推导内容\",\"kp\":\"知识点\"}],\"pitfalls\":[\"易错点\"],\"summary\":\"总结\",\"verify\":{\"method\":\"验算方法\",\"result\":\"验算过程与结论\"}}。要求：1. LaTeX行内用\(...\)，独立行用\[...\]；2. verify必须用真实方法验算（代入具体数值、求导还原积分、特殊值检验等），给出过程和✓/✗结论，不许只写经检验正确；3. 题目有歧义时按最常见理解解答并注明。";
+
+var lastProblem = '', lastSubject = '';
+
+var DEMO_LINES = [
+"【思路分析】",
+"这是一道 $\\\\frac{0}{0}$ 型未定式极限题。看到三角函数 $\\\\sin$，第一反应是重要极限 $\\\\lim_{u \\\\to 0}\\\\frac{\\\\sin u}{u} = 1$。但分子是 $\\\\sin 3x$ 而分母是 $x$，需要通过“配凑”把分母也变成 $3x$。",
+"",
+"【分步解答】",
+"步骤 1：判定未定式类型",
+"当 $x \\\\to 0$ 时，$\\\\sin 3x \\\\to 0$，$x \\\\to 0$，故为 $\\\\frac{0}{0}$ 型未定式。【知识点：未定式判定】",
+"",
+"步骤 2：配凑重要极限的形式",
+"$$\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{x} = \\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{3x} \\\\cdot 3$$",
+"【知识点：配凑法】",
+"",
+"步骤 3：应用重要极限",
+"令 $u = 3x$，当 $x \\\\to 0$ 时 $u \\\\to 0$，由 $\\\\lim_{u \\\\to 0}\\\\frac{\\\\sin u}{u} = 1$ 得",
+"$$\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{3x} = 1$$",
+"【知识点：重要极限、换元法】",
+"",
+"步骤 4：得出结果",
+"$$原式 = 1 \\\\cdot 3 = 3$$",
+"",
+"【易错点】",
+"1. 不要直接把 $\\\\sin 3x$ 约掉——$\\\\sin 3x$ 不是乘积，不能约分；",
+"2. 配凑时分子分母要同乘，漏乘一边是常见错误；",
+"3. 本题也可用等价无穷小：$x \\\\to 0$ 时 $\\\\sin 3x \\\\sim 3x$，直接得 3。",
+"",
+"【总结】",
+"$$\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{x} = 3$$",
+"本题核心：【知识点：重要极限】+【知识点：配凑法】。“凑”出标准形式是极限题的通用思想。",
+"",
+"【自验算】",
+"方法：代入具体数值检验。取 x=0.001，sin0.003/0.001≈2.9999955≈3，✓ 与答案 3 一致。"
+];
+
+function renderJSON(t){
+  var o;
+  try{
+    var m = t.match(/\{[\s\S]*\}/);
+    o = JSON.parse(m ? m[0] : t);
+    if(!o.steps || !o.steps.length) throw 0;
+  }catch(e){ return '<div>'+fmt(t)+'</div>'; }
+  var h = '';
+  if(o.problem_latex) h += '<h4>\U0001F4DD \u9898\u76EE</h4><div>'+o.problem_latex+'</div>';
+  if(o.analysis) h += '<h4>\U0001F4A1 \u601D\u8DEF\u5206\u6790</h4><p>'+o.analysis+'</p>';
+  h += '<h4>\U0001F4CB \u5206\u6B65\u63A8\u5BFC</h4>';
+  o.steps.forEach(function(st,i){
+    h += '<p><b>\u6B65\u9AA4'+(i+1)+'\uFF1A'+st.t+'</b><br>'+st.c+'</p>';
+    if(st.kp) h += '<span class="kp">\U0001F4DA '+st.kp+'</span>';
+  });
+  if(o.pitfalls && o.pitfalls.length) h += '<h4>\u26A0\uFE0F \u6613\u9519\u70B9</h4><ul>'+o.pitfalls.map(function(p){return '<li>'+p+'</li>';}).join('')+'</ul>';
+  if(o.summary) h += '<h4>\u2705 \u603B\u7ED3</h4><p>'+o.summary+'</p>';
+  if(o.verify) h += '<h4>\U0001F50D \u81EA\u9A8C\u7B97</h4><p><b>\u65B9\u6CD5\uFF1A</b>'+o.verify.method+'<br><b>\u7ED3\u679C\uFF1A</b>'+o.verify.result+'</p>';
+  return h;
+}
+function fmt(t){
+  return t.replace(/\u3010\u77e5\u8bc6\u70b9\uff1a(.*?)\u3011/g, '<span class="kp">📚 $1</span>')
+          .replace(/\n/g, '<br>');
+}
+function renderLatex(el){
+  if(window.renderMathInElement){
+    renderMathInElement(el, {delimiters:[
+      {left:'\\[', right:'\\]', display:true},
+      {left:'\\(', right:'\\)', display:false},
+      {left:'$$', right:'$$', display:true},
+      {left:'$', right:'$', display:false}
+    ], throwOnError:false});
+  }
+}
+function showResult(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('result').style.display='block';
+}
+function getCfg(){
+  return {url: localStorage.getItem('zw_apiUrl') || SITE_WORKER};
+}
+function saveCfg(){
+  localStorage.setItem('zw_apiUrl', document.getElementById('apiUrl').value.trim());
+  document.getElementById('cfgOk').textContent = '已保存（仅存你的浏览器本地）';
+}
+(function(){ document.getElementById('apiUrl').value = getCfg().url; document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||''; })();
+
+function saveCode(){
+  var v = document.getElementById('accessCode').value.trim();
+  localStorage.setItem('xskai_code', v);
+  document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
+}
+function apiHeaders(){
+  var h = {'Content-Type':'application/json'};
+  var c = localStorage.getItem('xskai_code');
+  if(c) h['X-Access-Code'] = c;
+  return h;
+}
+
+function startDemo(){
+  showResult();
+  var sol = document.getElementById('solution');
+  sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">📝 示例：求极限 $\\\\lim_{x \\\\to 0}\\\\frac{\\\\sin 3x}{x}$ 的详细解答</div><div>'+fmt(DEMO_LINES.join('\n'))+'</div></div>';
+  renderLatex(sol);
+  document.getElementById('resultBtns').style.display='flex';
+  sol.scrollIntoView({behavior:'smooth'});
+}
+async function callAI(messages){
+  var cfg = getCfg();
+  var endpoint = cfg.url;
+  var headers = apiHeaders();
+  var res = await fetch(endpoint, {method:'POST', headers:headers,
+    body: JSON.stringify({model:'deepseek-v4-flash', messages:messages, temperature:0.3})});
+  var data = await res.json();
+  if(data.error) throw new Error(data.error);
+  return data.choices[0].message.content;
+}
+async function solve(){
+  var p = document.getElementById('problem').value.trim();
+  if(p.length < 3){ alert('请先输入一道题目。'); return; }
+  lastProblem = p; lastSubject = document.getElementById('subject').value;
+  showResult();
+  var sol = document.getElementById('solution');
+  sol.innerHTML = '';
+  document.getElementById('loading').style.display='block';
+  document.getElementById('resultBtns').style.display='none';
+  try{
+    var t = await callAI([
+      {role:'system', content: SYSTEM},
+      {role:'user', content: '科目：'+lastSubject+'\n题目：'+p+'\n请给出详细解答。'}
+    ]);
+    sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">📝 详细解答</div><div>'+renderJSON(t)+'</div></div>';
+    renderLatex(sol);
+    sol.scrollIntoView({behavior:'smooth'});
+  }catch(e){
+    sol.innerHTML = '<div class="msg tutor" style="max-width:100%">出错了：'+e.message+'。检查 API 配置是否正确。</div>';
+  }
+  document.getElementById('loading').style.display='none';
+  document.getElementById('resultBtns').style.display='flex';
+}
+async function altSolve(){
+  if(!lastProblem){ alert('请先生成一次解答。'); return; }
+  var sol = document.getElementById('solution');
+  document.getElementById('loading').style.display='block';
+  try{
+    var t = await callAI([
+      {role:'system', content: SYSTEM},
+      {role:'user', content: '科目：'+lastSubject+'\n题目：'+lastProblem+'\n请换一种解法或思路，重新给出详细解答。'}
+    ]);
+    sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">🔄 另一种解法</div><div>'+renderJSON(t)+'</div></div>';
+    renderLatex(sol);
+    sol.scrollIntoView({behavior:'smooth'});
+  }catch(e){ alert('出错了：'+e.message); }
+  document.getElementById('loading').style.display='none';
+}
+function restart(){ location.reload();}
+
+var recog = null, listening = false;
+function toggleVoice(){
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(!SR){ alert('当前浏览器不支持语音输入，请用 Chrome 或 Edge 打开。'); return;}
+var btn = document.getElementById('voiceBtn');
+if(listening){ recog.stop(); return;}
+recog = new SR(); recog.lang = 'zh-CN'; recog.interimResults = false; recog.maxAlternatives = 1;
+recog.onresult = function(e){
+var t = e.results[0][0].transcript;
+var ta = document.getElementById('problem');
+ta.value = (ta.value? ta.value.replace(/\s+$/,'') + '，': '') + t;
+ta.focus();
+};
+recog.onend = function(){ listening = false; btn.textContent = '🎤 语音输入';};
+recog.onerror = function(e){
+listening = false; btn.textContent = '🎤 语音输入';
+if(e.error!== 'aborted') alert('语音识别出错（'+e.error+'），请重试或手动输入。');
+};
+try{ recog.start(); listening = true; btn.textContent = '⏹ 停止录音';}
+catch(e){ alert('语音启动失败，请重试。');}
+}
+
+function ocrPhoto(input){
+var file = input.files && input.files[0];
+if(!file) return;
+var status = document.getElementById('ocrStatus');
+status.style.display = 'block';
+status.textContent = '\U0001F4F7 \u6B63\u5728\u8BC6\u522B\u9898\u76EE\u2026';
+status.style.color = '#fbbf24';
+var img = new Image();
+img.onload = function(){
+var maxSide = 1600, w = img.width, h = img.height;
+if(Math.max(w,h) > maxSide){ var r = maxSide/Math.max(w,h); w = Math.round(w*r); h = Math.round(h*r);}
+var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+cv.getContext('2d').drawImage(img, 0, 0, w, h);
+var dataUrl = cv.toDataURL('image/jpeg', 0.85);
+URL.revokeObjectURL(img.src);
+input.value = '';
+// 先走本站 Worker（Mathpix 公式识别），失败再降级 OCR.space
+ocrViaWorker(dataUrl).then(function(txt){
+  if(txt){ onOcrText(txt, true); }
+  else{ ocrViaSpace(dataUrl); }
+});
+};
+img.onerror = function(){ status.textContent = '\u2718 \u56FE\u7247\u8BFB\u53D6\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002'; status.style.color = '#f87171';};
+img.src = URL.createObjectURL(file);
+}
+function ocrViaWorker(dataUrl){
+return new Promise(function(resolve){
+  try{
+    var base = (typeof SITE_WORKER==='undefined' ? '' : SITE_WORKER).replace(/\/$/,'');
+    if(!base){ resolve(null); return; }
+    var done = false;
+    var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 20000);
+    fetch(base + '/ocr', {method:'POST', headers:apiHeaders(),
+      body: JSON.stringify({image:dataUrl})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(done) return; done = true; clearTimeout(timer);
+      var txt = ((d && (d.latex || d.text)) || '').trim();
+      resolve(txt || null);
+    })
+    .catch(function(){ if(!done){ done = true; clearTimeout(timer); resolve(null); } });
+  }catch(e){ resolve(null); }
+});
+}
+function ocrViaSpace(dataUrl){
+var status = document.getElementById('ocrStatus');
+status.textContent = '\U0001F4F7 \u5907\u7528\u8BC6\u522B\u4E2D\u2026';
+var fd = new FormData();
+fd.append('apikey', 'helloworld');
+fd.append('base64Image', dataUrl);
+fd.append('language', 'chs');
+fd.append('OCREngine', '2');
+fetch('https://api.ocr.space/parse/image', {method:'POST', body:fd})
+.then(function(r){ return r.json();})
+.then(function(data){
+var txt = data && data.ParsedResults && data.ParsedResults[0] && data.ParsedResults[0].ParsedText;
+onOcrText((txt||'').trim().replace(/\s+/g,''), false);
+})
+.catch(function(){
+status.textContent = '\u2718 \u8BC6\u522B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u624B\u52A8\u8F93\u5165\u9898\u76EE\u3002';
+status.style.color = '#f87171';
+});
+}
+function onOcrText(txt, isLatex){
+var status = document.getElementById('ocrStatus');
+if(txt){
+var ta = document.getElementById('problem');
+ta.value = (ta.value? ta.value.replace(/\s+$/,'') + '\uFF0C': '') + txt;
+status.textContent = '\u2714 \u8BC6\u522B\u5B8C\u6210\uFF0C\u8BF7\u68C0\u67E5\u6587\u5B57\u662F\u5426\u51C6\u786E\uFF0C\u624B\u52A8\u4FEE\u6B63\u540E\u518D\u70B9\"\u751F\u6210\u8BE6\u7EC6\u89E3\u7B54\"\u3002';
+status.style.color = '#4ade80';
+}else{
+status.textContent = '\u2718 \u6CA1\u8BC6\u522B\u51FA\u6587\u5B57\uFF0C\u6362\u4E2A\u89D2\u5EA6\u91CD\u62CD\uFF0C\u6216\u624B\u52A8\u8F93\u5165\u3002';
+status.style.color = '#f87171';
+}
+}
+</script>
+</body>
+</html>

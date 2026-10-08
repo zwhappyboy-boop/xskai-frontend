@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API 接入指南（站长版） · XSKAI</title>
+<meta name="description" content="站长部署指南：DeepSeek API + Cloudflare Worker，卡密收费模式，一套配置三个工具通用。">
+<link rel="stylesheet" href="style.css">
+<style>code{background:#0f1420;border:1px solid #2a3650;border-radius:6px;padding:2px 8px;font-size:13px;color:#4ade80}pre{background:#0f1420;border:1px solid #2a3650;border-radius:10px;padding:16px;overflow-x:auto;font-size:13px;color:#c6d3ea;line-height:1.7}ol.steps li{margin-bottom:14px}</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="index.html">XSK<b>AI</b></a>
+    <nav class="main">
+      <a href="index.html">首页</a>
+      <a href="zuowen.html">作文批改</a>
+      <a href="shuxue.html">中小学数学</a>
+      <a href="gaoshu.html">高数拍照答题</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <article class="block">
+    <h2>API 接入指南 <span style="font-size:14px;color:#9aa5c0">（站长版·用户不用看）</span></h2>
+    <p class="meta">约 20 分钟 · DeepSeek 账号 + Cloudflare 账号（都免费）</p>
+
+    <p>收费模式：<b>每天免费 5 次</b>（按 IP，引流用）+ <b>卡密付费</b>（闲鱼手动发货，不用企业资质）。Key 藏在 Worker 里，用户只填卡密。</p>
+
+    <h3>第一步：拿 DeepSeek API Key</h3>
+    <ol class="steps">
+      <li>打开 <code>platform.deepseek.com</code> 注册，左侧 <b>API Keys</b> 创建 Key（只显示一次，保存好）。</li>
+      <li>用 <code>deepseek-v4-flash</code> 模型（旧的 deepseek-chat 已退役）。</li>
+    </ol>
+
+    <h3>第二步：建 KV（存卡密和计数）</h3>
+    <ol class="steps">
+      <li>Cloudflare 后台 → 左侧 <b>Workers 和 Pages</b> → <b>KV</b> → 创建命名空间，起名 <code>xskai-codes</code>。</li>
+      <li>创建 Worker（起名如 <code>xskai-api</code>）→ <b>设置</b> → <b>绑定</b> → 添加 KV 命名空间绑定，变量名填 <code>CODES</code>，选刚建的 <code>xskai-codes</code>。</li>
+      <li>同样在<b>设置 → 变量</b>里加三个文本变量：<code>ADMIN_KEY</code>（生成卡密的密码，自己定个复杂的）；<code>MATHPIX_APP_ID</code> 和 <code>MATHPIX_APP_KEY</code>（见下）。</li>
+    </ol>
+
+    <h3>第三步：注册 Mathpix（公式识别）</h3>
+    <ol class="steps">
+      <li>打开 <code>mathpix.com</code> 注册开发者账号，拿到 <code>app_id</code> 和 <code>app_key</code>，填进 Worker 变量（上一步）。</li>
+      <li>Mathpix 是公式 OCR 的金标准，手写公式也能识别；注册有免费额度，超出后按量付费（美元）。</li>
+      <li>如果暂时不想接：不填也行，网站会自动降级用免费 OCR（公式识别效果差一些，纯文字没问题）。</li>
+    </ol>
+
+    <h3>第四步：部署 Worker 代码</h3>
+    <p>把下面代码粘贴进 Worker，替换 <code>你的_DEEPSEEK_KEY</code>，点部署：</p>
+    <pre>const API_KEY = "你的_DEEPSEEK_KEY";
+const FREE_DAILY = 5; // 每天免费次数（按IP）
+
+function cors(){return {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, X-Access-Code"};}
+function err(msg, status){return new Response(JSON.stringify({error:msg}),{status:status,headers:{...cors(),"Content-Type":"application/json"}});}
+
+export default {
+async fetch(req, env){
+  const url = new URL(req.url);
+  if(req.method==="OPTIONS") return new Response(null,{headers:cors()});
+
+  // --- 管理员：生成卡密 ---
+  if(url.pathname==="/admin/generate" &amp;&amp; req.method==="POST"){
+    let b; try{b=await req.json();}catch(e){return err("Bad request",400);}
+    if(b.admin_key !== env.ADMIN_KEY) return err("无权限",403);
+    const CHARS="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; let code="";
+    const rnd=new Uint8Array(8); crypto.getRandomValues(rnd);
+    for(let i=0;i<8;i++) code+=CHARS[rnd[i]%CHARS.length];
+    const quota = parseInt(b.quota)||500;
+    await env.CODES.put("code:"+code, JSON.stringify({quota:quota,used:0,created:Date.now()}));
+    return new Response(JSON.stringify({code:code,quota:quota}),{headers:{...cors(),"Content-Type":"application/json"}});
+  }
+
+  // --- 公式 OCR（Mathpix）：拍照识别数学公式 ---
+  if(url.pathname==="/ocr" &amp;&amp; req.method==="POST"){
+    const oip = req.headers.get("CF-Connecting-IP")||"unknown";
+    const oday = new Date().toISOString().slice(0,10);
+    const ok = "ocr:"+oip+":"+oday;
+    const on = parseInt(await env.CODES.get(ok)||"0");
+    if(on>=20) return err("今日识别次数已用完",402);
+    await env.CODES.put(ok, String(on+1), {expirationTtl:172800});
+    let ob;
+    try{ob=await req.json();}catch(e){return err("Bad request",400);}
+    if(!ob.image) return err("Bad request",400);
+    const mr = await fetch("https://api.mathpix.com/v3/text",{
+      method:"POST",
+      headers:{"app_id":env.MATHPIX_APP_ID,"app_key":env.MATHPIX_APP_KEY,"Content-Type":"application/json"},
+      body: JSON.stringify({src:ob.image, formats:["text","latex_styled"], data_options:{include_latex:true}})});
+    const md = await mr.json();
+    return new Response(JSON.stringify({text:md.text||"", latex:md.latex_styled||""}),
+      {headers:{...cors(),"Content-Type":"application/json"}});
+  }
+
+  if(req.method!=="POST" || url.pathname!=="/") return new Response("Not found",{status:404});
+
+  // --- 卡密 / 免费额度校验 ---
+  const code = req.headers.get("X-Access-Code")||"";
+  const ip = req.headers.get("CF-Connecting-IP")||"unknown";
+  const today = new Date().toISOString().slice(0,10);
+  if(code){
+    const rec = await env.CODES.get("code:"+code,{type:"json"});
+    if(!rec) return err("卡密无效，请检查后重试",403);
+    if(rec.used>=rec.quota) return err("该卡密次数已用完",403);
+    rec.used++;
+    await env.CODES.put("code:"+code, JSON.stringify(rec));
+  }else{
+    const k = "free:"+ip+":"+today;
+    const n = parseInt(await env.CODES.get(k)||"0");
+    if(n>=FREE_DAILY) return err("今日免费次数已用完，输入卡密可继续使用",402);
+    await env.CODES.put(k, String(n+1), {expirationTtl:172800});
+  }
+
+  // --- 转发 DeepSeek（锁定模型与上限，防滥用）---
+  let parsed;
+  try{parsed=await req.json();}catch(e){return err("Bad request",400);}
+  if(!parsed.messages||!Array.isArray(parsed.messages)) return err("Bad request",400);
+  parsed.model="deepseek-v4-flash";
+  parsed.max_tokens=Math.min(parsed.max_tokens||2000,4000);
+  const r=await fetch("https://api.deepseek.com/chat/completions",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+API_KEY},
+    body:JSON.stringify(parsed)});
+  const data=await r.text();
+  return new Response(data,{headers:{...cors(),"Content-Type":"application/json"}});
+}};</pre>
+
+    <h3>第五步：连上网站</h3>
+    <ol class="steps">
+      <li>Worker 部署成功后得到地址，如 <code>https://xskai-api.xxx.workers.dev</code>。</li>
+      <li>打开本站 <code>config.js</code>，把 <code>SITE_WORKER</code> 换成这个地址——三个工具自动生效。</li>
+      <li>用 <code>admin.html</code>（不挂导航，直接访问）生成第一张测试卡密，自己试一遍流程。</li>
+    </ol>
+
+    <h3>第六步：闲鱼上架卖卡密</h3>
+    <ol class="steps">
+      <li>闲鱼发布虚拟商品："XSKAI 学习卡密"，定价参考 <a href="pricing.html">定价页</a>。</li>
+      <li>有人下单 → 打开 <code>admin.html</code> 生成卡密 → 闲鱼私聊发码。</li>
+      <li>卡密在 KV 里可查已用次数，有纠纷时看记录。</li>
+    </ol>
+
+    <div class="tip good">
+      <b>成本账：</b>一次调用约 ¥0.01-0.03。卡密 ¥9.9/500次，成本约 ¥5-15，毛利一半以上。免费 5 次/天是引流成本，单个 IP 一天最多烧你 ¥0.15。
+    </div>
+  </article>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span>© 2026 XSKAI · xskai.com</span>
+    <nav class="foot">
+      <a href="about.html">关于我们</a>
+      <a href="help.html">使用帮助</a>
+      <a href="pricing.html">定价</a>
+      <a href="api-setup.html">API接入</a>
+      <a href="privacy.html">隐私政策</a>
+      <a href="disclaimer.html">免责声明</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
