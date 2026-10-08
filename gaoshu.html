@@ -383,8 +383,7 @@ function renderPreview(){
   if(hasDelims){
     html = escHtml(v).replace(/\n/g,'<br>');
   }else if(looksLikeLatex(v)){
-    var parts = escHtml(v).split(/\\\\+|\n+/);
-    html = parts.filter(function(x){return x.trim();}).map(function(p){return '\\['+p.trim()+'\\]';}).join('<br>');
+    html = '\\[' + escHtml(v).replace(/\\\\(?=[a-zA-Z])/g,'\\').replace(/\\\\/g,' ').replace(/\n+/g,' ') + '\\]';
   }else{
     html = escHtml(v).replace(/\n/g,'<br>');
   }
