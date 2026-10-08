@@ -160,7 +160,7 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 <script>
 var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；动画用GSAP（iframe已内置gsap 3.12，直接写代码）：在svg末尾加script标签写时间轴，例如：<script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.6,ease:\"back.out(1.5)\"}});tl.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"}).from(\"#b\",{y:12,opacity:0},\"+=.3\");}<\/script>（<\/script>即闭合标签）；规则：每个动画元素给唯一id；只用gsap.timeline/from/to/set；transformOrigin用SVG坐标；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；美化：linearGradient渐变填充、扇形用path实心绘制、文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点";
 var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师，专门用动画讲题。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"开场白（60字内）\",\"kp\":\"涉及的知识点\",\"visual\":{\"needed\":true,\"title\":\"动画标题\",\"svg\":\"完整的分步骤SVG动画代码\"},\"captions\":[{\"t\":0,\"text\":\"第1步……\"},{\"t\":1.5,\"text\":\"第2步……\"}],\"done\":true}\n2. SVG要求：一个SVG讲完整个解题过程，用animation-delay让步骤按顺序出现（步骤间隔约1.2秒）；只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 400\"；深色背景、文字浅色#dbe4f5；风格具象化、色彩丰富（马卡龙色系），像玩具不要像学术图表；svg为单行字符串；动画用GSAP（iframe已内置gsap 3.12，直接写代码）：在svg末尾加script标签写时间轴，例如：<script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.6,ease:\"back.out(1.5)\"}});tl.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"}).from(\"#b\",{y:12,opacity:0},\"+=.3\");}<\/script>（<\/script>即闭合标签）；规则：每个动画元素给唯一id；只用gsap.timeline/from/to/set；transformOrigin用SVG坐标；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；美化：linearGradient渐变填充、扇形用path实心绘制、文字分层（标题17px白色加粗、标注13px #9fb0cc）\n3. captions与动画步骤一一对应，t是该步骤在动画中出现的秒数\n4. 题目完全不适合画图（如纯口算）时visual.needed=false，captions写纯文字步骤";
-var history = [];
+var chatHistory = [];
 var demoMode = false, demoIdx = 0;
 
 var DEMO = [
@@ -255,7 +255,7 @@ var cfg = getCfg();
 var endpoint = cfg.url;
 var headers = apiHeaders();
 var res = await fetch(endpoint, {method:'POST', headers:headers,
-body: JSON.stringify({model:'deepseek-v4-flash', messages:history, temperature:0.5})});
+body: JSON.stringify({model:'deepseek-v4-flash', messages:chatHistory, temperature:0.5})});
 var data = await res.json();
 if(data.error) throw new Error(data.error);
 return data.choices[0].message.content;
@@ -263,10 +263,10 @@ return data.choices[0].message.content;
 function start(){
 var p = document.getElementById('problem').value.trim();
 if(p.length < 5){ alert('请先输入一道数学题（至少5个字）。'); return;}
-demoMode = false; history = [];
+demoMode = false; chatHistory = [];
 var grade = document.getElementById('grade').value;
-history.push({role:'system', content: SYSTEM + "\n学生是"+grade+"学生，题目是："+p});
-history.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
+chatHistory.push({role:'system', content: SYSTEM + "\n学生是"+grade+"学生，题目是："+p});
+chatHistory.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
 showChat();
 document.getElementById('msgs').innerHTML = '';
 addMsg('student', p);
@@ -275,7 +275,7 @@ ask();
 async function ask(){
 document.getElementById('loading').style.display='block';
 try{
-    var t = await callAI(); history.push({role:'assistant', content:t});
+    var t = await callAI(); chatHistory.push({role:'assistant', content:t});
     var o = parseTutor(t);
     if(o) addTutorObj(o); else addMsg('tutor', t);
   }
@@ -288,13 +288,13 @@ var v = document.getElementById('answer').value.trim();
 if(!v) return;
 document.getElementById('answer').value = '';
 addMsg('student', v);
-history.push({role:'user', content:v});
+chatHistory.push({role:'user', content:v});
 ask();
 }
 function stuck(){
 if(demoMode){ alert('演示模式请点"下一步"继续。'); return;}
 addMsg('student', '💡 我卡住了，给我一个提示吧');
-history.push({role:'user', content:'我这一步卡住了，请给我一个提示（hint），不要直接给答案，用提问的方式引导我。'});
+chatHistory.push({role:'user', content:'我这一步卡住了，请给我一个提示（hint），不要直接给答案，用提问的方式引导我。'});
 ask();
 }
 
