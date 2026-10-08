@@ -9,9 +9,9 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="libs/katex/katex.min.css">
 <style>
-.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:14px;padding:24px;margin:20px 0}
+.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:var(--r-lg,14px);padding:24px;margin:20px 0;box-shadow:0 2px 10px rgba(0,0,0,.25)}
 .toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
-.toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit}
+.toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit;resize:none}
 #problemWrap{position:relative}
 #problem{display:block}
 #problem.editing{display:block}
@@ -21,7 +21,8 @@
 .toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
 .btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
 .btn.big{padding:12px 28px;font-size:16px}
-.btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:8px;font-size:15px;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:var(--r-sm,8px);font-size:15px;cursor:pointer;transition:all .2s ease}
+.btn.ghost:hover{background:rgba(255,255,255,.06);border-color:#3d4a6c}
 #chat{display:none;margin-top:18px}
 .msg{margin:10px 0;padding:12px 16px;border-radius:10px;font-size:15px;line-height:2;max-width:94%}
 .msg.tutor{background:#0f1420;border:1px solid #2a3650;color:#dbe4f5}
@@ -47,7 +48,7 @@
 
 <div class="wrap">
 <section class="block">
-<h2>📐 📐 高数 · 线代详细解答</h2>
+<h2>📐 高数 · 线代详细解答</h2>
 <p class="sub">拍下题目照片，直接出详细解答：思路分析 → 分步推导 → 易错点 → 总结。公式 LaTeX 漂亮渲染，每步标注知识点。免费。</p>
 
 <div class="toolbox" id="setup">
