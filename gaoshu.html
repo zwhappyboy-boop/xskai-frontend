@@ -13,6 +13,9 @@
 .toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
 .toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit}
 .toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
+#previewBox{display:none;margin-top:10px;background:#0f1420;border:1px solid #2a3650;border-left:3px solid #3b82f6;border-radius:8px;padding:12px 16px;font-size:15px;line-height:2;color:#dbe4f5;overflow-x:auto}
+#previewBox .pv-label{font-size:12px;color:#9fb0cc;margin-bottom:4px}
+#previewBox .katex{font-size:1.15em}
 .btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
 .btn.big{padding:12px 28px;font-size:16px}
 .btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:8px;font-size:15px;cursor:pointer}
@@ -71,6 +74,7 @@
 <span id="codeOk" style="color:#4ade80"></span>
 </div>
 <div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
+<div id="previewBox"><div class="pv-label">👁 题目预览（渲染后的公式效果）</div><div id="previewBody"></div></div>
 
 <details class="cfg">
 <summary style="cursor:pointer;font-size:13px;color:#9fb0cc">⚙️ 高级设置（可选）：使用自己的 AI 地址</summary>
@@ -353,6 +357,62 @@ status.textContent = '\u2718 \u8BC6\u522B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7
 status.style.color = '#f87171';
 });
 }
+var pvTimer = null;
+function looksLikeLatex(s){
+  if(!s) return false;
+  return /\\[a-zA-Z]+/.test(s)
+    || /\\\(/.test(s)
+    || /\\\[/.test(s)
+    || /\$\$/.test(s)
+    || /\\(?:lim|frac|sqrt|sum|int|arctan|arcsin|arccos|sin|cos|tan|log|ln|pi|cdot|times|infty|alpha|beta|theta|pm|mp|le|ge|ne|approx|to\s|left|right)/.test(s)
+    || /\^\s*[0-9{]/.test(s)
+    || /_\s*[0-9{a-zA-Z]/.test(s);
+}
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function renderPreview(){
+  var box = document.getElementById('previewBox');
+  var body = document.getElementById('previewBody');
+  var ta = document.getElementById('problem');
+  if(!box || !body || !ta) return;
+  var v = ta.value.trim();
+  if(!v || !window.renderMathInElement){ box.style.display='none'; return; }
+  var hasDelims = /\\\(|\\\[|\$\$|\$[^$]+\$/.test(v);
+  var html;
+  if(hasDelims){
+    html = escHtml(v).replace(/\n/g,'<br>');
+  }else if(looksLikeLatex(v)){
+    var parts = escHtml(v).split(/\\\\+|\n+/);
+    html = parts.filter(function(x){return x.trim();}).map(function(p){return '\\['+p.trim()+'\\]';}).join('<br>');
+  }else{
+    html = escHtml(v).replace(/\n/g,'<br>');
+  }
+  body.innerHTML = html;
+  box.style.display = 'block';
+  try{
+    renderMathInElement(body, {delimiters:[
+      {left:'\\[', right:'\\]', display:true},
+      {left:'\\(', right:'\\)', display:false},
+      {left:'$$', right:'$$', display:true},
+      {left:'$', right:'$', display:false}
+    ], throwOnError:false});
+    var rendered = body.querySelectorAll('.katex, .katex-error').length;
+    if(!rendered){ box.style.display='none'; return; }
+    if(body.querySelectorAll('.katex-error').length){
+      body.insertAdjacentHTML('beforeend', '<div class="pv-warn" style="font-size:12px;color:#fbbf24;margin-top:6px">⚠ 部分内容无法渲染为公式，如显示异常请检查或补充 $...$ 定界符</div>');
+    }
+  }catch(e){ box.style.display='none'; }
+}
+function schedulePreview(){
+  if(pvTimer) clearTimeout(pvTimer);
+  pvTimer = setTimeout(renderPreview, 300);
+}
+(function(){
+  var ta = document.getElementById('problem');
+  if(ta){ ta.addEventListener('input', schedulePreview); }
+})();
+
 function onOcrText(txt, isLatex){
 var status = document.getElementById('ocrStatus');
 if(txt){
