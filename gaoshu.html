@@ -6,7 +6,8 @@
 <title>高等数学拍照答题 · 详细解答 · XSKAI</title>
 <meta name="description" content="AI 高数/线代详细解答：思路分析、分步推导、易错点、总结，LaTeX 公式漂亮渲染，每步标注知识点。免费。">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="libs/katex/katex.min.css">
 <style>
 .toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:14px;padding:24px;margin:20px 0}
 .toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
@@ -110,8 +111,8 @@
 </footer>
 
 <script src="config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="libs/katex/katex.min.js"></script>
+<script src="libs/katex/auto-render.min.js"></script>
 <script>
 var SYSTEM = "你是一名大学数学老师（高等数学/线性代数）。只返回JSON（不要其他文字、不要markdown代码块），格式：{\"problem_latex\":\"题目LaTeX\",\"analysis\":\"思路分析：考查什么、用什么方法、为什么\",\"steps\":[{\"t\":\"步骤标题\",\"c\":\"推导内容\",\"kp\":\"知识点\"}],\"pitfalls\":[\"易错点\"],\"summary\":\"总结\",\"verify\":{\"method\":\"验算方法\",\"result\":\"验算过程与结论\"}}。要求：1. LaTeX行内用\(...\)，独立行用\[...\]；2. verify必须用真实方法验算（代入具体数值、求导还原积分、特殊值检验等），给出过程和✓/✗结论，不许只写经检验正确；3. 题目有歧义时按最常见理解解答并注明。";
 
