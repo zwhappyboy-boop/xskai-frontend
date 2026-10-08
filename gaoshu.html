@@ -12,10 +12,13 @@
 .toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:14px;padding:24px;margin:20px 0}
 .toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
 .toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit}
+#problemWrap{position:relative}
+#problem{display:block}
+#problem.editing{display:block}
+#problemRender{min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit;cursor:text;display:none}
+#problemRender .katex{font-size:1.12em}
+#problemRender .edit-hint{font-size:12px;color:#9fb0cc;margin-top:6px;border-top:1px dashed #2a3650;padding-top:4px}
 .toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
-#previewBox{display:none;margin-top:10px;background:#0f1420;border:1px solid #2a3650;border-left:3px solid #3b82f6;border-radius:8px;padding:12px 16px;font-size:15px;line-height:2;color:#dbe4f5;overflow-x:auto}
-#previewBox .pv-label{font-size:12px;color:#9fb0cc;margin-bottom:4px}
-#previewBox .katex{font-size:1.15em}
 .btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
 .btn.big{padding:12px 28px;font-size:16px}
 .btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:8px;font-size:15px;cursor:pointer}
@@ -58,7 +61,10 @@
 <option>线性代数</option>
 </select>
 <label>拍下题目（推荐）或手动输入</label>
-<textarea id="problem" placeholder="例如：求极限 lim(x→0) sin3x / x"></textarea>
+<div id="problemWrap">
+  <textarea id="problem" placeholder="例如：求极限 lim(x→0) sin3x / x"></textarea>
+  <div id="problemRender" style="display:none"></div>
+</div>
 <div class="btn-row">
 <button class="btn big" onclick="document.getElementById('photoInput').click()">📷 拍照答题</button>
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
@@ -74,7 +80,7 @@
 <span id="codeOk" style="color:#4ade80"></span>
 </div>
 <div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
-<div id="previewBox"><div class="pv-label">👁 题目预览（渲染后的公式效果）</div><div id="previewBody"></div></div>
+
 
 <details class="cfg">
 <summary style="cursor:pointer;font-size:13px;color:#9fb0cc">⚙️ 高级设置（可选）：使用自己的 AI 地址</summary>
@@ -358,6 +364,7 @@ status.style.color = '#f87171';
 });
 }
 var pvTimer = null;
+var isEditing = false;
 function looksLikeLatex(s){
   if(!s) return false;
   return /\\[a-zA-Z]+/.test(s)
@@ -371,45 +378,75 @@ function looksLikeLatex(s){
 function escHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-function renderPreview(){
-  var box = document.getElementById('previewBox');
-  var body = document.getElementById('previewBody');
-  var ta = document.getElementById('problem');
-  if(!box || !body || !ta) return;
-  var v = ta.value.trim();
-  if(!v || !window.renderMathInElement){ box.style.display='none'; return; }
+function buildPreviewHtml(v){
   var hasDelims = /\\\(|\\\[|\$\$|\$[^$]+\$/.test(v);
-  var html;
   if(hasDelims){
-    html = escHtml(v).replace(/\n/g,'<br>');
+    return escHtml(v).replace(/\n/g,'<br>');
   }else if(looksLikeLatex(v)){
-    html = '\\[' + escHtml(v).replace(/\\\\(?=[a-zA-Z])/g,'\\').replace(/\\\\/g,' ').replace(/\n+/g,' ') + '\\]';
+    return '\\[' + escHtml(v).replace(/\\\\(?=[a-zA-Z])/g,'\\').replace(/\\\\/g,' ').replace(/\n+/g,' ') + '\\]';
   }else{
-    html = escHtml(v).replace(/\n/g,'<br>');
+    return escHtml(v).replace(/\n/g,'<br>');
   }
-  body.innerHTML = html;
-  box.style.display = 'block';
+}
+function renderPreview(){
+  var ta = document.getElementById('problem');
+  var render = document.getElementById('problemRender');
+  if(!ta || !render) return;
+  var v = ta.value.trim();
+  if(!v || !window.renderMathInElement || isEditing){
+    return;
+  }
+  render.innerHTML = buildPreviewHtml(v);
+  if(!v){ render.style.display='none'; ta.style.display='block'; return; }
   try{
-    renderMathInElement(body, {delimiters:[
+    renderMathInElement(render, {delimiters:[
       {left:'\\[', right:'\\]', display:true},
       {left:'\\(', right:'\\)', display:false},
       {left:'$$', right:'$$', display:true},
       {left:'$', right:'$', display:false}
     ], throwOnError:false});
-    var rendered = body.querySelectorAll('.katex, .katex-error').length;
-    if(!rendered){ box.style.display='none'; return; }
-    if(body.querySelectorAll('.katex-error').length){
-      body.insertAdjacentHTML('beforeend', '<div class="pv-warn" style="font-size:12px;color:#fbbf24;margin-top:6px">⚠ 部分内容无法渲染为公式，如显示异常请检查或补充 $...$ 定界符</div>');
+    var rendered = render.querySelectorAll('.katex, .katex-error').length;
+    if(!rendered){
+      render.style.display='none';
+      ta.style.display='block';
+      return;
     }
-  }catch(e){ box.style.display='none'; }
+    if(render.querySelectorAll('.katex-error').length){
+      render.innerHTML += '<div class="edit-hint">⚠ 部分内容无法渲染，点击可编辑修正</div>';
+    }
+  }catch(e){ render.style.display='none'; ta.style.display='block'; return; }
+  render.innerHTML += '<div class="edit-hint">点击可编辑修改</div>';
+  render.style.display='block';
+  ta.style.display='none';
+}
+function showEditor(){
+  var ta = document.getElementById('problem');
+  var render = document.getElementById('problemRender');
+  isEditing = true;
+  render.style.display='none';
+  ta.style.display='block';
+  ta.focus();
+}
+function hideEditor(){
+  var ta = document.getElementById('problem');
+  var render = document.getElementById('problemRender');
+  isEditing = false;
+  renderPreview();
 }
 function schedulePreview(){
   if(pvTimer) clearTimeout(pvTimer);
-  pvTimer = setTimeout(renderPreview, 300);
+  pvTimer = setTimeout(renderPreview, 400);
 }
 (function(){
   var ta = document.getElementById('problem');
-  if(ta){ ta.addEventListener('input', schedulePreview); }
+  var render = document.getElementById('problemRender');
+  if(ta){
+    ta.addEventListener('input', schedulePreview);
+    ta.addEventListener('blur', function(){ setTimeout(hideEditor, 200); });
+  }
+  if(render){
+    render.addEventListener('click', showEditor);
+  }
 })();
 
 function onOcrText(txt, isLatex){
@@ -419,6 +456,8 @@ var ta = document.getElementById('problem');
 ta.value = (ta.value? ta.value.replace(/\s+$/,'') + '\uFF0C': '') + txt;
 status.textContent = '\u2714 \u8BC6\u522B\u5B8C\u6210\uFF0C\u8BF7\u68C0\u67E5\u6587\u5B57\u662F\u5426\u51C6\u786E\uFF0C\u624B\u52A8\u4FEE\u6B63\u540E\u518D\u70B9\"\u751F\u6210\u8BE6\u7EC6\u89E3\u7B54\"\u3002';
 status.style.color = '#4ade80';
+isEditing = false;
+renderPreview();
 }else{
 status.textContent = '\u2718 \u6CA1\u8BC6\u522B\u51FA\u6587\u5B57\uFF0C\u6362\u4E2A\u89D2\u5EA6\u91CD\u62CD\uFF0C\u6216\u624B\u52A8\u8F93\u5165\u3002';
 status.style.color = '#f87171';
