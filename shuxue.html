@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -24,6 +24,8 @@
 #answerRow{display:flex;gap:10px;margin-top:12px}
 #answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
 .loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
+.prob-show{margin:0 0 14px;padding:12px 16px;background:#1b2a4a;border:1px solid #2d5a8f;border-radius:10px;font-size:15px;line-height:1.8;color:#e8ecf5}
+.prob-show b{color:#fcd34d}
 .visual{margin-top:10px;border:1px solid #2a3650;border-radius:10px;overflow:hidden}
 .visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#4ade80;background:#0f1420}
 .visual iframe{width:100%;aspect-ratio:400/340;border:0;display:block;background:#0f1420}
@@ -102,6 +104,7 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 </div>
 
 <div class="toolbox" id="chat">
+<div id="probBar" class="prob-show" style="display:none"></div>
 <div id="msgs"></div>
 <div class="loading" id="loading">老师正在思考…</div>
 <div id="answerRow">
@@ -110,6 +113,7 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 <button class="btn ghost" onclick="stuck()">💡 我卡住了</button>
 </div>
 <div class="btn-row">
+<button class="btn ghost" onclick="toExplain()">🎬 看讲解动画</button>
 <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>
 </div>
 </div>
@@ -118,6 +122,7 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 <div id="explainBody"></div>
 <div class="btn-row" style="margin-top:14px">
 <button class="btn ghost" onclick="replayExplain()">↻ 重播动画</button>
+<button class="btn ghost" onclick="backToChat()">🤔 回到一步步引导</button>
 <button class="btn ghost" onclick="backToSetup()">↩️ 换一道题</button>
 </div>
 </div>
@@ -147,10 +152,11 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 
 <script src="config.js"></script>
 <script>
-var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；动画用GSAP（iframe已内置gsap 3.12，直接写代码）：在svg末尾加script标签写时间轴，例如：<script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.6,ease:\"back.out(1.5)\"}});tl.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"}).from(\"#b\",{y:12,opacity:0},\"+=.3\");}<\/script>（<\/script>即闭合标签）；规则：每个动画元素给唯一id；只用gsap.timeline/from/to/set；transformOrigin用SVG坐标；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；美化：linearGradient渐变填充、扇形用path实心绘制、文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点";
-var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师，专门用动画讲题。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"开场白（60字内）\",\"kp\":\"涉及的知识点\",\"visual\":{\"needed\":true,\"title\":\"动画标题\",\"svg\":\"完整的分步骤SVG动画代码\"},\"captions\":[{\"t\":0,\"text\":\"第1步……\"},{\"t\":1.5,\"text\":\"第2步……\"}],\"done\":true}\n2. SVG要求：一个SVG讲完整个解题过程，用animation-delay让步骤按顺序出现（步骤间隔约1.2秒）；只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 400\"；深色背景、文字浅色#dbe4f5；风格具象化、色彩丰富（马卡龙色系），像玩具不要像学术图表；svg为单行字符串；动画用GSAP（iframe已内置gsap 3.12，直接写代码）：在svg末尾加script标签写时间轴，例如：<script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.6,ease:\"back.out(1.5)\"}});tl.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"}).from(\"#b\",{y:12,opacity:0},\"+=.3\");}<\/script>（<\/script>即闭合标签）；规则：每个动画元素给唯一id；只用gsap.timeline/from/to/set；transformOrigin用SVG坐标；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；美化：linearGradient渐变填充、扇形用path实心绘制、文字分层（标题17px白色加粗、标注13px #9fb0cc）\n3. captions与动画步骤一一对应，t是该步骤在动画中出现的秒数\n4. 题目完全不适合画图（如纯口算）时visual.needed=false，captions写纯文字步骤";
+var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；动画用GSAP（iframe已内置gsap 3.12，直接写代码）：在svg末尾加script标签写时间轴，例如：<script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.6,ease:\"back.out(1.5)\"}});tl.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"}).from(\"#b\",{y:12,opacity:0},\"+=.3\");}<\/script>（<\/script>即闭合标签）；规则：每个动画元素给唯一id；只用gsap.timeline/from/to/set；transformOrigin用SVG坐标；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；美化：linearGradient渐变填充、扇形用path实心绘制、文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过1500字符，砍掉多余装饰元素，保证JSON一次成型不截断";
+var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师，专门用动画讲题。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"开场白（60字内）\",\"kp\":\"涉及的知识点\",\"visual\":{\"needed\":true,\"title\":\"动画标题\",\"svg\":\"完整的分步骤SVG动画代码\"},\"captions\":[{\"t\":0,\"text\":\"第1步……\"},{\"t\":1.5,\"text\":\"第2步……\"}],\"done\":true}\n2. SVG要求：一个SVG讲完整个解题过程，用animation-delay让步骤按顺序出现（步骤间隔约1.2秒）；只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 400\"；深色背景、文字浅色#dbe4f5；风格具象化、色彩丰富（马卡龙色系），像玩具不要像学术图表；svg为单行字符串；动画用GSAP（iframe已内置gsap 3.12，直接写代码）：在svg末尾加script标签写时间轴，例如：<script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.6,ease:\"back.out(1.5)\"}});tl.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"}).from(\"#b\",{y:12,opacity:0},\"+=.3\");}<\/script>（<\/script>即闭合标签）；规则：每个动画元素给唯一id；只用gsap.timeline/from/to/set；transformOrigin用SVG坐标；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；美化：linearGradient渐变填充、扇形用path实心绘制、文字分层（标题17px白色加粗、标注13px #9fb0cc）\n3. captions与动画步骤一一对应，t是该步骤在动画中出现的秒数\n4. 题目完全不适合画图（如纯口算）时visual.needed=false，captions写纯文字步骤\n5. 严控篇幅：SVG代码总长不超过2000字符，装饰元素能省则省，保证JSON一次成型不截断。特别重要：JSON字符串内部的双引号必须用反斜杠转义，SVG标签属性用双引号时写作\"viewBox=\\\"0 0 400 400\\\"\"的形式";
 var chatHistory = [];
 var demoMode = false, demoIdx = 0;
+var curProblem = '';  // 当前题目（跨模式保留）
 
 var DEMO = [
   {w:'student', t:'1/2 + 1/4 等于多少？'},
@@ -175,13 +181,79 @@ d.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// 抢救性 JSON 解析：AI 返回被截断/嵌套引号转义不规范时，逐字段提取可用内容
 function parseTutor(t){
+  t = String(t||'');
+  var m = t.match(/\{[\s\S]*\}/);
+  var raw = m ? m[0] : t;
   try{
-    var m = t.match(/\{[\s\S]*\}/);
-    var o = JSON.parse(m ? m[0] : t);
-    if(o && typeof o.say === 'string') return o;
+    var o = JSON.parse(raw);
+    if(o && typeof o.say === 'string') return cleanVisual(o);
   }catch(e){}
-  return null;
+  // 尝试修复常见的嵌套转义错误：SVG 属性值内出现 \\"0 0 400 400\\" 这类多层转义
+  try{
+    var fixed = raw.replace(/\\\\\\"/g, '\\"');
+    var o2 = JSON.parse(fixed);
+    if(o2 && typeof o2.say === 'string') return cleanVisual(o2);
+  }catch(e){}
+  // 截断抢救：逐字段用正则提取
+  var rescue = {};
+  var sayM = raw.match(/\"say\"\s*:\s*\"((?:[^\"\\\\]|\\\\.)*)\"/);
+  if(sayM) rescue.say = sayM[1].replace(/\\\\n/g,'\n').replace(/\\\"/g,'"');
+  var kpM = raw.match(/\"kp\"\s*:\s*\"((?:[^\"\\\\]|\\\\.)*)\"/);
+  if(kpM) rescue.kp = kpM[1];
+  var titleM = raw.match(/\"title\"\s*:\s*\"((?:[^\"\\\\]|\\\\.)*)\"/);
+  if(titleM) rescue.visual = {needed:true, title:titleM[1], svg:''};
+  // svg 字段：从 "svg":" 后取到 captions 字段或末尾，转义还原后验证
+  var svgIdx = raw.search(/"svg"\s*:\s*"/);
+  if(svgIdx >= 0){
+    var keyAt = raw.indexOf('"svg"', svgIdx);
+    var vStart = raw.indexOf('"', keyAt + 5) + 1;
+    var capIdx = raw.search(/,\s*"captions"/);
+    var vEnd = (capIdx > vStart) ? capIdx : raw.length;
+    var svgRaw = raw.substring(vStart, vEnd);
+    svgRaw = svgRaw.replace(/\\"$/, '').replace(/"$/, '').replace(/,$/, '');
+    var svg = svgRaw.replace(/\\\\"/g, '"').replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, ' ');
+    if(svg.indexOf('<svg') >= 0 && svg.indexOf('</svg>') > 0) rescue.visual = {needed:true, title:(titleM?titleM[1]:'动画'), svg:svg};
+    else if(svg.indexOf('<svg') >= 0) rescue.visual = {needed:true, title:(titleM?titleM[1]:'动画'), svg:svg + '</svg>'};
+    else rescue.visual = {needed:false, svg:''};
+  }
+  // captions 字段：取到最后一个 ] 或最后一个 }，兼容截断
+  var capM = raw.match(/"captions"\s*:\s*(\[[\s\S]*\])/);
+  if(!capM) capM = raw.match(/"captions"\s*:\s*(\[[\s\S]*)/);
+  if(capM){
+    var capTxt = capM[1];
+    var lastBrace = capTxt.lastIndexOf('}');
+    if(lastBrace > 0) capTxt = capTxt.substring(0, lastBrace+1) + ']';
+    try{
+      var caps = JSON.parse(capTxt);
+      if(caps && caps.length) rescue.captions = caps;
+    }catch(e){
+      // 再捞一把：逐项提取 t/text
+      var items = capTxt.match(/\{\s*"t"\s*:\s*([0-9.]+)\s*,\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g);
+      if(items && items.length){
+        rescue.captions = items.map(function(it, i){
+          var mm = it.match(/"t"\s*:\s*([0-9.]+)/); var tm = it.match(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+          return {t: mm ? parseFloat(mm[1]) : i*1.5, text: tm ? tm[1] : ''};
+        });
+      }
+    }
+  }
+  var doneM = raw.match(/\"done\"\s*:\s*(true|false)/);
+  if(doneM) rescue.done = doneM[1]==='true';
+  return (rescue.say || rescue.captions || (rescue.visual && rescue.visual.svg)) ? cleanVisual(rescue) : null;
+}
+// SVG 字符串里的多层转义反斜杠还原，去掉残缺标签
+function cleanVisual(o){
+  if(o && o.visual && o.visual.svg){
+    var s = o.visual.svg;
+    s = s.replace(/\\\\"/g, '"').replace(/\\\"/g,'"');
+    var i = s.indexOf('<svg'), j = s.lastIndexOf('</svg>');
+    if(i >= 0 && j > i) o.visual.svg = s.substring(i, j+6);
+    else if(i < 0) o.visual.needed = false;
+    else if(j < i) o.visual.svg = s.substring(i) + '</svg>';  // 截断的 SVG 补闭合
+  }
+  return o;
 }
 function addTutorObj(o){
   var d = document.createElement('div');
@@ -201,8 +273,7 @@ function showChat(){
 document.getElementById('setup').style.display='none';
 document.getElementById('explainOut').style.display='none';
 document.getElementById('chat').style.display='block';
-}
-function saveCode(){
+}function saveCode(){
   var v = document.getElementById('accessCode').value.trim();
   localStorage.setItem('xskai_code', v);
   document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
@@ -218,6 +289,9 @@ function apiHeaders(){
 function startDemo(){
   demoMode = true; demoIdx = 0;
   showChat();
+  var pb = document.getElementById('probBar');
+  pb.innerHTML = '<b>📚 原题：</b>1/2 + 1/4 等于多少？';
+  pb.style.display = 'block';
   document.getElementById('msgs').innerHTML = '';
   demoStep();
 }
@@ -243,11 +317,15 @@ return data.choices[0].message.content;
 function start(){
 var p = document.getElementById('problem').value.trim();
 if(p.length < 5){ alert('请先输入一道数学题（至少5个字）。'); return;}
+curProblem = p;
 demoMode = false; chatHistory = [];
 var grade = document.getElementById('grade').value;
 chatHistory.push({role:'system', content: SYSTEM + "\n学生是"+grade+"学生，题目是："+p});
 chatHistory.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
 showChat();
+var pb = document.getElementById('probBar');
+pb.innerHTML = '<b>📚 原题：</b>'+escHtml(p);
+pb.style.display = 'block';
 document.getElementById('msgs').innerHTML = '';
 addMsg('student', p);
 ask();
@@ -257,9 +335,10 @@ document.getElementById('loading').style.display='block';
 try{
     var t = await callAI(); chatHistory.push({role:'assistant', content:t});
     var o = parseTutor(t);
-    if(o) addTutorObj(o); else addMsg('tutor', t);
+    if(o){ addTutorObj(o); if(o.done){ document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">这道题完成啦 ✔ 点「看讲解动画」可看完整回顾，或「换一道题」继续。</span> <button class="btn ghost" onclick="toExplain()">🎬 看讲解动画</button> <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>'; } }
+    else addMsg('tutor', escHtml(t));
   }
-catch(e){ addMsg('tutor', '出错了：'+e.message+'。检查 API 配置是否正确。');}
+catch(e){ addMsg('tutor', '出错了：'+e.message+'。检查网络后重试。');}
 document.getElementById('loading').style.display='none';
 }
 function send(){
@@ -296,15 +375,31 @@ document.getElementById('explainOut').style.display='none';
 document.getElementById('chat').style.display='none';
 document.getElementById('setup').style.display='block';
 }
+// 引导模式 → 讲解模式（带着当前题目过去）
+function toExplain(){
+if(!curProblem){ alert('请先输入题目。'); return; }
+if(capTimer) clearInterval(capTimer);
+switchMode('explain');
+startExplain();
+}
+// 讲解模式 → 引导模式（保留对话历史）
+function backToChat(){
+if(!chatHistory.length){ alert('你还没开始引导，先点「开始引导」。'); return; }
+if(capTimer) clearInterval(capTimer);
+document.getElementById('explainOut').style.display='none';
+document.getElementById('setup').style.display='none';
+document.getElementById('chat').style.display='block';
+}
 async function startExplain(){
-var p = document.getElementById('problem').value.trim();
+var p = document.getElementById('problem').value.trim() || curProblem;
 if(p.length < 5){ alert('请先输入一道数学题（至少5个字）。'); return; }
+curProblem = p;
 showExplain();
-document.getElementById('explainBody').innerHTML = '';
+document.getElementById('explainBody').innerHTML = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(p)+'</div>';
 document.getElementById('loading').style.display='block';
 try{
 var res = await fetch(SITE_WORKER, {method:'POST', headers:apiHeaders(),
-body: JSON.stringify({model:'deepseek-v4-flash',
+body: JSON.stringify({model:'deepseek-v4-flash', max_tokens:4000,
 messages:[{role:'system',content:EXPLAIN_SYSTEM},{role:'user',content:'题目：'+p+'。请生成动画讲解。'}],
 temperature:0.5})});
 var data = await res.json();
@@ -312,13 +407,14 @@ if(data.error) throw new Error(data.error);
 var t = data.choices[0].message.content;
 var o = parseTutor(t);
 if(o && (o.visual || o.captions)) renderExplain(o);
-else renderExplain({say:t, done:true});
-}catch(e){ renderExplain({say:'出错了：'+e.message+'。检查 API 配置是否正确。', done:true}); }
+else renderExplain({say:escHtml(t), done:true});
+}catch(e){ renderExplain({say:'出错了：'+e.message+'。稍后重试。', done:true}); }
 document.getElementById('loading').style.display='none';
 }
 function renderExplain(o){
 lastExplain = o;
-var h = '<div class="msg tutor"><div class="who">🤖 AI 老师 · 动画讲解</div><div>'+fmt(o.say||'')+'</div>';
+var h = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(curProblem || '')+'</div>';
+h += '<div class="msg tutor"><div class="who">🤖 AI 老师 · 动画讲解</div><div>'+fmt(o.say||'')+'</div>';
 if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
 h += '</div>';
 if(o.visual && o.visual.needed && o.visual.svg){
@@ -363,7 +459,7 @@ captions: [
 ],
 done: true
 };
-function startExplainDemo(){ showExplain(); renderExplain(EXPLAIN_DEMO); }
+function startExplainDemo(){ showExplain(); curProblem = '一本书看了 1/3，还剩 40 页，全书多少页？'; renderExplain(EXPLAIN_DEMO); }
 function restart(){ location.reload();}
 
 var recog = null, listening = false;
