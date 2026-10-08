@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>API 接入指南（站长版） · XSKAI</title>
-<meta name="description" content="站长部署指南：DeepSeek API + Cloudflare Worker，卡密收费模式，一套配置三个工具通用。">
+<meta name="description" content="站长部署指南：DeepSeek API + Cloudflare Worker，卡密收费模式，一套配置两个工具通用。">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <style>code{background:#0f1420;border:1px solid #2a3650;border-radius:6px;padding:2px 8px;font-size:13px;color:#4ade80}pre{background:#0f1420;border:1px solid #2a3650;border-radius:10px;padding:16px;overflow-x:auto;font-size:13px;color:#c6d3ea;line-height:1.7}ol.steps li{margin-bottom:14px}</style>
@@ -15,7 +15,6 @@
     <a class="logo" href="index.html">XSK<b>AI</b></a>
     <nav class="main">
       <a href="index.html">首页</a>
-      <a href="zuowen.html">作文批改</a>
       <a href="shuxue.html">中小学数学</a>
       <a href="gaoshu.html">高数拍照答题</a>
     </nav>
@@ -130,7 +129,7 @@ async fetch(req, env){
     <h3>第五步：连上网站</h3>
     <ol class="steps">
       <li>Worker 部署成功后得到地址，如 <code>https://xskai-api.xxx.workers.dev</code>。</li>
-      <li>打开本站 <code>config.js</code>，把 <code>SITE_WORKER</code> 换成这个地址——三个工具自动生效。</li>
+      <li>打开本站 <code>config.js</code>，把 <code>SITE_WORKER</code> 换成这个地址——两个工具自动生效。</li>
       <li>用 <code>admin.html</code>（不挂导航，直接访问）生成第一张测试卡密，自己试一遍流程。</li>
     </ol>
 

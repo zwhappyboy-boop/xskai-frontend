@@ -24,7 +24,6 @@
 #answerRow{display:flex;gap:10px;margin-top:12px}
 #answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
 .loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
-.cfg{margin-top:26px;border-top:1px dashed #2a3650;padding-top:18px}
 .visual{margin-top:10px;border:1px solid #2a3650;border-radius:10px;overflow:hidden}
 .visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#4ade80;background:#0f1420}
 .visual iframe{width:100%;aspect-ratio:400/340;border:0;display:block;background:#0f1420}
@@ -41,8 +40,7 @@ ol.steps li{padding:10px 12px;border-radius:10px;margin:8px 0;background:#0f1420
 ol.steps li.on{background:#143d2b;border-color:#4ade80;color:#e8ecf5}
 ol.steps li .n{display:inline-block;width:22px;height:22px;border-radius:11px;background:#24304a;color:#dbe4f5;text-align:center;font-size:12px;line-height:22px;margin-right:8px}
 ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
-.cfg input{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
-.cfg p{font-size:13px;color:#9fb0cc}
+.codebar input{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
 </style>
 </head>
 <body>
@@ -51,7 +49,6 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 <a class="logo" href="index.html">XSK<b>AI</b></a>
 <nav class="main">
 <a href="index.html">首页</a>
-<a href="zuowen.html">作文批改</a>
 <a href="shuxue.html" class="active">中小学数学</a>
 <a href="gaoshu.html">高数拍照答题</a></nav>
 </div>
@@ -102,14 +99,6 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 </div>
 <p style="font-size:13px;color:#9fb0cc;margin-top:8px">不会打字？点"语音输入题目"说话，或"拍照识别题目"拍作业本（Beta：只识别题目文字，不直接给答案；手写体识别率有限）。</p>
 <div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
-
-<details class="cfg">
-<summary style="cursor:pointer;font-size:13px;color:#9fb0cc">⚙️ 高级设置（可选）：使用自己的 AI 地址</summary>
-<p style="margin-top:8px">默认使用本站提供的免费 AI，直接用就行。想用自己的 Key 就按 <a href="api-setup.html">接入指南</a> 部署后填这里：</p>
-<input id="apiUrl" placeholder="https://你的-worker地址.workers.dev">
-<button class="btn ghost" onclick="saveCfg()">保存</button>
-<span id="cfgOk" style="color:#4ade80;font-size:13px;margin-left:8px"></span>
-</details>
 </div>
 
 <div class="toolbox" id="chat">
@@ -213,20 +202,12 @@ document.getElementById('setup').style.display='none';
 document.getElementById('explainOut').style.display='none';
 document.getElementById('chat').style.display='block';
 }
-function getCfg(){
-return {url: localStorage.getItem('zw_apiUrl') || SITE_WORKER};
-}
-function saveCfg(){
-localStorage.setItem('zw_apiUrl', document.getElementById('apiUrl').value.trim());
-document.getElementById('cfgOk').textContent = '已保存（仅存你的浏览器本地）';
-}
-(function(){ document.getElementById('apiUrl').value = getCfg().url; document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||'';})();
-
 function saveCode(){
   var v = document.getElementById('accessCode').value.trim();
   localStorage.setItem('xskai_code', v);
   document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
 }
+(function(){ document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||'';})();
 function apiHeaders(){
   var h = {'Content-Type':'application/json'};
   var c = localStorage.getItem('xskai_code');
@@ -251,8 +232,7 @@ function demoStep(){
 }
 
 async function callAI(){
-var cfg = getCfg();
-var endpoint = cfg.url;
+var endpoint = SITE_WORKER;
 var headers = apiHeaders();
 var res = await fetch(endpoint, {method:'POST', headers:headers,
 body: JSON.stringify({model:'deepseek-v4-flash', messages:chatHistory, temperature:0.5})});
@@ -323,8 +303,7 @@ showExplain();
 document.getElementById('explainBody').innerHTML = '';
 document.getElementById('loading').style.display='block';
 try{
-var cfg = getCfg();
-var res = await fetch(cfg.url, {method:'POST', headers:apiHeaders(),
+var res = await fetch(SITE_WORKER, {method:'POST', headers:apiHeaders(),
 body: JSON.stringify({model:'deepseek-v4-flash',
 messages:[{role:'system',content:EXPLAIN_SYSTEM},{role:'user',content:'题目：'+p+'。请生成动画讲解。'}],
 temperature:0.5})});

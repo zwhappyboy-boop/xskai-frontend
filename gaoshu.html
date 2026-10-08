@@ -32,9 +32,6 @@
 #answerRow{display:flex;gap:10px;margin-top:12px}
 #answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
 .loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
-.cfg{margin-top:26px;border-top:1px dashed #2a3650;padding-top:18px}
-.cfg input{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
-.cfg p{font-size:13px;color:#9fb0cc}
 </style>
 </head>
 <body>
@@ -43,7 +40,6 @@
 <a class="logo" href="index.html">XSK<b>AI</b></a>
 <nav class="main">
 <a href="index.html">首页</a>
-<a href="zuowen.html">作文批改</a>
 <a href="shuxue.html">中小学数学</a>
 <a href="gaoshu.html" class="active">高数拍照答题</a></nav>
 </div>
@@ -70,7 +66,6 @@
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
 <button class="btn ghost" onclick="solve()">📝 生成详细解答</button>
 <button class="btn ghost" onclick="startDemo()">👀 看演示</button>
-<button class="btn ghost" id="voiceBtn" onclick="toggleVoice()">🎤 语音输入</button>
 </div>
 <div class="codebar">
 <span>🔑</span>
@@ -80,15 +75,6 @@
 <span id="codeOk" style="color:#4ade80"></span>
 </div>
 <div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
-
-
-<details class="cfg">
-<summary style="cursor:pointer;font-size:13px;color:#9fb0cc">⚙️ 高级设置（可选）：使用自己的 AI 地址</summary>
-<p style="margin-top:8px">默认使用本站提供的免费 AI，直接用就行。想用自己的 Key 就按 <a href="api-setup.html">接入指南</a> 部署后填这里：</p>
-<input id="apiUrl" placeholder="https://你的-worker地址.workers.dev">
-<button class="btn ghost" onclick="saveCfg()">保存</button>
-<span id="cfgOk" style="color:#4ade80;font-size:13px;margin-left:8px"></span>
-</details>
 </div>
 
 <div class="toolbox" id="result" style="display:none">
@@ -218,20 +204,12 @@ function showResult(){
   document.getElementById('setup').style.display='none';
   document.getElementById('result').style.display='block';
 }
-function getCfg(){
-  return {url: localStorage.getItem('zw_apiUrl') || SITE_WORKER};
-}
-function saveCfg(){
-  localStorage.setItem('zw_apiUrl', document.getElementById('apiUrl').value.trim());
-  document.getElementById('cfgOk').textContent = '已保存（仅存你的浏览器本地）';
-}
-(function(){ document.getElementById('apiUrl').value = getCfg().url; document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||''; })();
-
 function saveCode(){
   var v = document.getElementById('accessCode').value.trim();
   localStorage.setItem('xskai_code', v);
   document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
 }
+(function(){ document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||''; })();
 function apiHeaders(){
   var h = {'Content-Type':'application/json'};
   var c = localStorage.getItem('xskai_code');
@@ -248,8 +226,7 @@ function startDemo(){
   sol.scrollIntoView({behavior:'smooth'});
 }
 async function callAI(messages){
-  var cfg = getCfg();
-  var endpoint = cfg.url;
+  var endpoint = SITE_WORKER;
   var headers = apiHeaders();
   var res = await fetch(endpoint, {method:'POST', headers:headers,
     body: JSON.stringify({model:'deepseek-v4-flash', messages:messages, temperature:0.3})});
@@ -296,28 +273,6 @@ async function altSolve(){
   document.getElementById('loading').style.display='none';
 }
 function restart(){ location.reload();}
-
-var recog = null, listening = false;
-function toggleVoice(){
-var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-if(!SR){ alert('当前浏览器不支持语音输入，请用 Chrome 或 Edge 打开。'); return;}
-var btn = document.getElementById('voiceBtn');
-if(listening){ recog.stop(); return;}
-recog = new SR(); recog.lang = 'zh-CN'; recog.interimResults = false; recog.maxAlternatives = 1;
-recog.onresult = function(e){
-var t = e.results[0][0].transcript;
-var ta = document.getElementById('problem');
-ta.value = (ta.value? ta.value.replace(/\s+$/,'') + '，': '') + t;
-ta.focus();
-};
-recog.onend = function(){ listening = false; btn.textContent = '🎤 语音输入';};
-recog.onerror = function(e){
-listening = false; btn.textContent = '🎤 语音输入';
-if(e.error!== 'aborted') alert('语音识别出错（'+e.error+'），请重试或手动输入。');
-};
-try{ recog.start(); listening = true; btn.textContent = '⏹ 停止录音';}
-catch(e){ alert('语音启动失败，请重试。');}
-}
 
 function ocrPhoto(input){
 var file = input.files && input.files[0];
