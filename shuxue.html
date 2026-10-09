@@ -166,7 +166,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <span id="codeOk" style="color:#047857;font-size:13px"></span>
 </div>
 </div>
-<p class="hint">拍照识别只出题目文字，几何图/示意图请对照下方预览核对，把图里的条件（连哪几个点、阴影在哪）补进题目里，AI 才能看懂。手写体识别率有限，请修正后再开始。</p>
+<p class="hint">拍照后 AI 会同时看到题目图片，能识别几何图形/示意图。文字识别率有限，请核对修正后再开始。</p>
 </div>
 
 <div id="chat" style="display:none">
@@ -421,8 +421,14 @@ if(p.length < 5){ alert('请先输入一道数学题（至少5个字）。'); re
 curProblem = p;
 demoMode = false; chatHistory = [];
 var grade = document.getElementById('grade').value;
-chatHistory.push({role:'system', content: SYSTEM + "\n学生是"+grade+"学生，题目是："+p});
-chatHistory.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
+var sysExtra = "\n学生是"+grade+"学生，题目是："+p;
+  if(lastPhoto) sysExtra += "。题目附带了一张图片，图片展示了题目中的几何图形/示意图，请结合图片理解题意再引导。";
+  chatHistory.push({role:'system', content: SYSTEM + sysExtra});
+  if(lastPhoto){
+    chatHistory.push({role:'user', content: [{type:'text', text:"题目："+p+"。请开始引导我，第一步问一个引导性问题。"},{type:'image_url', image_url:{url:lastPhoto, detail:'high'}}]});
+  }else{
+    chatHistory.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
+  }
 showChat();
 var pb = document.getElementById('probBar');
 pb.innerHTML = '<b>📚 原题：</b>'+escHtml(p);
@@ -510,7 +516,14 @@ document.getElementById('loading').style.display='block';
 try{
 var res = await fetch(SITE_WORKER, {method:'POST', headers:apiHeaders(),
 body: JSON.stringify({model:'deepseek-v4-flash', max_tokens:4000,
-messages:[{role:'system',content:EXPLAIN_SYSTEM+'\n学生是'+document.getElementById('grade').value+'学生。'},{role:'user',content:'题目：'+p+'。请生成动画讲解。'}],
+messages:(function(){
+  var sysC = EXPLAIN_SYSTEM+'\n学生是'+document.getElementById('grade').value+'学生。';
+  if(lastPhoto) sysC += '题目附带了一张图片，图片展示了题目中的几何图形/示意图，请结合图片理解题意再讲解。';
+  var userMsg = lastPhoto
+    ? [{type:'text',text:'题目：'+p+'。请生成动画讲解。'},{type:'image_url',image_url:{url:lastPhoto,detail:'high'}}]
+    : '题目：'+p+'。请生成动画讲解。';
+  return [{role:'system',content:sysC},{role:'user',content:userMsg}];
+})(),
 temperature:0.5})});
 var data = await res.json();
 if(data.error) throw new Error(data.error);
@@ -605,7 +618,7 @@ function toggleVoice(targetId, btnId, autoSend){
 
 /* 拍照识别题目（Beta）：只做 OCR 文字提取，不搜题不给答案
    图片预览让用户肉眼核对图形条件；OCR 丢掉的几何信息需用户手动补进题目 */
-var lastPhoto = null;  // 最近一次拍照的压缩图（仅本机内存，不发送给 AI）
+var lastPhoto = null;  // 最近一次拍照的压缩图（base64 data URL，开始引导/讲解时发给 AI 视觉识别）
 var lastOcrText = '';  // 最近一次 OCR 结果（用于重拍覆盖判断）
 function ocrPhoto(input){
   var file = input.files && input.files[0];
