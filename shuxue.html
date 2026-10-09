@@ -108,6 +108,9 @@ nav.main .nav-code:hover{background:#3b76f6}
 .geo-add input.wide{width:170px}
 .geo-actions{padding:8px 14px 14px}
 .geo-err{display:none;padding:10px 14px;color:#b91c1c;font-size:13px;background:#fef2f2;border-top:1px solid #fecaca;line-height:1.6}
+/* chips 配色：warn=AI 手填坐标（仅供参考），cons=作图步骤（系统精确解算） */
+.geo-chips .chip.warn{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.geo-chips .chip.cons{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 ol.steps{list-style:none;padding:0;margin:12px 0}
 ol.steps li{padding:10px 14px;border-radius:12px;margin:8px 0;background:#f8fafc;border:1px solid #e2e8f0;font-size:14px;color:#64748b;transition:all .3s;list-style:none;line-height:1.7}
 ol.steps li.on{background:#ecfdf5;border-color:#6ee7b7;color:#0f172a}
@@ -245,8 +248,213 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 
 <script src="config.js"></script>
 <script>
+/* ===== geo-construct.js 内联：作图引擎（construct 层）===== */
+/* ============================================================
+ * geo-construct.js — 作图引擎（construct 层）
+ * AI 只输出作图步骤 + 数学表达式，坐标由本引擎解算。
+ * 输入:  construct 步骤数组
+ * 输出:  { points: {A:[x,y],...}, warnings: [...] }
+ * 配套 geo-render.js：points 交给 compileGeometry(spec) 画图。
+ * 浏览器 / Node 通用。
+ * ============================================================ */
+(function(global){
+"use strict";
+
+/* ---------------- 安全表达式求值 ----------------
+ * 支持数字 + - * / ^ 括号，函数 sqrt/sin/cos/tan/abs，常量 pi。
+ * sin/cos/tan 用角度制（AI 写 cos(60) 即 60°）。
+ * 不用 eval，非法字符直接报错。 */
+function evalExpr(x){
+  if(typeof x === "number") return x;
+  var s = String(x).replace(/\s+/g, ""), i = 0;
+  function err(m){ throw new Error(m + " @" + i + " in `" + s + "`"); }
+  function eat(ch){ if(s[i]===ch){ i++; return true; } return false; }
+  function parseE(){ var v=parseT(); while(i<s.length&&(s[i]==="+"||s[i]==="-")){var o=s[i++];var r=parseT();v=o==="+"?v+r:v-r;} return v; }
+  function parseT(){ var v=parseU(); while(i<s.length&&(s[i]==="*"||s[i]==="/")){var o=s[i++];var r=parseU();v=o==="*"?v*r:v/r;} return v; }
+  function parseU(){ var neg=false; while(s[i]==="+"||s[i]==="-"){if(s[i]==="-")neg=!neg;i++;} var v=parseP(); if(s[i]==="^"){i++;v=Math.pow(v,parseU());} return neg?-v:v; }
+  function parseP(){
+    if(eat("(")){ var v=parseE(); if(!eat(")")) err("括号不匹配"); return v; }
+    var m=/^[0-9]*\.?[0-9]+/.exec(s.slice(i));
+    if(m){ i+=m[0].length; return parseFloat(m[0]); }
+    var m2=/^[a-zA-Z_]+/.exec(s.slice(i));
+    if(m2){
+      var name=m2[0]; i+=name.length;
+      if(name==="pi") return Math.PI;
+      if(!eat("(")) err("未知标识 "+name);
+      var a=parseE(); if(!eat(")")) err("括号不匹配");
+      if(name==="sqrt") return Math.sqrt(a);
+      if(name==="sin") return Math.sin(a*Math.PI/180);
+      if(name==="cos") return Math.cos(a*Math.PI/180);
+      if(name==="tan") return Math.tan(a*Math.PI/180);
+      if(name==="abs") return Math.abs(a);
+      err("未知函数 "+name);
+    }
+    err("无法解析");
+  }
+  var v = parseE();
+  if(i!==s.length) err("多余字符");
+  if(!isFinite(v)) throw new Error("表达式结果非有限数");
+  return v;
+}
+
+/* ---------------- 向量小工具 ---------------- */
+function sub(a,b){ return [a[0]-b[0], a[1]-b[1]]; }
+function addM(a,b){ return [a[0]+b[0], a[1]+b[1]]; }
+function mul(a,k){ return [a[0]*k, a[1]*k]; }
+function dot(a,b){ return a[0]*b[0] + a[1]*b[1]; }
+function dist(a,b){ return Math.hypot(a[0]-b[0], a[1]-b[1]); }
+function norm(a){ var d=Math.hypot(a[0],a[1])||1; return [a[0]/d, a[1]/d]; }
+
+/* ---------------- 主入口 ---------------- */
+function executeConstruct(steps){
+  var points={}, lines={}, circles={}, warnings=[];
+  function warn(m){ warnings.push(m); }
+  function P(id){
+    if(!Object.prototype.hasOwnProperty.call(points,id)){ warn("未知点 "+id); return null; }
+    return points[id];
+  }
+  function L(ref){ // 直线引用：id 字符串，或 [点1,点2]
+    if(typeof ref==="string"){
+      if(!Object.prototype.hasOwnProperty.call(lines,ref)){ warn("未知直线 "+ref); return null; }
+      return lines[ref];
+    }
+    if(ref && ref.length===2){
+      var a=P(ref[0]), b=P(ref[1]);
+      if(!a||!b) return null;
+      if(dist(a,b)<1e-12){ warn("两点重合无法定直线"); return null; }
+      return { p:a, d:norm(sub(b,a)) };
+    }
+    warn("直线引用格式错误"); return null;
+  }
+  function pickPt(cands, pick, ctx){
+    if(!cands.length){ warn("无交点"+(ctx?"（"+ctx+"）":"")); return null; }
+    if(cands.length===1) return cands[0];
+    var p = pick || "first";
+    function by(f,rev){ var s=cands.slice().sort(function(a,b){return f(a)-f(b);}); return rev?s[s.length-1]:s[0]; }
+    if(p==="right") return by(function(c){return c[0];},true);
+    if(p==="left") return by(function(c){return c[0];},false);
+    if(p==="top") return by(function(c){return c[1];},true);
+    if(p==="bottom") return by(function(c){return c[1];},false);
+    if(p==="second") return cands[1];
+    if(p==="first") return cands[0];
+    if(p && typeof p==="object" && p.near){
+      var q = (typeof p.near==="string") ? P(p.near) : p.near;
+      if(q){ var best=cands[0], bd=Infinity;
+        cands.forEach(function(c){ var d=dist(c,q); if(d<bd){bd=d;best=c;} });
+        return best; }
+    }
+    warn("交点有两个，未指定 pick，取第一个");
+    return cands[0];
+  }
+  function lineLine(l1,l2){
+    var d1=l1.d, d2=l2.d, det=d1[0]*d2[1]-d1[1]*d2[0];
+    if(Math.abs(det)<1e-12){ warn("两直线平行，无交点"); return []; }
+    var w=sub(l1.p,l2.p);
+    var t=(w[1]*d2[0]-w[0]*d2[1])/det; // 解 p1+t·d1 = p2+s·d2
+    return [addM(l1.p, mul(d1,t))];
+  }
+  function lineCircle(l,c,isRay){
+    var w=sub(l.p,c.c), d=l.d;
+    var b=dot(w,d), c0=dot(w,w)-c.r*c.r;
+    var disc=b*b-c0;
+    if(disc<-1e-9){ warn("直线与圆无交点"); return []; }
+    disc=Math.max(0,disc);
+    var sq=Math.sqrt(disc), out=[];
+    [-b-sq, -b+sq].forEach(function(t){
+      if(isRay && t<-1e-9) return; // 射线只取正方向
+      out.push(addM(l.p, mul(d,t)));
+    });
+    if(!out.length) warn("射线方向上无交点");
+    return out;
+  }
+  function circleCircle(c1,c2){
+    var d=dist(c1.c,c2.c);
+    if(d>c1.r+c2.r+1e-9 || d<Math.abs(c1.r-c2.r)-1e-9 || d<1e-12){ warn("两圆无交点"); return []; }
+    var a=(c1.r*c1.r-c2.r*c2.r+d*d)/(2*d);
+    var h=Math.sqrt(Math.max(0, c1.r*c1.r-a*a));
+    var pm=addM(c1.c, mul(norm(sub(c2.c,c1.c)), a));
+    var perp=norm([-(c2.c[1]-c1.c[1]), c2.c[0]-c1.c[0]]);
+    return [addM(pm,mul(perp,h)), addM(pm,mul(perp,-h))];
+  }
+
+  (steps||[]).forEach(function(st,idx){
+    try{
+      switch(st.op){
+        case "pt": { // 基准点：{op:"pt",id:"D",at:[0,0]} at 可写表达式如 "sqrt(2)"
+          points[st.id]=[evalExpr(st.at[0]), evalExpr(st.at[1])]; break; }
+        case "mid": { // 中点：{op:"mid",id:"E",of:["C","D"]}
+          var a=P(st.of[0]), b=P(st.of[1]); if(!a||!b) break;
+          points[st.id]=[(a[0]+b[0])/2,(a[1]+b[1])/2]; break; }
+        case "reflect": { // 对称点：{op:"reflect",id:"C",of:"D",through:"E"} → C=2E−D
+          var p0=P(st.of), q0=P(st.through); if(!p0||!q0) break;
+          points[st.id]=[2*q0[0]-p0[0], 2*q0[1]-p0[1]]; break; }
+        case "line": case "seg": { // 定直线：{op:"line",id:"AD",pts:["A","D"]}
+          var l1=P(st.pts[0]), l2=P(st.pts[1]); if(!l1||!l2) break;
+          if(dist(l1,l2)<1e-12){ warn("两点重合无法定直线 "+st.id); break; }
+          lines[st.id]={p:l1,d:norm(sub(l2,l1))}; break; }
+        case "ray": { // 射线：{op:"ray",id:"r",from:"A",angle:150} 角度制，从+x轴逆时针
+          var f=P(st.from); if(!f) break;
+          var an=evalExpr(st.angle)*Math.PI/180;
+          lines[st.id]={p:f,d:[Math.cos(an),Math.sin(an)],ray:true}; break; }
+        case "perp": { // 垂线：{op:"perp",id:"l",through:"A",to:"AE"} to 可为直线id或[点1,点2]
+          var tp=P(st.through); if(!tp) break;
+          var tl=L(st.to); if(!tl) break;
+          lines[st.id]={p:tp,d:norm([-tl.d[1],tl.d[0]])}; break; }
+        case "par": { // 平行线：{op:"par",id:"l",through:"C",to:"AD"}
+          var tp2=P(st.through); if(!tp2) break;
+          var tl2=L(st.to); if(!tl2) break;
+          lines[st.id]={p:tp2,d:tl2.d}; break; }
+        case "circle": { // 圆：{op:"circle",id:"c",c:"A",r:"2*sqrt(3)"}
+                         // r 也可写 {dist:["C","D"]} 或用 through:"P"（过点P）
+          var cc=P(st.c); if(!cc) break;
+          var rr;
+          if(st.r && typeof st.r==="object" && st.r.dist){
+            var d1=P(st.r.dist[0]), d2=P(st.r.dist[1]); if(!d1||!d2) break;
+            rr=dist(d1,d2);
+          } else if(st.through){
+            var thp=P(st.through); if(!thp) break;
+            rr=dist(cc,thp);
+          } else { rr=evalExpr(st.r); }
+          if(!(rr>0)){ warn("圆半径无效 "+st.id); break; }
+          circles[st.id]={c:cc,r:rr}; break; }
+        case "foot": { // 垂足：{op:"foot",id:"H",of:"A",to:"BC"}
+          var fp=P(st.of); if(!fp) break;
+          var fl=L(st.to); if(!fl) break;
+          var t=dot(sub(fp,fl.p),fl.d);
+          points[st.id]=addM(fl.p,mul(fl.d,t)); break; }
+        case "isect": { // 交点：{op:"isect",id:"F",of:["l1","l2"],pick:"right"}
+                        // pick: left/right/top/bottom/first/second/{near:点id}
+          var o1=st.of[0], o2=st.of[1];
+          var isL1=Object.prototype.hasOwnProperty.call(lines,o1),
+              isC1=Object.prototype.hasOwnProperty.call(circles,o1),
+              isL2=Object.prototype.hasOwnProperty.call(lines,o2),
+              isC2=Object.prototype.hasOwnProperty.call(circles,o2);
+          var cands=[];
+          if(isL1&&isL2) cands=lineLine(lines[o1],lines[o2]);
+          else if(isL1&&isC2) cands=lineCircle(lines[o1],circles[o2],!!lines[o1].ray);
+          else if(isC1&&isL2) cands=lineCircle(lines[o2],circles[o1],!!lines[o2].ray);
+          else if(isC1&&isC2) cands=circleCircle(circles[o1],circles[o2]);
+          else { warn("交点对象未知 "+o1+","+o2); break; }
+          var pt=pickPt(cands, st.pick, o1+"∩"+o2);
+          if(pt) points[st.id]=pt;
+          break; }
+        default: warn("未知作图指令 "+st.op);
+      }
+    }catch(e){ warn("步骤 "+idx+" 出错："+e.message); }
+  });
+  return { points:points, warnings:warnings };
+}
+
+global.executeConstruct = executeConstruct;
+global.evalGeoExpr = evalExpr;
+// 导出（node / 浏览器通用）
+if (typeof module !== 'undefined' && module.exports) module.exports = { executeConstruct: executeConstruct, evalGeoExpr: evalExpr };
+})(typeof window!=="undefined" ? window : globalThis);
+
+</script>
+<script>
 var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题；整个引导控制在4-6步内完成，学生连续答对时合并步骤加速，不要为了提问而提问\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过900字符，只保留讲题必需的图形，保证JSON一次成型不截断";
-var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"say\":\"步骤讲解\",\"hl\":[\"对象名\"]}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，只允许以下12种：\n  {\"t\":\"pt\",\"name\":\"A\",\"x\":0,\"y\":6} 定义坐标点（仅自由顶点需要，能用下面指令推导的就不要手写坐标）\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|diamond\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 多边形：square=正方形、rect=长方形、para=平行四边形、diamond=菱形。kind为square/rect/para/diamond时只需给出顶点字母，坐标由系统自动计算保证形状标准。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段，可选label\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线（无限延伸线）\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} 取BC的中点命名为D\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} 线段AE与线段CD的交点命名为F（of/of2用线段两端点字母表示，如\"AE\"）\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC的平行线，E是该线上一点（再配合equal长度条件或below说明确定位置，若题目给定AE=AC可加\"len\":\"AE=AC\"）\n  {\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC的垂线，垂足为H\n  {\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：geo协议 steps 数4-8步，每步 say 讲解一个动作（先画骨架、再标关键点、再讲性质、最后总结），hl 是该步高亮对象；ggb协议同之前规范。最后一步总结答案。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
+var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"say\":\"步骤讲解\",\"hl\":[\"对象名\"]}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，\n重要：协议里不存在任何坐标指令，你绝不输出坐标数字（x/y 一律不写）！所有顶点位置由系统自动放置，你只描述几何关系。items 顺序：基础图形（poly/circle 放第一条）→派生点（mid/meet/parallel/perp）→连线（seg）→文字（text）。\n【图形分类器（务必准确）】两腰相等且两底平行的四边形=trapezoid等腰梯形；对边平行且相等=para平行四边形；等长邻边直角=square正方形；直角不等边=rect长方形；四边相等=diamond菱形；五边等长=penta。题目写『等腰梯形』就必须用trapezoid，严禁用para冒充。\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|trapezoid|diamond|penta\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 基础图形，只需顶点字母，位置系统自动算。四边形顶点顺序按绕行顺序（如梯形ABCD：A左上、B左下、C右下、D右上）。\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆。\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} BC的中点叫D。\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} AE与CD的交点叫F。\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC平行线，E是线上一点（有长度条件加\"len\":\"AE=AC\"）。\n  {\"t\":\"perp\",\"name\":\"F\",\"from\":\"A\",\"toLine\":\"AE\",\"to\":\"BC\"} 过A作AE的垂线交BC于F（作XX⊥YY交ZZ于W专用）；若只是垂足：省略toLine，{\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"}表示垂足H在AC上。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段。\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线。\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} G处直角标记。\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影。\n  {\"t\":\"text\",\"s\":\"说明\",\"at\":\"F\"} 文字标注，at为锚点名。\n注意：每条指令用到的点必须已在前面指令出现过；先图形后派生点再连线。{\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。角（如∠MON）用两条seg画两条边、再加text标注度数，不要把角画成三角形poly。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。【作图层 construct（度量精确，强烈推荐）】凡是由长度/角度/几何关系确定的点（如\"AE=2√3且∠DAE=30°的E\"、\"垂线与BC的交点F\"），必须用 construct 作图步骤让系统精确解算，禁止手写 pt 坐标猜位置！pt 只用于1-2个基准点，坐标可写表达式如\"sqrt(2)\"。\n\"construct\":[{\"op\":\"pt\",\"id\":\"D\",\"at\":[0,0]},{\"op\":\"pt\",\"id\":\"A\",\"at\":[\"sqrt(2)\",0]},{\"op\":\"ray\",\"id\":\"rAE\",\"from\":\"A\",\"angle\":150},{\"op\":\"circle\",\"id\":\"cA\",\"c\":\"A\",\"r\":\"2*sqrt(3)\"},{\"op\":\"isect\",\"id\":\"E\",\"of\":[\"cA\",\"rAE\"]},{\"op\":\"reflect\",\"id\":\"C\",\"of\":\"D\",\"through\":\"E\"},...]\nop一览：pt(基准点，at可写表达式)/mid(中点 of:[P1,P2])/reflect(对称点 of:P,through:Q)/line(直线 pts:[P1,P2])/ray(射线 from:P,angle:角度制从+x轴逆时针)/perp(垂线 through:P,to:线名或[点1,点2])/par(平行线 through:P,to:线)/circle(圆 c:圆心,r:表达式如\"2*sqrt(3)\"或{dist:[P1,P2]})/foot(垂足 of:P,to:线)/isect(交点 of:[对象1,对象2],pick:left/right/top/bottom)。表达式支持+ - * / ^、sqrt/sin/cos(角度制)/pi。复杂图形请用 construct 从头作图，不要混用 poly 自动摆位（摆位无度量，仅为示意）。construct 只负责算出点的位置；点要画出来仍需 items（如 poly/seg/text），引用点名即可，坐标会自动带入。\n\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：geo协议 steps 数4-8步，每步 say 讲解一个动作（先画骨架、再标关键点、再讲性质、最后总结），hl 是该步高亮对象；ggb协议同之前规范。最后一步总结答案。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
 var chatHistory = [];
 var demoMode = false, demoIdx = 0;
 var curProblem = '';  // 当前题目（跨模式保留）
@@ -655,6 +863,17 @@ function geoFmt(n){
 }
 function compileGeo(data){
   var P = {};          // 点注册表 name -> {x,y}
+  var constructWarnings = [];
+  /* construct 作图层（最优先）：AI 给作图步骤，引擎精确解算坐标，不再手写/猜坐标。
+     解算出的点直接进注册表，后面的自动摆位（pass1）遇到已有点会跳过。 */
+  if(data && data.construct && data.construct.length && typeof executeConstruct === 'function'){
+    try{
+      var _cr = executeConstruct(data.construct);
+      var _pts = _cr.points || {};
+      for(var _k in _pts){ if(Object.prototype.hasOwnProperty.call(_pts,_k)) P[_k] = {x:_pts[_k][0], y:_pts[_k][1]}; }
+      constructWarnings = _cr.warnings || [];
+    }catch(_e){ constructWarnings.push('作图层执行失败：'+_e.message); }
+  }
   var cmds = [];       // 基础绘制命令（setup 前置）
   var hlMap = {};      // 对象名 -> ggb 对象名列表（用于步骤高亮）
   var texts = [];      // 字母标注 Text 命令（最后统一执行）
@@ -676,6 +895,21 @@ function compileGeo(data){
     var a = getPt(m[1]), b = getPt(m[2]);
     return (a && b) ? [a,b] : null;
   }
+  // 等腰梯形：AD∥BC，AB=CD。pts:[A,B,C,D]（顺序 A→B 左腰、B→C 下底、C→D 右腰、D→A 上底）
+  // 由 A、D（上底两端）与 B（下底左端）确定，C 用对称性精确推导（C=B+λv，λ=1-2(w·v)/|v|²）
+  function trapezoidPts(names){
+    var tA=getPt(names[0]), tD=getPt(names[3]), tB=getPt(names[1]);
+    if(!tA){ P[names[0]]={x:0,y:6}; tA=P[names[0]]; }
+    if(!tD){ P[names[3]]={x:2,y:6}; tD=P[names[3]]; }
+    if(!tB){ P[names[1]]={x:-3,y:0}; tB=P[names[1]]; }
+    var tvx=tD.x-tA.x, tvy=tD.y-tA.y;
+    var tvv=tvx*tvx+tvy*tvy;
+    var twx=tB.x-tA.x, twy=tB.y-tA.y;
+    var twv=twx*tvx+twy*tvy;
+    var tlam=(tvv>1e-9)?(1-2*twv/tvv):1;
+    if(!P[names[2]]) P[names[2]]={x:tB.x+tlam*tvx, y:tB.y+tlam*tvy};
+    return [getPt(names[0]),getPt(names[1]),getPt(names[2]),getPt(names[3])];
+  }
   // 两线段求交点（含直线退化情形）
   function segX(p1,p2,p3,p4){
     var d = (p2.x-p1.x)*(p4.y-p3.y) - (p2.y-p1.y)*(p4.x-p3.x);
@@ -684,6 +918,29 @@ function compileGeo(data){
     var u = ((p3.x-p1.x)*(p2.y-p1.y) - (p3.y-p1.y)*(p2.x-p1.x)) / d;
     return {x: p1.x + t*(p2.x-p1.x), y: p1.y + t*(p2.y-p1.y), t:t, u:u};
   }
+  /* 逻辑指令层：辅助线注册表（segName如"AE" -> ggb对象名lnAE），派生点用点名+逻辑指令构建，
+     让 GeoGebra 自己保证几何关系精确；辅助线构建完后统一隐藏 */
+  var lineDefs = {};   // 线名 -> ggb对象名
+  var hiddenObjs = [];  // 需隐藏的辅助对象名
+  function ensureLine(segName){
+    var s = String(segName||'').trim();
+    if(lineDefs[s]) return lineDefs[s];
+    var e = segEnds(s);
+    if(!e) return null;
+    var ob = 'ln' + s;   // lnAE
+    cmds.push(ob+'=Line('+s[0]+','+s[1]+')');
+    lineDefs[s] = ob;
+    hiddenObjs.push(ob);
+    return ob;
+  }
+  // 确保顶点已定义（点名直接作 ggb 对象，坐标由系统放置）
+  function ensurePt(n){
+    var p = getPt(n);
+    if(!p) return null;
+    if(!ptDefined[n]){ cmds.push(n+'=('+geoFmt(p.x)+','+geoFmt(p.y)+')'); ptDefined[n] = true; }
+    return p;
+  }
+  var ptDefined = {};
   var items = (data && data.items) || [];
   var shadeCmds = [];
   var textCmds = [];
@@ -718,6 +975,8 @@ function compileGeo(data){
           if(names[1] && !P[names[1]]) P[names[1]] = {x:5,y:0};
           if(names[2] && !P[names[2]]) P[names[2]] = {x:1,y:2.5};
           if(names[3] && !P[names[3]]) P[names[3]] = {x:getPt(names[2]).x+getPt(names[1]).x-getPt(names[0]).x, y:getPt(names[2]).y+getPt(names[1]).y-getPt(names[0]).y};
+        }else if(kind === 'trapezoid'){
+          trapezoidPts(names);
         }else if(kind === 'diamond'){
           if(names[0] && !P[names[0]]) P[names[0]] = {x:0,y:0};
           if(names[1] && !P[names[1]]) P[names[1]] = {x:4,y:0};
@@ -770,8 +1029,18 @@ function compileGeo(data){
         }
       }
       else if(t === 'perp'){
+        // 两种语义：
+        //  ① 默认：from 到 to 线段的垂足 = name（过 from 作 to 的垂线，垂足在 to 上）
+        //  ② 若给 toLine：过 from 作 toLine 的垂线，该垂线与 to 线段相交于 name（如"AF⊥AE交BC于F"）
         var pfQ = getPt(it.from), peQ = segEnds(it.to);
-        if(pfQ && peQ && !P[it.name]){
+        var tlineE = it.toLine ? segEnds(it.toLine) : null;
+        if(pfQ && tlineE && peQ && !P[it.name]){
+          // 情况②：过 pfQ 作 toLine 的垂线，与线段 to(peQ) 求交点
+          var pF = {x:pfQ.x + (tlineE[0].y-tlineE[1].y), y:pfQ.y + (tlineE[1].x-tlineE[0].x)};  // toLine 的方向向量 → 垂线方向
+          var ipP = segX(pfQ, pF, peQ[0], peQ[1]);
+          if(ipP && Math.abs(ipP.t) < 1e9){ P[it.name] = {x:ipP.x, y:ipP.y}; }
+        }
+        else if(pfQ && peQ && !P[it.name]){
           var qa=peQ[0], qb=peQ[1];
           var vx2=qb.x-qa.x, vy2=qb.y-qa.y;
           var tq = ((pfQ.x-qa.x)*vx2+(pfQ.y-qa.y)*vy2)/(vx2*vx2+vy2*vy2);
@@ -791,9 +1060,9 @@ function compileGeo(data){
     if(t === 'pt'){
       P[it.name] = {x:geoNum(it.x), y:geoNum(it.y)};
       upd(P[it.name]);
-      cmds.push('pt_'+it.name+'=('+geoFmt(P[it.name].x)+','+geoFmt(P[it.name].y)+')');
+      ensurePt(it.name);
       texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(P[it.name].x)+','+geoFmt(P[it.name].y)+'))');
-      hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name];
+      hlMap[it.name] = [it.name, 'tx_'+it.name];
       itemLabel.push('点 '+it.name);
     }
     else if(t === 'poly'){
@@ -836,6 +1105,8 @@ function compileGeo(data){
         if(!D3){ P[names[2]]={x:1,y:2.5}; D3=P[names[2]]; }
         P[names[3]]={x:D3.x+B3.x-A3.x, y:D3.y+B3.y-A3.y};
         pts=[A3,B3,P[names[3]],D3];
+      }else if(kind === 'trapezoid'){
+        pts = trapezoidPts(names);
       }else if(kind === 'diamond'){
         // 菱形：pts:[A,B,D]，|AD|=|AB|（D 在 AB 中垂线上），C = B + D - A
         var A4=getPt(names[0]), B4=getPt(names[1]), D4=getPt(names[2]);
@@ -867,10 +1138,11 @@ function compileGeo(data){
       }
       pts.forEach(upd);
       var polyName = (kind==='triangle'?'tri':'poly') + i;
-      cmds.push(polyName+'=Polygon('+pts.map(function(p){ return '('+geoFmt(p.x)+','+geoFmt(p.y)+')'; }).join(',')+')');
-      (it.pts||names).forEach(function(n){ if(n){ hlMap[n] = hlMap[n]||[]; hlMap[n].push(polyName); hlMap[n].push('tx_'+n); texts.push('tx_'+n+'=Text("'+n+'",('+geoFmt(P[n].x)+','+geoFmt(P[n].y)+'))'); } });
+      names.forEach(function(n){ if(n) ensurePt(n); });
+      cmds.push(polyName+'=Polygon('+names.join(',')+')');
+      (it.pts||names).forEach(function(n){ if(n){ hlMap[n] = hlMap[n]||[]; hlMap[n].push(n); hlMap[n].push(polyName); hlMap[n].push('tx_'+n); texts.push('tx_'+n+'=Text("'+n+'",('+geoFmt(P[n].x)+','+geoFmt(P[n].y)+'))'); } });
       hlMap[kind] = hlMap[kind]||[]; hlMap[kind].push(polyName);
-      itemLabel.push((kind==='triangle'?'三角形 ':(kind==='square'?'正方形 ':(kind==='rect'?'长方形 ':(kind==='para'?'平行四边形 ':'菱形 '))))+(names||[]).join(''));
+      itemLabel.push((kind==='triangle'?'三角形 ':(kind==='square'?'正方形 ':(kind==='rect'?'长方形 ':(kind==='para'?'平行四边形 ':(kind==='trapezoid'?'等腰梯形 ':'菱形 ')))))+(names||[]).join(''));
     }
     else if(t === 'seg'){
       var sa=getPt(it.from), sb=getPt(it.to);
@@ -962,21 +1234,44 @@ function compileGeo(data){
       itemLabel.push((it.name||'')+' 在过 '+it.from+' 且平行于 '+(it.to||'')+' 的线上'+(lenExpr?'，'+lenExpr:''));
     }
     else if(t === 'perp'){
-      // 过 from 点作 to 线段的垂线，垂足为 name
-      var pf2 = getPt(it.from), pe2 = segEnds(it.to);
-      if(!pf2 || !pe2){ itemLabel.push('垂线（点或线段不存在）'); continue; }
-      var a2=pe2[0], b2=pe2[1];
-      var vx=b2.x-a2.x, vy=b2.y-a2.y;
-      var t2 = ((pf2.x-a2.x)*vx + (pf2.y-a2.y)*vy) / (vx*vx+vy*vy);
-      var foot = {x:a2.x+vx*t2, y:a2.y+vy*t2};
-      P[it.name] = foot;
-      upd(pf2); upd(foot);
-      cmds.push('pt_'+it.name+'=('+geoFmt(foot.x)+','+geoFmt(foot.y)+')');
-      var pn = 'pe'+i;
-      cmds.push(pn+'=Segment(('+geoFmt(pf2.x)+','+geoFmt(pf2.y)+'),('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
-      texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
-      hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name, pn];
-      itemLabel.push(it.name+' 是 '+it.from+' 到 '+(it.to||'')+' 的垂足');
+      // 两种语义：
+      //  ① 默认：from 到 to 线段的垂足 = name（过 from 作 to 的垂线，垂足在 to 上）
+      //  ② 若给 toLine：过 from 作 toLine 的垂线，该垂线与 to 线段相交于 name（如"AF⊥AE交BC于F"）
+      var pf2 = getPt(it.from), pe2 = segEnds(it.to), tline = it.toLine ? segEnds(it.toLine) : null;
+      if(pf2 && tline && pe2){
+        var aL=tline[0], bL=tline[1];
+        var pDir = {x:aL.y-bL.y, y:bL.x-aL.x};   // toLine 的垂线方向
+        var pEnd = {x:pf2.x+pDir.x, y:pf2.y+pDir.y};
+        var ip2 = segX(pf2, pEnd, pe2[0], pe2[1]);
+        var foot = (ip2 && Math.abs(ip2.t)<1e9) ? {x:ip2.x, y:ip2.y} : null;
+        if(foot){
+          P[it.name] = foot;
+          upd(pf2); upd(foot);
+          cmds.push('pt_'+it.name+'=('+geoFmt(foot.x)+','+geoFmt(foot.y)+')');
+          var pn = 'pe'+i;
+          cmds.push(pn+'=Segment(('+geoFmt(pf2.x)+','+geoFmt(pf2.y)+'),('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
+          texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
+          hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name, pn];
+          itemLabel.push(it.name+' 是过 '+it.from+' 作 '+(it.toLine||'')+' 垂线与 '+(it.to||'')+' 的交点');
+        }else{
+          itemLabel.push('垂线交点（'+it.toLine+'⊥'+it.to+' 不相交，已跳过）');
+        }
+      }else if(pf2 && pe2){
+        var a2=pe2[0], b2=pe2[1];
+        var vx=b2.x-a2.x, vy=b2.y-a2.y;
+        var t2 = ((pf2.x-a2.x)*vx + (pf2.y-a2.y)*vy) / (vx*vx+vy*vy);
+        var foot = {x:a2.x+vx*t2, y:a2.y+vy*t2};
+        P[it.name] = foot;
+        upd(pf2); upd(foot);
+        cmds.push('pt_'+it.name+'=('+geoFmt(foot.x)+','+geoFmt(foot.y)+')');
+        var pn = 'pe'+i;
+        cmds.push(pn+'=Segment(('+geoFmt(pf2.x)+','+geoFmt(pf2.y)+'),('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
+        texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
+        hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name, pn];
+        itemLabel.push(it.name+' 是 '+it.from+' 到 '+(it.to||'')+' 的垂足');
+      }else{
+        itemLabel.push('垂线（点或线段不存在）');
+      }
     }
     else if(t === 'circle'){
       var pc = getPt(it.center);
@@ -1112,7 +1407,19 @@ function compileGeo(data){
     for(var ci2=0; ci2<cmds.length; ci2++){ if(!used[cmds[ci2].split('=')[0]]) rest.push(cmds[ci2]); }
     if(rest.length) steps[0].cmds = (steps[0]||{cmds:[]}).cmds.concat(rest);
   }
-  return {title:(data&&data.title)||'几何图形', setup: setup, steps: steps, labels: itemLabel, hlIndex: hlMap};
+  /* 依赖修复：点定义 X=(x,y) 自身无依赖，全部提前到第1步最前面；
+     引用点名的命令（如 Polygon(O,M,N)）必须在点定义之后执行，否则 GGB 报"未定义变量"。
+     （步骤分配可能把 Polygon 抽到点定义前面，动画观感不变，只保证执行顺序） */
+  var _ptDefs = [];
+  steps.forEach(function(s){
+    var _keep = [];
+    (s.cmds||[]).forEach(function(c){
+      if(/^\w+=\(\s*-?[\d.]+\s*,\s*-?[\d.]+\s*\)$/.test(c)) _ptDefs.push(c); else _keep.push(c);
+    });
+    s.cmds = _keep;
+  });
+  if(_ptDefs.length && steps.length) steps[0].cmds = _ptDefs.concat(steps[0].cmds || []);
+  return {title:(data&&data.title)||'几何图形', setup: setup, steps: steps, labels: itemLabel, hlIndex: hlMap, warnings: constructWarnings};
 }
 /* geo chips：把 items 渲染成人话标签，支持删除/添加后重新编译 */
 var geoDraft = null;   // 当前 geo 草稿（{title,items,steps}），确认后编译渲染
@@ -1121,19 +1428,44 @@ function geoItemDesc(it){
   var t = it.t;
   if(t==='pt') return '点 '+it.name+' ('+it.x+','+it.y+')';
       if(t==='triangle'||t==='square'||t==='rect'||t==='para'||t==='diamond') return ({triangle:'三角形',square:'正方形',rect:'长方形',para:'平行四边形',diamond:'菱形'})[t]+' '+(it.pts||[]).join('');
-  if(t==='poly') return ({triangle:'三角形',square:'正方形',rect:'长方形',para:'平行四边形',diamond:'菱形',penta:'正五边形'})[it.kind]+' '+(it.pts||[]).join('');
+  if(t==='poly') return ({triangle:'三角形',square:'正方形',rect:'长方形',para:'平行四边形',trapezoid:'等腰梯形',diamond:'菱形',penta:'正五边形'})[it.kind]+' '+(it.pts||[]).join('');
   if(t==='seg') return '连 '+(it.from||'')+(it.to||'');
   if(t==='line') return '直线 '+(it.from||'')+(it.to||'');
   if(t==='mid') return it.name+' = '+(it.of||'')+' 中点';
   if(t==='meet') return it.name+' = '+(it.of||'')+'∩'+(it.of2||'');
   if(t==='parallel') return it.name+' 过'+it.from+' ∥ '+(it.to||'')+(it.len?(' · '+it.len):'');
-  if(t==='perp') return it.name+'：'+it.from+'⊥'+(it.to||'')+' 垂足';
+  if(t==='perp') return it.name+'：'+it.from+'⊥'+(it.toLine||it.to||'')+(it.toLine?(' 交 '+(it.to||'')):' 垂足');
   if(t==='equal') return '等长：'+(it.expr||'');
   if(t==='circle') return '圆 ⊙'+(it.center||'')+(it.through?(' 过'+it.through):(' r='+it.r));
   if(t==='right') return '直角@'+(it.at||'');
   if(t==='shade') return '阴影'+(it.poly?(' '+it.poly):'');
   if(t==='text') return '标注「'+(it.s||'')+'」';
   return JSON.stringify(it);
+}
+/* construct 作图步骤的人话描述（chips 用） */
+function fmtLineRef(r){ return (typeof r==='string') ? r : ((r && r.join) ? r.join('') : ''); }
+function geoConstructDesc(st){
+  if(!st || !st.op) return '';
+  var o = st.op, at = st.at || [];
+  if(o==='pt') return '作图：点 '+st.id+' = ('+at[0]+','+at[1]+')';
+  if(o==='mid') return '作图：'+st.id+' = '+(st.of||[]).join('')+' 中点';
+  if(o==='reflect') return '作图：'+st.id+' = '+st.of+' 关于 '+st.through+' 的对称点';
+  if(o==='line'||o==='seg') return '作图：直线 '+(st.pts||[]).join('');
+  if(o==='ray') return '作图：从 '+st.from+' 作 '+st.angle+'° 射线';
+  if(o==='perp') return '作图：过 '+st.through+' 作 '+fmtLineRef(st.to)+' 的垂线';
+  if(o==='par') return '作图：过 '+st.through+' 作 '+fmtLineRef(st.to)+' 的平行线';
+  if(o==='circle'){
+    var rs = (st.r && typeof st.r==='object') ? JSON.stringify(st.r) : st.r;
+    return '作图：以 '+st.c+' 为圆心'+(rs?('、'+rs+' 为半径'):'')+'作圆';
+  }
+  if(o==='foot') return '作图：'+st.id+' 为 '+st.of+' 到 '+fmtLineRef(st.to)+' 的垂足';
+  if(o==='isect') return '作图：'+st.id+' = '+(st.of||[]).join(' 与 ')+' 的交点';
+  return '作图：'+o;
+}
+function delGeoConstruct(idx){
+  if(!geoDraft || !geoDraft.construct || !geoDraft.construct[idx]) return;
+  geoDraft.construct.splice(idx, 1);
+  showGeoDraft();
 }
 function showGeoDraft(){
   var wrap = document.getElementById('geoDraftBox');
@@ -1142,10 +1474,20 @@ function showGeoDraft(){
   var h = '<div class="explain-stage"><div class="stage-title">🧾 AI 读出的几何条件（请核对，可删除/补充）</div>'
        + '<div class="geo-chips">';
   g.items.forEach(function(it, idx){
-    h += '<span class="chip">'+escHtml(geoItemDesc(it))+'<b onclick="delGeoItem('+idx+')" title="删除">×</b></span>';
+    var isHandPt = it && it.t==='pt' && it.x!=null && it.y!=null;
+    var cls = isHandPt ? 'chip warn' : 'chip';
+    var tip = isHandPt ? 'AI 手填坐标，仅供参考，可删除' : '删除';
+    h += '<span class="'+cls+'">'+escHtml(geoItemDesc(it))+'<b onclick="delGeoItem('+idx+')" title="'+tip+'">×</b></span>';
   });
-  h += '</div>'
-     + '<div class="geo-add">'
+  h += '</div>';
+  if(g.construct && g.construct.length){
+    h += '<div class="geo-chips" style="padding-top:0"><span style="font-size:12px;color:#6d28d9;font-weight:600">作图步骤（系统精确解算）：</span>';
+    g.construct.forEach(function(st, si){
+      h += '<span class="chip cons">'+escHtml(geoConstructDesc(st))+'<b onclick="delGeoConstruct('+si+')" title="删除">×</b></span>';
+    });
+    h += '</div>';
+  }
+  h += '<div class="geo-add">'
      + '<select id="geoAddType" onchange="geoAddFields()">'
      + '<option value="mid">中点（如 D=BC中点）</option>'
      + '<option value="meet">交点（如 F=AE∩CD）</option>'
@@ -1173,7 +1515,7 @@ function geoAddFields(){
   if(v==='mid') box.innerHTML = '<input id="gaName" placeholder="新点名 D" class="wide"><input id="gaOf" placeholder="线段如 BC">';
   else if(v==='meet') box.innerHTML = '<input id="gaName" placeholder="交点名 F" class="wide"><input id="gaOf" placeholder="线1如 AE"><input id="gaOf2" placeholder="线2如 CD">';
   else if(v==='parallel') box.innerHTML = '<input id="gaName" placeholder="点名 E" class="wide"><input id="gaFrom" placeholder="起点如 D"><input id="gaTo" placeholder="∥线段如 AC"><input id="gaLen" placeholder="长度条件 如 AE=AC，可空">';
-  else if(v==='perp') box.innerHTML = '<input id="gaName" placeholder="垂足名 H" class="wide"><input id="gaFrom" placeholder="从点如 D"><input id="gaTo" placeholder="⊥线段如 AC">';
+  else if(v==='perp') box.innerHTML = '<input id="gaName" placeholder="交点名 F" class="wide"><input id="gaFrom" placeholder="从点如 A"><input id="gaToLine" placeholder="⊥线段 如 AE"><input id="gaTo" placeholder="交线段 如 BC">';
   else if(v==='seg') box.innerHTML = '<input id="gaFrom" placeholder="从点 A" class="wide"><input id="gaTo" placeholder="到点 C"><input id="gaLabel" placeholder="标签 可空">';
   else if(v==='equal') box.innerHTML = '<input id="gaExpr" placeholder="如 AE=AC" class="wide">';
 }
@@ -1186,7 +1528,7 @@ function addGeoItem(){
   if(v==='mid'){ it.name=gv('gaName'); it.of=gv('gaOf'); }
   else if(v==='meet'){ it.name=gv('gaName'); it.of=gv('gaOf'); it.of2=gv('gaOf2'); }
   else if(v==='parallel'){ it.name=gv('gaName'); it.from=gv('gaFrom'); it.to=gv('gaTo'); if(gv('gaLen')) it.len=gv('gaLen'); }
-  else if(v==='perp'){ it.name=gv('gaName'); it.from=gv('gaFrom'); it.to=gv('gaTo'); }
+  else if(v==='perp'){ it.name=gv('gaName'); it.from=gv('gaFrom'); if(gv('gaToLine')) it.toLine=gv('gaToLine'); if(gv('gaTo')) it.to=gv('gaTo'); }
   else if(v==='seg'){ it.from=gv('gaFrom'); it.to=gv('gaTo'); if(gv('gaLabel')) it.label=gv('gaLabel'); }
   else if(v==='equal'){ it.expr=gv('gaExpr'); }
   geoDraft.items.push(it);
@@ -1265,8 +1607,11 @@ function renderGeoStage(say, compiled, kp){
   var h = '<div class="msg tutor"><div class="who">🤖 AI 老师 · 动画讲解</div><div>'+fmt(say||'')+'</div>';
   if(kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(kp)+'</span></div>';
   h += '</div>';
-  h += '<div class="explain-stage"><div class="stage-title">📊 '+escHtml(compiled.title||'几何图形')+'</div>'
-     + '<div class="ggb-wrap"><div id="ggbBox"></div><div class="ggb-say" id="ggbSay">正在加载动画画板…</div></div>'
+  h += '<div class="explain-stage"><div class="stage-title">📊 '+escHtml(compiled.title||'几何图形')+'</div>';
+  if(compiled.warnings && compiled.warnings.length){
+    h += '<div style="padding:10px 14px;background:#fffbeb;border-bottom:1px solid #fde68a;color:#92400e;font-size:13px;line-height:1.7">⚠ 作图提示：'+compiled.warnings.map(function(w){return escHtml(w);}).join('；')+'</div>';
+  }
+  h += '<div class="ggb-wrap"><div id="ggbBox"></div><div class="ggb-say" id="ggbSay">正在加载动画画板…</div></div>'
      + '<div class="ggb-nav"><span class="n" id="ggbStepN"></span><button class="btn-accent" id="ggbNext" onclick="ggbNext()">开始 ▶</button></div></div>';
   var body = document.getElementById('explainBody');
   var keep = body.querySelector('.prob-show');
@@ -1465,7 +1810,7 @@ function toggleVoice(targetId, btnId, autoSend){
   catch(e){ alert('语音启动失败，请重试。'); }
 }
 
-/* 拍照识别题目（Beta）：优先走 Worker /ocr（SimpleTex 引擎），失败降级 OCR.space
+/* 拍照识别题目：优先走 Worker /simpletex（SimpleTex 公式引擎，接口已验证），失败降级 OCR.space
    图片预览供肉眼核对；几何图形信息由 AI 视觉读图，无需手动补充 */
 var lastPhoto = null;  // 最近一次拍照的压缩图（base64 data URL，开始引导/讲解时发给 AI 视觉识别）
 var lastOcrText = '';  // 最近一次 OCR 结果（用于重拍覆盖判断）
@@ -1476,7 +1821,7 @@ function ocrViaWorker(dataUrl){
       if(!base){ resolve(null); return; }
       var done = false;
       var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 20000);
-      fetch(base + '/ocr', {method:'POST', headers:apiHeaders(),
+      fetch(base + '/simpletex', {method:'POST', headers:apiHeaders(),
         body: JSON.stringify({image:dataUrl})})
       .then(function(r){ return r.json(); })
       .then(function(d){
