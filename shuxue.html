@@ -438,6 +438,28 @@ function executeConstruct(steps){
           var pt=pickPt(cands, st.pick, o1+"∩"+o2);
           if(pt) points[st.id]=pt;
           break; }
+        case "onCircle": { // 圆上按角取点：{op:"onCircle",id:"A",of:"c",angle:120} 圆 c 上、相对 +x 轴逆时针 angle° 的点
+          var cc=P(st.of); if(!cc){ warn("未知圆 "+st.of); break; }
+          var oc = (st.o ? P(st.o) : null) || (st.center ? P(st.center) : null) || cc;   // 圆心：可显式传，否则圆中心点
+          var cr = (st.r!=null) ? evalExpr(st.r) : dist(cc, oc)||1;
+          var an = evalExpr(st.angle)*Math.PI/180;
+          points[st.id]=[oc[0]+cr*Math.cos(an), oc[1]+cr*Math.sin(an)]; break; }
+        case "angleBisect": { // 角平分线方向点：{op:"angleBisect",id:"bis",at:"C",of:["A","B"]} C为顶点，A、B为角两边上点
+          var vA=P(st.of[0]), vB=P(st.of[1]), vC=P(st.at); if(!vA||!vB||!vC){ warn("角平分线点缺失"); break; }
+          var dA=norm(sub(vA,vC)), dB=norm(sub(vB,vC));
+          var dir=norm(addM(dA,dB));
+          var dL=dist(vA,vB)||1;
+          points[st.id]=addM(vC, mul(dir, dL));   // 沿角平分线方向取一辅助点（长度取两边点距）
+          break; }
+        case "circum": { // 三点外接圆圆心：{op:"circum",id:"O",of:["A","B","C"]}
+          var cA=P(st.of[0]), cB=P(st.of[1]), cC=P(st.of[2]);
+          if(!cA||!cB||!cC){ warn("外接圆点缺失"); break; }
+          var ax=cA[0], ay=cA[1], bx=cB[0], by=cB[1], cx2=cC[0], cy2=cC[1];
+          var d=2*(ax*(by-cy2)+bx*(cy2-ay)+cx2*(ay-by));
+          if(Math.abs(d)<1e-9){ warn("三点共线，无法定外接圆"); break; }
+          var ux=((ax*ax+ay*ay)*(by-cy2)+(bx*bx+by*by)*(cy2-ay)+(cx2*cx2+cy2*cy2)*(ay-by))/d;
+          var uy=((ax*ax+ay*ay)*(cx2-bx)+(bx*bx+by*by)*(ax-cx2)+(cx2*cx2+cy2*cy2)*(bx-ax))/d;
+          points[st.id]=[ux,uy]; break; }
         default: warn("未知作图指令 "+st.op);
       }
     }catch(e){ warn("步骤 "+idx+" 出错："+e.message); }
@@ -454,7 +476,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { executeC
 </script>
 <script>
 var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题；整个引导控制在4-6步内完成，学生连续答对时合并步骤加速，不要为了提问而提问\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过900字符，只保留讲题必需的图形，保证JSON一次成型不截断";
-var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"say\":\"步骤讲解\",\"hl\":[\"对象名\"]}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，\n重要：协议里不存在任何坐标指令，你绝不输出坐标数字（x/y 一律不写）！所有顶点位置由系统自动放置，你只描述几何关系。items 顺序：基础图形（poly/circle 放第一条）→派生点（mid/meet/parallel/perp）→连线（seg）→文字（text）。\n【图形分类器（务必准确）】两腰相等且两底平行的四边形=trapezoid等腰梯形；对边平行且相等=para平行四边形；等长邻边直角=square正方形；直角不等边=rect长方形；四边相等=diamond菱形；五边等长=penta。题目写『等腰梯形』就必须用trapezoid，严禁用para冒充。\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|trapezoid|diamond|penta\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 基础图形，只需顶点字母，位置系统自动算。四边形顶点顺序按绕行顺序（如梯形ABCD：A左上、B左下、C右下、D右上）。\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆。\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} BC的中点叫D。\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} AE与CD的交点叫F。\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC平行线，E是线上一点（有长度条件加\"len\":\"AE=AC\"）。\n  {\"t\":\"perp\",\"name\":\"F\",\"from\":\"A\",\"toLine\":\"AE\",\"to\":\"BC\"} 过A作AE的垂线交BC于F（作XX⊥YY交ZZ于W专用）；若只是垂足：省略toLine，{\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"}表示垂足H在AC上。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段。\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线。\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} G处直角标记。\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影。\n  {\"t\":\"text\",\"s\":\"说明\",\"at\":\"F\"} 文字标注，at为锚点名。\n注意：每条指令用到的点必须已在前面指令出现过；先图形后派生点再连线。{\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。角（如∠MON）用两条seg画两条边、再加text标注度数，不要把角画成三角形poly。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。【作图层 construct（度量精确，强烈推荐）】凡是由长度/角度/几何关系确定的点（如\"AE=2√3且∠DAE=30°的E\"、\"垂线与BC的交点F\"），必须用 construct 作图步骤让系统精确解算，禁止手写 pt 坐标猜位置！pt 只用于1-2个基准点，坐标可写表达式如\"sqrt(2)\"。\n\"construct\":[{\"op\":\"pt\",\"id\":\"D\",\"at\":[0,0]},{\"op\":\"pt\",\"id\":\"A\",\"at\":[\"sqrt(2)\",0]},{\"op\":\"ray\",\"id\":\"rAE\",\"from\":\"A\",\"angle\":150},{\"op\":\"circle\",\"id\":\"cA\",\"c\":\"A\",\"r\":\"2*sqrt(3)\"},{\"op\":\"isect\",\"id\":\"E\",\"of\":[\"cA\",\"rAE\"]},{\"op\":\"reflect\",\"id\":\"C\",\"of\":\"D\",\"through\":\"E\"},...]\nop一览：pt(基准点，at可写表达式)/mid(中点 of:[P1,P2])/reflect(对称点 of:P,through:Q)/line(直线 pts:[P1,P2])/ray(射线 from:P,angle:角度制从+x轴逆时针)/perp(垂线 through:P,to:线名或[点1,点2])/par(平行线 through:P,to:线)/circle(圆 c:圆心,r:表达式如\"2*sqrt(3)\"或{dist:[P1,P2]})/foot(垂足 of:P,to:线)/isect(交点 of:[对象1,对象2],pick:left/right/top/bottom)。表达式支持+ - * / ^、sqrt/sin/cos(角度制)/pi。复杂图形请用 construct 从头作图，不要混用 poly 自动摆位（摆位无度量，仅为示意）。construct 只负责算出点的位置；点要画出来仍需 items（如 poly/seg/text），引用点名即可，坐标会自动带入。\n\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：geo协议 steps 数4-8步，每步 say 讲解一个动作（先画骨架、再标关键点、再讲性质、最后总结），hl 是该步高亮对象；ggb协议同之前规范。最后一步总结答案。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
+var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"say\":\"步骤讲解\",\"hl\":[\"对象名\"]}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，\n重要：协议里不存在任何坐标指令，你绝不输出坐标数字（x/y 一律不写）！所有顶点位置由系统自动放置，你只描述几何关系。items 顺序：基础图形（poly/circle 放第一条）→派生点（mid/meet/parallel/perp）→连线（seg）→文字（text）。\n【图形分类器（务必准确）】两腰相等且两底平行的四边形=trapezoid等腰梯形；对边平行且相等=para平行四边形；等长邻边直角=square正方形；直角不等边=rect长方形；四边相等=diamond菱形；五边等长=penta。题目写『等腰梯形』就必须用trapezoid，严禁用para冒充。\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|trapezoid|diamond|penta\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 基础图形，只需顶点字母，位置系统自动算。四边形顶点顺序按绕行顺序（如梯形ABCD：A左上、B左下、C右下、D右上）。\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆。\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} BC的中点叫D。\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} AE与CD的交点叫F。\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC平行线，E是线上一点（有长度条件加\"len\":\"AE=AC\"）。\n  {\"t\":\"perp\",\"name\":\"F\",\"from\":\"A\",\"toLine\":\"AE\",\"to\":\"BC\"} 过A作AE的垂线交BC于F（作XX⊥YY交ZZ于W专用）；若只是垂足：省略toLine，{\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"}表示垂足H在AC上。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段。\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线。\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} G处直角标记。\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影。\n  {\"t\":\"text\",\"s\":\"说明\",\"at\":\"F\"} 文字标注，at为锚点名。\n注意：每条指令用到的点必须已在前面指令出现过；先图形后派生点再连线。{\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。角（如∠MON）用两条seg画两条边、再加text标注度数，不要把角画成三角形poly。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。【作图层 construct（度量精确，强烈推荐）】凡是由长度/角度/几何关系确定的点（如\"AE=2√3且∠DAE=30°的E\"、\"垂线与BC的交点F\"），必须用 construct 作图步骤让系统精确解算，禁止手写 pt 坐标猜位置！pt 只用于1-2个基准点，坐标可写表达式如\"sqrt(2)\"。\n\"construct\":[{\"op\":\"pt\",\"id\":\"D\",\"at\":[0,0]},{\"op\":\"pt\",\"id\":\"A\",\"at\":[\"sqrt(2)\",0]},{\"op\":\"ray\",\"id\":\"rAE\",\"from\":\"A\",\"angle\":150},{\"op\":\"circle\",\"id\":\"cA\",\"c\":\"A\",\"r\":\"2*sqrt(3)\"},{\"op\":\"isect\",\"id\":\"E\",\"of\":[\"cA\",\"rAE\"]},{\"op\":\"reflect\",\"id\":\"C\",\"of\":\"D\",\"through\":\"E\"},...]\nop一览：pt(基准点，at可写表达式)/mid(中点 of:[P1,P2])/reflect(对称点 of:P,through:Q)/line(直线 pts:[P1,P2])/ray(射线 from:P,angle:角度制从+x轴逆时针)/perp(垂线 through:P,to:线名或[点1,点2])/par(平行线 through:P,to:线)/circle(圆 c:圆心,r:表达式如\"2*sqrt(3)\"或{dist:[P1,P2]})/foot(垂足 of:P,to:线)/isect(交点 of:[对象1,对象2],pick:left/right/top/bottom)/onCircle(圆上点 id=点名,of=圆心名,r=半径可省,angle=角度制从+x轴逆时针)/angleBisect(角平分线方向点 id=辅助点,at=顶点,of=[角两边点])/circum(三点外接圆圆心 id=圆心,of=[三点])。表达式支持+ - * / ^、sqrt/sin/cos(角度制)/pi。复杂图形请用 construct 从头作图，不要混用 poly 自动摆位（摆位无度量，仅为示意）。construct 只负责算出点的位置；点要画出来仍需 items（如 poly/seg/text），引用点名即可，坐标会自动带入。\n\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：geo协议 steps 数4-8步，每步 say 讲解一个动作（先画骨架、再标关键点、再讲性质、最后总结），hl 是该步高亮对象；ggb协议同之前规范。最后一步总结答案。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
 var chatHistory = [];
 var demoMode = false, demoIdx = 0;
 var curProblem = '';  // 当前题目（跨模式保留）
@@ -1051,6 +1073,39 @@ function compileGeo(data){
         if(it.center && !P[it.center]) P[it.center] = {x:0,y:0};
         if(it.through && !P[it.through]) P[it.through] = {x:2,y:1};
       }
+      else if(t === 'onCircle'){
+        // 圆上点：{t:"onCircle",name:"D",circle:"O",angle:120} 圆 O 上、相对+x轴逆时针 angle° 的点
+        var oC = getPt(it.circle||it.center||it.o);
+        if(!oC && it.through){ var ocT=getPt(it.through); if(ocT){ oC=ocT; } }
+        if(!oC) oC = {x:0,y:0};
+        var rC = (it.r != null) ? geoNum(it.r) : 2;
+        var anC = (it.angle!=null ? geoNum(it.angle) : 0) * Math.PI/180;
+        if(it.name && !P[it.name]) P[it.name] = {x:oC.x + rC*Math.cos(anC), y:oC.y + rC*Math.sin(anC)};
+      }
+      else if(t === 'bisect'){
+        // 角平分线：{t:"bisect",at:"C",of:["A","B"],name:"M"} C为顶点，M在角平分线方向
+        var vAt = getPt(it.at), vA2 = getPt(it.of&&it.of[0]), vB2 = getPt(it.of&&it.of[1]);
+        if(vAt && vA2 && vB2 && !P[it.name]){
+          var dAx=vA2.x-vAt.x, dAy=vA2.y-vAt.y, lA=Math.sqrt(dAx*dAx+dAy*dAy)||1;
+          var dBx=vB2.x-vAt.x, dBy=vB2.y-vAt.y, lB=Math.sqrt(dBx*dBx+dBy*dBy)||1;
+          var dx=(dAx/lA+dBx/lB), dy=(dAy/lA+dBy/lB), dl=Math.hypot(dx,dy)||1;
+          var lenB = Math.hypot(vA2.x-vB2.x, vA2.y-vB2.y)||2;
+          P[it.name] = {x:vAt.x+(dx/dl)*lenB, y:vAt.y+(dy/dl)*lenB};
+        }
+      }
+      else if(t === 'circumcircle'){
+        // 三点外接圆：{t:"circumcircle",center:"O",through:["A","B","C"]} 用 construct.circum 解圆心
+        var cpts = (it.through||[]).map(function(n){ return getPt(n); });
+        if(cpts.length>=3 && cpts.every(Boolean) && it.center && !P[it.center]){
+          var ax=cpts[0].x, ay=cpts[0].y, bx=cpts[1].x, by=cpts[1].y, cx3=cpts[2].x, cy3=cpts[2].y;
+          var d3=2*(ax*(by-cy3)+bx*(cy3-ay)+cx3*(ay-by));
+          if(Math.abs(d3)>1e-9){
+            var ux3=((ax*ax+ay*ay)*(by-cy3)+(bx*bx+by*by)*(cy3-ay)+(cx3*cx3+cy3*cy3)*(ay-by))/d3;
+            var uy3=((ax*ax+ay*ay)*(cx3-bx)+(bx*bx+by*by)*(ax-cx3)+(cx3*cx3+cy3*cy3)*(bx-ax))/d3;
+            P[it.center] = {x:ux3, y:uy3};
+          }
+        }
+      }
     }
   }
   pass1();
@@ -1312,6 +1367,75 @@ function compileGeo(data){
       hlMap['O'] = hlMap['O']||[]; hlMap['O'].push(cn);
       itemLabel.push('圆：圆心 '+(it.center||'')+(it.through?('，过点 '+it.through):('，半径 '+geoFmt(r))));
     }
+    else if(t === 'onCircle'){
+      // 圆上点：{t:"onCircle",name:"D",circle:"O",angle:120} 圆 O 上、相对+x轴逆时针 angle° 的点
+      var oCP = getPt(it.circle||it.center||it.o);
+      if(!oCP){ itemLabel.push('圆上点（圆心不存在）'); continue; }
+      ensurePt(oCP);
+      var rCP = (it.r != null) ? geoNum(it.r) : 2;
+      if(it.through){
+        var oTp = getPt(it.through);
+        if(oTp) rCP = Math.sqrt(Math.pow(oTp.x-oCP.x,2)+Math.pow(oTp.y-oCP.y,2));
+      }
+      var anCP = (it.angle!=null ? geoNum(it.angle) : 0) * Math.PI/180;
+      var pCP = {x:oCP.x + rCP*Math.cos(anCP), y:oCP.y + rCP*Math.sin(anCP)};
+      P[it.name] = pCP; upd(pCP);
+      cmds.push(it.name+'=('+geoFmt(pCP.x)+','+geoFmt(pCP.y)+')');
+      texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(pCP.x)+','+geoFmt(pCP.y)+'))');
+      hlMap[it.name] = [it.name, 'tx_'+it.name];
+      itemLabel.push('圆'+(it.circle||'')+'上按 '+(it.angle||0)+'° 取点 '+it.name);
+    }
+    else if(t === 'bisect'){
+      // 角平分线：{t:"bisect",at:"C",of:["A","B"]} 从顶点 C 沿角平分线方向取点 M（连 CM 即平分线）
+      var vAtP = getPt(it.at), vA3 = getPt(it.of&&it.of[0]), vB3 = getPt(it.of&&it.of[1]);
+      if(!vAtP || !vA3 || !vB3){ itemLabel.push('角平分线（顶点或两边点缺失）'); continue; }
+      var dax=vA3.x-vAtP.x, day=vA3.y-vAtP.y, la=Math.sqrt(dax*dax+day*day)||1;
+      var dbx=vB3.x-vAtP.x, dby=vB3.y-vAtP.y, lb=Math.sqrt(dbx*dbx+dby*dby)||1;
+      var mdx=(dax/la+dbx/lb), mdy=(day/la+dby/lb), mlen=Math.hypot(mdx,mdy)||1;
+      var bisLen = Math.hypot(vA3.x-vB3.x, vA3.y-vB3.y)||2;
+      var bisPt = {x:vAtP.x+(mdx/mlen)*bisLen, y:vAtP.y+(mdy/mlen)*bisLen};
+      var bn = 'bis'+i;
+      cmds.push(bn+'=Segment('+it.at+','+geoFmt(bisPt.x)+','+geoFmt(bisPt.y)+')');
+      var bs = 'bs'+i;
+      cmds.push(bs+'=('+geoFmt(bisPt.x)+','+geoFmt(bisPt.y)+')');
+      // 用辅助点 bs，平分线=Segment(at,bs)
+      cmds.push(bn+'=Segment('+it.at+','+bs+')');
+      if(it.label){
+        var bsName = it.name;
+        if(bsName){ P[bsName]=bisPt; upd(bisPt); ensurePt(bsName); texts.push('tx_'+bsName+'=Text("'+bsName+'",('+geoFmt(bisPt.x)+','+geoFmt(bisPt.y)+'))'); }
+        hlMap[bsName]=hlMap[bsName]||[]; hlMap[bsName].push(bs);
+      }
+      hlMap[bn] = hlMap[bn]||[]; hlMap[bn].push(bn);
+      itemLabel.push('∠'+(it.of||[]).join('')+' 的平分线');
+    }
+    else if(t === 'circumcircle'){
+      // 三点外接圆：{t:"circumcircle",center:"O",through:["A","B","C"]}
+      var cpp = (it.through||[]).map(function(n){ return getPt(n); });
+      if(cpp.length>=3 && cpp.every(Boolean) && it.center){
+        var cPt = getPt(it.center);
+        if(!cPt){ itemLabel.push('外接圆（圆心缺失）'); continue; }
+        var rr = Math.sqrt(Math.pow(cpp[0].x-cPt.x,2)+Math.pow(cpp[0].y-cPt.y,2));
+        upd({x:cPt.x-rr,y:cPt.y-rr}); upd({x:cPt.x+rr,y:cPt.y+rr});
+        var cnC = 'ci'+i;
+        cmds.push(cnC+'=Circle('+it.center+','+cpp[0]+')');   // Circle(O,A) 过 A
+        hlMap[it.center]=hlMap[it.center]||[]; hlMap[it.center].push(cnC);
+        hlMap['O']=hlMap['O']||[]; hlMap['O'].push(cnC);
+        itemLabel.push('外接圆：圆心 '+(it.center||'')+'，过 '+(it.through||[]).join(''));
+      }else{
+        itemLabel.push('外接圆（三点/圆心缺失）');
+      }
+    }
+    else if(t === 'arc'){
+      // 弧线：{t:"arc",center:"O",from:"A",to:"B"} 以 O 为圆心、从 A 到 B 的劣弧
+      var cO = getPt(it.center), aO = getPt(it.from), bO = getPt(it.to);
+      if(!cO || !aO || !bO){ itemLabel.push('弧（圆心/端点缺失）'); continue; }
+      ensurePt(it.center); ensurePt(it.from); ensurePt(it.to);
+      upd(cO); upd(aO); upd(bO);
+      var an = 'ar'+i;
+      cmds.push(an+'=CircularArc('+it.center+','+it.from+','+it.to+')');   // GGB: CircularArc(C,M,N) 中心C，M起点，N终点
+      hlMap[an]=hlMap[an]||[]; hlMap[an].push(an);
+      itemLabel.push('弧：以 '+it.center+' 为圆心、'+it.from+' 到 '+it.to);
+    }
     else if(t === 'right'){
       // 直角标记：在 at 点，画小方块两段线
       var pa = getPt(it.at);
@@ -1337,6 +1461,33 @@ function compileGeo(data){
       itemLabel.push((it.at||'')+' 处的直角');
     }
     else if(t === 'shade'){
+      // 支持两类：
+      //  ① 多边形/三角形：{pts:[A,B,C]} 或 {poly:"ABC"}
+      //  ② 弓形/扇形阴影：{arc:["O","A","D"], chord:true} → 扇形 Sector(O,A,D) 填阴影色，
+      //     再画三角形 Polygon(A,O,D) 用背景色覆盖圆心部分，剩余即弓形
+      if(it.arc && it.arc.length>=3){
+        var cArc = getPt(it.arc[0]), aArc = getPt(it.arc[1]), dArc = getPt(it.arc[2]);
+        if(cArc && aArc && dArc){
+          var shnA = 'sh'+i;
+          ensurePt(it.arc[0]); ensurePt(it.arc[1]); ensurePt(it.arc[2]);
+          cmds.push(shnA+'=CircularSector('+it.arc[0]+','+it.arc[1]+','+it.arc[2]+')');   // 扇形：圆心C,弧端点P,Q
+          var hexA = String(it.color||'#f59e0b').replace('#','');
+          if(hexA.length===3) hexA = hexA.replace(/(.)/g,'$1$1');
+          shadeCmds.push('SetFilling('+shnA+',0.5)');
+          shadeCmds.push('SetColor('+shnA+','+parseInt(hexA.substring(0,2),16)+','+parseInt(hexA.substring(2,4),16)+','+parseInt(hexA.substring(4,6),16)+')');
+          if(it.chord){   // 弓形：画三角形 OAD 覆盖背景色，留出弓形
+            var triN = 'shr'+i;
+            cmds.push(triN+'=Polygon('+it.arc[1]+','+it.arc[0]+','+it.arc[2]+')');
+            shadeCmds.push('SetColor('+triN+',255,255,255)');
+            shadeCmds.push('SetFilling('+triN+',1)');
+          }
+          upd(cArc); upd(aArc); upd(dArc);
+          hlMap['shade'+i] = [shnA];
+          hlMap['阴影'] = hlMap['阴影']||[]; hlMap['阴影'].push(shnA);
+          itemLabel.push('弓形阴影（'+(it.arc||[]).join('')+' 弧）');
+        }else{ itemLabel.push('阴影（弓形圆心/端点缺失）'); }
+      }
+      else{
       var sPts = [];
       if(it.pts && it.pts.length){
         sPts = it.pts.map(function(n){ return getPt(n); });
@@ -1361,6 +1512,7 @@ function compileGeo(data){
         itemLabel.push('阴影区域');
       }else{
         itemLabel.push('阴影（顶点不全，已跳过）');
+      }
       }
     }
     else if(t === 'text'){
@@ -1472,6 +1624,10 @@ function geoItemDesc(it){
   if(t==='perp') return it.name+'：'+it.from+'⊥'+(it.toLine||it.to||'')+(it.toLine?(' 交 '+(it.to||'')):' 垂足');
   if(t==='equal') return '等长：'+(it.expr||'');
   if(t==='circle') return '圆 ⊙'+(it.center||'')+(it.through?(' 过'+it.through):(' r='+it.r));
+  if(t==='onCircle') return '圆上点 '+(it.name||'')+'（'+(it.circle||'')+' 上 '+(it.angle||0)+'°）';
+  if(t==='bisect') return '∠'+(it.of||[]).join('')+' 平分线';
+  if(t==='circumcircle') return '外接圆 ⊙'+(it.center||'')+' 过 '+(it.through||[]).join('');
+  if(t==='arc') return '弧 '+(it.from||'')+(it.to||'')+'（圆心 '+(it.center||'')+'）';
   if(t==='right') return '直角@'+(it.at||'');
   if(t==='shade') return '阴影'+(it.poly?(' '+it.poly):'');
   if(t==='text') return '标注「'+(it.s||'')+'」';
@@ -1495,6 +1651,9 @@ function geoConstructDesc(st){
   }
   if(o==='foot') return '作图：'+st.id+' 为 '+st.of+' 到 '+fmtLineRef(st.to)+' 的垂足';
   if(o==='isect') return '作图：'+st.id+' = '+(st.of||[]).join(' 与 ')+' 的交点';
+  if(o==='onCircle') return '作图：圆上点 '+st.id+' = 圆'+(st.of||'')+' 按 '+st.angle+'° 取点';
+  if(o==='angleBisect') return '作图：'+st.at+' 处∠'+(st.of||[]).join('')+' 的角平分线方向点 '+st.id;
+  if(o==='circum') return '作图：'+st.id+' 为 '+(st.of||[]).join('')+' 外接圆圆心';
   return '作图：'+o;
 }
 function delGeoConstruct(idx){
@@ -1605,7 +1764,7 @@ function geoStepsWithHighlight(compiled){
     var mm = String(c).match(/^([A-Za-z]\w*)=/);
     if(!mm) return;
     var nm = mm[1];
-    if(!(/^(pt_|sg|li|ln|pl|pe|q\d|ci|tri|poly|rq|sh|tx|tlb|txt)/.test(nm) || /^[A-Z]$/.test(nm))) return;
+    if(!(/^(pt_|sg|li|ln|pl|pe|q\d|ci|tri|poly|rq|sh|shr|ar\d|bis\d|bs\d|tx|tlb|txt)/.test(nm) || /^[A-Z]$/.test(nm))) return;
     if(objNames.indexOf(nm) < 0) objNames.push(nm);
     var body = String(c).slice(mm[0].length);
     if(/^\(/.test(body) || /^Midpoint\(/.test(body) || /^Intersect\(/.test(body)) ptObjs[nm] = true;
