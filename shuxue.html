@@ -18,6 +18,13 @@
 .input-wrap{position:relative}
 .input-wrap textarea{width:100%;min-height:96px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;padding:14px;font-size:16px;line-height:1.8;font-family:inherit;resize:vertical;box-sizing:border-box}
 .input-wrap textarea:focus{outline:none;border-color:#4f8cff;box-shadow:0 0 0 3px rgba(79,140,255,.15)}
+/* 拍照图片预览 */
+.photo-preview{display:none;margin-top:10px;position:relative}
+.photo-preview.show{display:block}
+.photo-preview img{max-width:100%;max-height:200px;border-radius:10px;border:1px solid #e2e8f0;display:block}
+.photo-preview .pv-bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:#94a3b8}
+.photo-preview .pv-remove{background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;padding:2px 6px;font-family:inherit}
+.photo-preview .pv-remove:hover{text-decoration:underline}
 .input-tools{position:absolute;right:10px;bottom:10px;display:flex;gap:8px}
 .tool-btn{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;color:#475569;font-size:13px;padding:7px 12px;cursor:pointer}
 .tool-btn:hover{border-color:#4f8cff;color:#4f8cff}
@@ -133,6 +140,10 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
 </div>
 </div>
+<div class="photo-preview" id="photoPreview">
+<img id="pvImg" alt="题目照片预览">
+<div class="pv-bar"><span id="pvNote">已识别文字，图里的几何形状/条件请核对补充</span><button class="pv-remove" onclick="clearPhoto()">✕ 删除图片</button></div>
+</div>
 <div id="ocrStatus" class="hint" style="display:none"></div>
 
 <div class="mode-cards">
@@ -155,7 +166,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <span id="codeOk" style="color:#047857;font-size:13px"></span>
 </div>
 </div>
-<p class="hint">语音和拍照只识别题目文字，不直接给答案。手写体识别率有限，请核对后再开始。</p>
+<p class="hint">拍照识别只出题目文字，几何图/示意图请对照下方预览核对，把图里的条件（连哪几个点、阴影在哪）补进题目里，AI 才能看懂。手写体识别率有限，请修正后再开始。</p>
 </div>
 
 <div id="chat" style="display:none">
@@ -592,7 +603,10 @@ function toggleVoice(targetId, btnId, autoSend){
   catch(e){ alert('语音启动失败，请重试。'); }
 }
 
-/* 拍照识别题目（Beta）：只做 OCR 文字提取，不搜题不给答案 */
+/* 拍照识别题目（Beta）：只做 OCR 文字提取，不搜题不给答案
+   图片预览让用户肉眼核对图形条件；OCR 丢掉的几何信息需用户手动补进题目 */
+var lastPhoto = null;  // 最近一次拍照的压缩图（仅本机内存，不发送给 AI）
+var lastOcrText = '';  // 最近一次 OCR 结果（用于重拍覆盖判断）
 function ocrPhoto(input){
   var file = input.files && input.files[0];
   if(!file) return;
@@ -608,6 +622,7 @@ function ocrPhoto(input){
     cv.getContext('2d').drawImage(img, 0, 0, w, h);
     var dataUrl = cv.toDataURL('image/jpeg', 0.85);
     URL.revokeObjectURL(img.src);
+    showPhotoPreview(dataUrl, w*h);
     var fd = new FormData();
     fd.append('apikey', 'helloworld');  // OCR.space 公共演示 key，重度使用请去 ocr.space 免费注册自己的 key
     fd.append('base64Image', dataUrl);
@@ -620,8 +635,12 @@ function ocrPhoto(input){
         txt = (txt||'').trim();
         if(txt){
           var ta = document.getElementById('problem');
-          ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + txt.replace(/\s+/g,'');
-          status.textContent = '✔ 识别完成，请检查文字是否准确，手动修正后再点"开始引导"。';
+          // 重拍时覆盖上次识别结果（重拍=对上次不满意），手动输入的内容不覆盖
+          var prev = ta.value.replace(/\s+/g,'');
+          if(prev && prev === lastOcrText) ta.value = '';
+          lastOcrText = txt.replace(/\s+/g,'');
+          ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + lastOcrText;
+          status.textContent = '✔ 文字已识别。图里的几何条件（连哪几个点、阴影位置等）请对照预览手动补进题目，AI 才能看懂。';
           status.style.color = '#4ade80';
         }else{
           status.textContent = '✘ 没识别出文字，请把题目拍得更清晰、更正，或手动输入。';
@@ -636,6 +655,21 @@ function ocrPhoto(input){
   };
   img.onerror = function(){ status.textContent = '✘ 图片读取失败，请重试。'; status.style.color = '#f87171'; };
   img.src = URL.createObjectURL(file);
+}
+function showPhotoPreview(dataUrl, px){
+  lastPhoto = dataUrl;
+  var pv = document.getElementById('photoPreview');
+  document.getElementById('pvImg').src = dataUrl;
+  document.getElementById('pvNote').textContent = px > 400000
+    ? '已识别文字，图里的几何形状/条件请核对补充'
+    : '已识别文字 · 图片偏小，如图形不清建议重拍';
+  pv.classList.add('show');
+}
+function clearPhoto(){
+  lastPhoto = null;
+  var pv = document.getElementById('photoPreview');
+  pv.classList.remove('show');
+  document.getElementById('pvImg').src = '';
 }
 </script>
 <!-- 导航栏卡密弹窗 -->
