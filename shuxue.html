@@ -1,50 +1,100 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>苏格拉底数学引导 · 一步步问到你会 · XSKAI</title>
-<meta name="description" content="AI 苏格拉底式数学引导：不直接给答案，一步步提问引导思路，卡住才给提示，附每步知识点。免费。">
+<title>数学解题助手 · XSKAI</title>
+<meta name="description" content="AI 数学解题助手：一步步引导孩子自己想通，或看动画讲解帮家长备课。免费。">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <style>
-.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:var(--r-lg,14px);padding:24px;margin:20px 0;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-.toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
-.toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit;resize:none}
-.toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
-.btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
-.btn.big{padding:12px 28px;font-size:16px}
-.btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:var(--r-sm,8px);font-size:15px;cursor:pointer;transition:all .2s ease}
-.btn.ghost:hover{background:rgba(255,255,255,.06);border-color:#3d4a6c}
-#chat{display:none;margin-top:18px}
-.msg{margin:10px 0;padding:12px 16px;border-radius:10px;font-size:14px;line-height:1.8;max-width:92%}
-.msg.tutor{background:#0f1420;border:1px solid #2a3650;color:#dbe4f5}
-.msg.student{background:#1e3a5f;border:1px solid #2d5a8f;color:#fff;margin-left:auto;text-align:right}
-.msg.who{font-size:12px;color:#9fb0cc;margin-bottom:4px}
-.kp{display:inline-block;background:#143d2b;color:#4ade80;font-size:12px;padding:2px 10px;border-radius:10px;margin:4px 4px 0 0}
+/* ===== 数学助手 · 清爽浅色主题 ===== */
+.math-card{background:#ffffff;border-radius:20px;padding:32px 30px;margin:28px auto;max-width:720px;box-shadow:0 12px 40px rgba(0,0,0,.35);color:#1e293b}
+.math-title{font-size:22px;font-weight:700;margin:0 0 8px;color:#0f172a}
+.math-sub{font-size:14px;color:#64748b;margin:0 0 6px;line-height:1.8}
+.math-sub b{color:#1d4ed8}
+.fld-label{display:block;font-size:14px;font-weight:600;color:#334155;margin:20px 0 8px}
+.grade-select{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;padding:10px 14px;font-size:15px;min-width:150px}
+.input-wrap{position:relative}
+.input-wrap textarea{width:100%;min-height:96px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;padding:14px;font-size:16px;line-height:1.8;font-family:inherit;resize:vertical;box-sizing:border-box}
+.input-wrap textarea:focus{outline:none;border-color:#4f8cff;box-shadow:0 0 0 3px rgba(79,140,255,.15)}
+.input-tools{position:absolute;right:10px;bottom:10px;display:flex;gap:8px}
+.tool-btn{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;color:#475569;font-size:13px;padding:7px 12px;cursor:pointer}
+.tool-btn:hover{border-color:#4f8cff;color:#4f8cff}
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 6px}
+.mode-card{background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;transition:all .18s ease;font-family:inherit}
+.mode-card b{display:block;font-size:15px;color:#0f172a;margin-bottom:5px}
+.mode-card span{font-size:13px;color:#64748b;line-height:1.6}
+.mode-card.on{border-color:#4f8cff;background:#eff6ff;box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+.mode-card.on b{color:#1d4ed8}
+.btn-primary{display:block;width:100%;background:#4f8cff;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px;cursor:pointer;margin-top:16px;transition:background .2s;font-family:inherit}
+.btn-primary:hover{background:#3b76f6}
+.demo-row{text-align:center;margin-top:12px}
+.link-demo{background:none;border:none;color:#4f8cff;font-size:14px;cursor:pointer;font-family:inherit;padding:4px}
+.link-demo:hover{text-decoration:underline}
+.hint{font-size:13px;color:#94a3b8;margin-top:12px;line-height:1.7}
+.codebar{margin-top:18px;border-top:1px dashed #e2e8f0;padding-top:14px}
+.code-label{font-size:14px;font-weight:600;color:#334155}
+.code-label span{font-weight:400;font-size:13px;color:#94a3b8}
+.code-label a{font-size:13px;color:#4f8cff;margin-left:8px}
+/* 导航栏卡密入口 */
+nav.main .nav-code{background:#4f8cff;color:#fff!important;border-radius:8px;padding:6px 14px;font-weight:600}
+nav.main .nav-code:hover{background:#3b76f6}
+/* 卡密弹窗 */
+.code-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:999;padding:20px}
+.code-modal.open{display:flex}
+.code-modal .box{background:#fff;border-radius:16px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);color:#1e293b}
+.code-modal h3{margin:0 0 6px;font-size:17px;color:#0f172a}
+.code-modal p{font-size:13px;color:#64748b;margin:0 0 6px;line-height:1.7}
+.code-modal .row{display:flex;gap:8px;margin-top:12px}
+.code-modal input{flex:1;min-width:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#1e293b;padding:11px;font-size:15px}
+.code-modal .ok{font-size:13px;color:#047857;margin-top:8px;min-height:18px}
+.code-modal .actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.code-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.code-row input{flex:1;min-width:140px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#1e293b;padding:10px;font-size:14px}
+.code-row button{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#475569;cursor:pointer}
+.code-row a{font-size:14px;color:#4f8cff;white-space:nowrap}
+/* 聊天区 */
+.who{font-size:13px;color:#64748b;font-weight:600}
+.msg{margin:10px 0;padding:12px 16px;border-radius:14px;font-size:15px;line-height:1.8}
+.msg.tutor{background:#f8fafc;border:1px solid #e2e8f0;color:#1e293b;max-width:96%}
+.msg.student{background:#4f8cff;color:#fff;margin-left:auto;max-width:88%}
+.msg .who{margin-bottom:4px}
+.msg.tutor .who{color:#64748b}
+.msg.student .who{color:rgba(255,255,255,.75)}
+.kp{display:inline-block;background:#ecfdf5;color:#047857;font-size:12px;font-weight:600;padding:3px 12px;border-radius:20px;margin:4px 4px 0 0}
+.loading{color:#b45309;font-size:14px;margin-top:12px;display:none}
+.prob-show{margin:0 0 14px;padding:12px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;font-size:15px;line-height:1.8;color:#1e293b}
+.prob-show b{color:#1d4ed8}
 #answerRow{display:flex;gap:10px;margin-top:12px}
-#answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
-.loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
-.prob-show{margin:0 0 14px;padding:12px 16px;background:#1b2a4a;border:1px solid #2d5a8f;border-radius:10px;font-size:15px;line-height:1.8;color:#e8ecf5}
-.prob-show b{color:#fcd34d}
-.visual{margin-top:10px;border:1px solid #2a3650;border-radius:10px;overflow:hidden}
-.visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#4ade80;background:#0f1420}
+#answerRow input{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;padding:12px;font-size:16px;min-width:0}
+#answerRow input:focus{outline:none;border-color:#4f8cff}
+.btn-send{background:#4f8cff;color:#fff;border:none;border-radius:10px;padding:0 24px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.btn-send:hover{background:#3b76f6}
+.chat-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn-subtle{background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+.btn-subtle:hover{border-color:#4f8cff;color:#4f8cff}
+.btn-accent{background:#4f8cff;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-accent:hover{background:#3b76f6}
+.visual{margin-top:10px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#047857;background:#f0fdf4;font-weight:600}
+.visual summary .replay-btn{float:right;background:#fff;border:1px solid #6ee7b7;border-radius:8px;color:#047857;font-size:12px;padding:4px 10px;cursor:pointer;font-family:inherit}
+.visual summary .replay-btn:hover{background:#047857;color:#fff}
 .visual iframe{width:100%;aspect-ratio:400/340;border:0;display:block;background:#0f1420}
-.tabs{display:flex;gap:10px;margin:14px 0}
-.tab{flex:1;padding:12px 8px;border-radius:var(--r-md,10px);border:1px solid #2a3650;background:#0f1420;color:#dbe4f5;cursor:pointer;font-size:15px;transition:all .2s ease}
-.tab small{display:block;font-size:12px;color:#9fb0cc;margin-top:4px;font-weight:normal}
-.tab:hover{border-color:#3a4a6e;background:#16203a}
-.tab.on{border-color:var(--accent,#4f8cff);background:#1b2a4a;box-shadow:0 0 0 1px rgba(79,140,255,.35),0 4px 14px rgba(79,140,255,.15)}
-.mode-desc{font-size:13px;color:#9fb0cc;margin:2px 0 10px;line-height:1.7}
-.explain-stage{margin-top:12px;border:1px solid #2a3650;border-radius:10px;overflow:hidden}
-.explain-stage .stage-title{padding:10px 14px;font-size:14px;color:#4ade80;background:#0f1420}
+.explain-stage{margin-top:12px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.explain-stage .stage-title{padding:10px 14px;font-size:14px;color:#047857;background:#f0fdf4;font-weight:600}
 .explain-stage iframe{width:100%;aspect-ratio:1/1;border:0;display:block;background:#0f1420}
 ol.steps{list-style:none;padding:0;margin:12px 0}
-ol.steps li{padding:10px 12px;border-radius:10px;margin:8px 0;background:#0f1420;border:1px solid #24304a;font-size:14px;color:#9fb0cc;transition:all .3s;list-style:none}
-ol.steps li.on{background:#143d2b;border-color:#4ade80;color:#e8ecf5}
-ol.steps li .n{display:inline-block;width:22px;height:22px;border-radius:11px;background:#24304a;color:#dbe4f5;text-align:center;font-size:12px;line-height:22px;margin-right:8px}
-ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
-.codebar input{width:100%;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px;margin:6px 0}
+ol.steps li{padding:10px 14px;border-radius:12px;margin:8px 0;background:#f8fafc;border:1px solid #e2e8f0;font-size:14px;color:#64748b;transition:all .3s;list-style:none;line-height:1.7}
+ol.steps li.on{background:#ecfdf5;border-color:#6ee7b7;color:#0f172a}
+ol.steps li .n{display:inline-block;width:22px;height:22px;border-radius:11px;background:#e2e8f0;color:#475569;text-align:center;font-size:12px;line-height:22px;margin-right:8px;font-weight:600}
+ol.steps li.on .n{background:#10b981;color:#fff}
+.parent-note{max-width:720px;margin:0 auto 30px;font-size:13px;color:#9fb0cc;line-height:1.8;padding:0 6px}
+@media(max-width:640px){
+  .math-card{padding:24px 18px;margin:16px auto;border-radius:16px}
+  .mode-cards{grid-template-columns:1fr}
+  .math-title{font-size:20px}
+}
 </style>
 </head>
 <body>
@@ -54,90 +104,102 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 <nav class="main">
 <a href="index.html">首页</a>
 <a href="shuxue.html" class="active">中小学数学</a>
-<a href="gaoshu.html">高数拍照答题</a></nav>
+<a href="gaoshu.html">高数拍照答题</a>
+<a href="javascript:void(0)" class="nav-code" onclick="openCodeModal()">卡密</a></nav>
 </div>
 </header>
 
 <div class="wrap">
-<section class="block">
-<h2>🧮 中小学数学引导 <span style="font-size:13px;color:#4ade80">· 数形结合动画</span></h2>
-<p class="sub">两种模式：🤔 <b>一步步引导</b>（不给答案，提问引导孩子自己想通）｜ 🧑‍🏫 <b>直接看讲解</b>（AI 生成动画讲题，家长备课神器）。每一步都标出知识点。</p>
+<section class="math-card">
+<h2 class="math-title">数学解题助手</h2>
+<p class="math-sub"><b>一步步引导</b>：AI 提问启发，孩子自己想通，不直接给答案。<br><b>看动画讲解</b>：一次生成完整动画，家长先看懂，再讲给孩子听。</p>
 
-<div class="toolbox" id="setup">
-<label>年级</label>
-<select id="grade">
+<div id="setup">
+<label class="fld-label" for="grade">年级</label>
+<select id="grade" class="grade-select">
 <option>一年级</option><option>二年级</option>
 <option selected>三年级</option><option>四年级</option>
 <option>五年级</option><option>六年级</option>
 <option>初一</option><option>初二</option>
 <option>初三</option>
 </select>
-<label>输入数学题（手动输入，不支持拍照搜题）</label>
+
+<label class="fld-label" for="problem">题目</label>
+<div class="input-wrap">
 <textarea id="problem" placeholder="例如：小明有36块糖果，平均分给4位同学，每人分到几块？"></textarea>
-<div class="btn-row">
-<button class="btn ghost" id="voiceBtn" onclick="toggleVoice()">🎤 语音输入题目</button>
-<button class="btn ghost" id="ocrBtn" onclick="document.getElementById('photoInput').click()">📷 拍照识别题目</button>
+<div class="input-tools">
+<button class="tool-btn" id="voiceBtn" onclick="toggleVoice()">语音输入</button>
+<button class="tool-btn" onclick="document.getElementById('photoInput').click()">拍照识别</button>
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
 </div>
-<div class="tabs">
-<button id="tabGuide" class="tab on" onclick="switchMode('guide')">🤔 一步步引导<small>不给答案，孩子自己想</small></button>
-<button id="tabExplain" class="tab" onclick="switchMode('explain')">🧑‍🏫 直接看讲解<small>动画讲题，家长备课神器</small></button>
 </div>
-<div id="guidePanel">
-<div class="btn-row">
-<button class="btn big" onclick="start()">💬 开始引导</button>
-<button class="btn ghost" onclick="startDemo()">👀 看演示</button>
-</div>
-</div>
-<div id="explainPanel" style="display:none">
-<p class="mode-desc">输入题目，AI 一次生成完整动画讲解：分步图形＋同步解题过程。适合家长先看懂，再讲给孩子听。</p>
-<div class="btn-row">
-<button class="btn big" onclick="startExplain()">🎬 生成讲解动画</button>
-<button class="btn ghost" onclick="startExplainDemo()">👀 看演示</button>
-</div>
-</div>
-<div class="codebar">
-<span>🔑</span>
-<input id="accessCode" placeholder="卡密（每天免费5次，可不填）">
-<button class="btn ghost sm" onclick="saveCode()">保存</button>
-<a href="pricing.html">买卡密</a>
-<span id="codeOk" style="color:#4ade80"></span>
-</div>
-<p style="font-size:13px;color:#9fb0cc;margin-top:8px">不会打字？点"语音输入题目"说话，或"拍照识别题目"拍作业本（Beta：只识别题目文字，不直接给答案；手写体识别率有限）。</p>
-<div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
+<div id="ocrStatus" class="hint" style="display:none"></div>
+
+<div class="mode-cards">
+<button id="tabGuide" class="mode-card on" onclick="switchMode('guide')">
+<b>一步步引导</b><span>AI 提问启发，孩子自己想出答案，真正学会</span>
+</button>
+<button id="tabExplain" class="mode-card" onclick="switchMode('explain')">
+<b>看动画讲解</b><span>一次生成完整动画，家长先看懂再讲</span>
+</button>
 </div>
 
-<div class="toolbox" id="chat">
+<button class="btn-primary" id="startBtn" onclick="startMain()">开始引导</button>
+<div class="demo-row"><button class="link-demo" id="demoLink" onclick="startDemoMain()">先看演示 →</button></div>
+
+<div class="codebar">
+<div class="code-label">卡密 <span>每天免费 5 次 · 有卡密在这里填</span><a href="pricing.html">买卡密 →</a></div>
+<div class="code-row">
+<input id="accessCode" placeholder="输入卡密后点保存">
+<button onclick="saveCode()">保存</button>
+<span id="codeOk" style="color:#047857;font-size:13px"></span>
+</div>
+</div>
+<p class="hint">语音和拍照只识别题目文字，不直接给答案。手写体识别率有限，请核对后再开始。</p>
+</div>
+
+<div id="chat" style="display:none">
 <div id="probBar" class="prob-show" style="display:none"></div>
 <div id="msgs"></div>
 <div class="loading" id="loading">老师正在思考…</div>
 <div id="answerRow">
-<input id="answer" placeholder="输入你的想法或答案，回车发送…" onkeydown="if(event.key==='Enter')send()">
-<button class="btn" onclick="send()">发送</button>
-<button class="btn ghost" onclick="stuck()">💡 我卡住了</button>
+<input id="answer" placeholder="输入你的想法，回车发送…" onkeydown="if(event.key==='Enter')send()" onfocus="setTimeout(function(){var a=document.getElementById('answer');if(a)a.scrollIntoView({behavior:'smooth',block:'center'});},350)">
+<button class="btn-subtle" id="voiceAnswerBtn" onclick="toggleVoice('answer','voiceAnswerBtn',true)">语音</button>
+<button class="btn-send" onclick="send()">发送</button>
 </div>
-<div class="btn-row">
-<button class="btn ghost" onclick="toExplain()">🎬 看讲解动画</button>
-<button class="btn ghost" onclick="restart()">↩️ 换一道题</button>
+<div class="chat-tools">
+<button class="btn-subtle" onclick="stuck()">我卡住了，给个提示</button>
+<button class="btn-accent" onclick="toExplain()">直接看动画讲解</button>
+<button class="btn-subtle" onclick="restart()">问下一题</button>
+</div>
+<div class="codebar">
+<div class="code-label">卡密 <span>免费次数用完？填卡密继续</span><a href="pricing.html">买卡密 →</a></div>
+<div class="code-row">
+<input id="accessCodeChat" placeholder="输入卡密后点保存">
+<button onclick="saveCodeChat()">保存</button>
+<span id="codeOkChat" style="color:#047857;font-size:13px"></span>
+</div>
 </div>
 </div>
 
-<div class="toolbox" id="explainOut" style="display:none">
+<div id="explainOut" style="display:none">
 <div id="explainBody"></div>
-<div class="btn-row" style="margin-top:14px">
-<button class="btn ghost" onclick="replayExplain()">↻ 重播动画</button>
-<button class="btn ghost" onclick="backToChat()">🤔 回到一步步引导</button>
-<button class="btn ghost" onclick="backToSetup()">↩️ 换一道题</button>
+<div class="chat-tools">
+<button class="btn-subtle" onclick="replayExplain()">重播动画</button>
+<button class="btn-subtle" onclick="backToChat()">回到一步步引导</button>
+<button class="btn-subtle" onclick="backToSetup()">问下一题</button>
+</div>
+<div class="codebar">
+<div class="code-label">卡密 <span>免费次数用完？填卡密继续</span><a href="pricing.html">买卡密 →</a></div>
+<div class="code-row">
+<input id="accessCodeEx" placeholder="输入卡密后点保存">
+<button onclick="saveCodeEx()">保存</button>
+<span id="codeOkEx" style="color:#047857;font-size:13px"></span>
 </div>
 </div>
-
-<div class="tip good">
-<b>给家长的话：</b>「一步步引导」故意不给答案——孩子自己想通的才是真学会；「直接看讲解」一次生成完整动画——你先看懂，再讲给孩子听，10 遍不耐烦它也不会。
-</div>
-<div class="tip">
-<b>定位说明：</b>本工具为免费学习辅助。拍照/语音仅用于<b>识别题目文字</b>，不提供搜题。引导模式不直接给答案、只做苏格拉底式思路引导；讲解模式用动画讲清思路。
 </div>
 </section>
+<p class="parent-note">给家长：引导模式故意不给答案——孩子自己想通的才是真学会；讲解模式一次讲完，适合你先看懂，再讲给孩子听。</p>
 </div>
 
 <footer class="site">
@@ -147,7 +209,6 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
       <a href="about.html">关于我们</a>
       <a href="help.html">使用帮助</a>
       <a href="pricing.html">定价</a>
-      <a href="api-setup.html">API接入</a>
       <a href="privacy.html">隐私政策</a>
       <a href="disclaimer.html">免责声明</a>
     </nav>
@@ -156,7 +217,7 @@ ol.steps li.on .n{background:#4ade80;color:#0b0f1a}
 
 <script src="config.js"></script>
 <script>
-var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过900字符，只保留讲题必需的图形，保证JSON一次成型不截断";
+var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题；整个引导控制在4-6步内完成，学生连续答对时合并步骤加速，不要为了提问而提问\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过900字符，只保留讲题必需的图形，保证JSON一次成型不截断";
 var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师，专门用动画讲题。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"开场白（60字内）\",\"kp\":\"涉及的知识点\",\"visual\":{\"needed\":true,\"title\":\"动画标题\",\"svg\":\"完整的分步骤SVG动画代码\"},\"captions\":[{\"t\":0,\"text\":\"第1步……\"},{\"t\":1.5,\"text\":\"第2步……\"}],\"done\":true}\n2. SVG要求：一个SVG讲完整个解题过程，用animation-delay让步骤按顺序出现（步骤间隔约1.2秒）；只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 400\"；深色背景、文字浅色#dbe4f5；风格具象化、色彩丰富（马卡龙色系），像玩具不要像学术图表；svg为单行字符串；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n3. captions与动画步骤一一对应，t是该步骤在动画中出现的秒数\n4. 题目完全不适合画图（如纯口算）时visual.needed=false，captions写纯文字步骤\n5. 严控篇幅：SVG代码总长不超过1200字符，装饰元素能省则省，保证JSON一次成型不截断。特别重要：SVG所有属性一律用单引号（如viewBox='0 0 400 400'），JSON里完全不需要反斜杠转义；JSON结构本身的引号保持双引号原样";
 var chatHistory = [];
 var demoMode = false, demoIdx = 0;
@@ -266,23 +327,48 @@ function addTutorObj(o){
   if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
   if(o.visual && o.visual.needed && o.visual.svg){
     var doc = '<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"><\/script><meta charset=\"utf-8\"><style>html,body{margin:0;padding:6px;background:#0f1420}svg{width:100%;height:auto;display:block}</style></head><body>'+o.visual.svg+'</body></html>';
-    h += '<details class="visual"><summary>📊 看动画演示：'+escHtml(o.visual.title||'数形结合')+'</summary>'
-       + '<iframe sandbox="allow-scripts" srcdoc="'+escAttr(doc)+'"></iframe></details>';
+    var vid = 'vis' + visualDocs.length;
+    visualDocs.push(doc);
+    h += '<details class="visual"><summary>📊 看动画演示：'+escHtml(o.visual.title||'数形结合')+'<button class="replay-btn" onclick="replayVisual(\''+vid+'\','+(visualDocs.length-1)+');event.stopPropagation();event.preventDefault()">↻ 重新播放</button></summary>'
+       + '<iframe id="'+vid+'" sandbox="allow-scripts" srcdoc="'+escAttr(doc)+'"></iframe></details>';
   }
   d.innerHTML = h;
   document.getElementById('msgs').appendChild(d);
   d.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
+/* 动画只生成一次（token 只花一次），重播是纯本地重新渲染，0 token */
+var visualDocs = [];
+function replayVisual(id, i){
+  var f = document.getElementById(id);
+  if(f && visualDocs[i]) f.srcdoc = visualDocs[i];
+}
 function showChat(){
 document.getElementById('setup').style.display='none';
 document.getElementById('explainOut').style.display='none';
 document.getElementById('chat').style.display='block';
-}function saveCode(){
-  var v = document.getElementById('accessCode').value.trim();
+}function setCode(v){
   localStorage.setItem('xskai_code', v);
-  document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
+  [['accessCode','codeOk'],['accessCodeChat','codeOkChat'],['accessCodeEx','codeOkEx'],['accessCodeNav','codeOkNav']].forEach(function(p){
+    var i = document.getElementById(p[0]), o = document.getElementById(p[1]);
+    if(i) i.value = v;
+    if(o) o.textContent = v ? '已保存' : '已清除';
+  });
 }
-(function(){ document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||'';})();
+function saveCode(){ setCode(document.getElementById('accessCode').value.trim()); }
+function saveCodeChat(){ setCode(document.getElementById('accessCodeChat').value.trim()); }
+function saveCodeEx(){ setCode(document.getElementById('accessCodeEx').value.trim()); }
+function saveCodeNav(){ setCode(document.getElementById('accessCodeNav').value.trim()); }
+function openCodeModal(){
+  var v = localStorage.getItem('xskai_code')||'';
+  document.getElementById('accessCodeNav').value = v;
+  document.getElementById('codeOkNav').textContent = v ? '已保存' : '';
+  document.getElementById('codeModal').classList.add('open');
+}
+function closeCodeModal(){ document.getElementById('codeModal').classList.remove('open'); }
+(function(){
+  var v = localStorage.getItem('xskai_code')||'';
+  ['accessCode','accessCodeChat','accessCodeEx','accessCodeNav'].forEach(function(id){ var i = document.getElementById(id); if(i) i.value = v; });
+})();
 function apiHeaders(){
   var h = {'Content-Type':'application/json'};
   var c = localStorage.getItem('xskai_code');
@@ -301,12 +387,12 @@ function startDemo(){
 }
 function demoStep(){
   if(demoIdx >= DEMO.length){
-    document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">演示结束 ✔ 点"换一道题"开始真实引导。</span> <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>';
+    document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">演示结束，点“问下一题”开始真实引导。</span> <button class="btn-subtle" onclick="restart()">问下一题</button>';
     return;
   }
   var m = DEMO[demoIdx++];
   if(m.o) addTutorObj(m.o); else addMsg(m.w, m.t);
-  document.getElementById('answerRow').innerHTML = '<button class="btn" onclick="demoStep()">▶ 下一步</button> <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>';
+  document.getElementById('answerRow').innerHTML = '<button class="btn-accent" onclick="demoStep()">下一步</button> <button class="btn-subtle" onclick="restart()">问下一题</button>';
 }
 
 async function callAI(){
@@ -339,14 +425,14 @@ document.getElementById('loading').style.display='block';
 try{
     var t = await callAI(); chatHistory.push({role:'assistant', content:t});
     var o = parseTutor(t);
-    if(o){ addTutorObj(o); if(o.done){ document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">这道题完成啦 ✔ 点「看讲解动画」可看完整回顾，或「换一道题」继续。</span> <button class="btn ghost" onclick="toExplain()">🎬 看讲解动画</button> <button class="btn ghost" onclick="restart()">↩️ 换一道题</button>'; } }
+    if(o){ addTutorObj(o); if(o.done){ document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">这道题完成啦！可以看讲解动画回顾，或问下一题继续。</span> <button class="btn-accent" onclick="toExplain()">直接看动画讲解</button> <button class="btn-subtle" onclick="restart()">问下一题</button>'; } }
     else addMsg('tutor', escHtml(t));
   }
 catch(e){ addMsg('tutor', '出错了：'+e.message+'。检查网络后重试。');}
 document.getElementById('loading').style.display='none';
 }
 function send(){
-if(demoMode){ alert('演示模式请点"下一步"继续。点"换一道题"开始真实引导。'); return;}
+if(demoMode){ alert('演示模式请点"下一步"继续。点"问下一题"开始真实引导。'); return;}
 var v = document.getElementById('answer').value.trim();
 if(!v) return;
 document.getElementById('answer').value = '';
@@ -361,12 +447,16 @@ chatHistory.push({role:'user', content:'我这一步卡住了，请给我一个�
 ask();
 }
 
+var currentMode = 'guide';
 function switchMode(m){
-document.getElementById('tabGuide').className = 'tab' + (m==='guide' ? ' on' : '');
-document.getElementById('tabExplain').className = 'tab' + (m==='explain' ? ' on' : '');
-document.getElementById('guidePanel').style.display = m==='guide' ? 'block' : 'none';
-document.getElementById('explainPanel').style.display = m==='explain' ? 'block' : 'none';
+currentMode = m;
+document.getElementById('tabGuide').classList.toggle('on', m==='guide');
+document.getElementById('tabExplain').classList.toggle('on', m==='explain');
+document.getElementById('startBtn').textContent = m==='guide' ? '开始引导' : '生成讲解动画';
+document.getElementById('demoLink').textContent = m==='guide' ? '先看演示 →' : '先看讲解演示 →';
 }
+function startMain(){ if(currentMode==='guide') start(); else startExplain(); }
+function startDemoMain(){ if(currentMode==='guide') startDemo(); else startExplainDemo(); }
 var lastExplain = null, capTimer = null;
 function showExplain(){
 document.getElementById('setup').style.display='none';
@@ -386,12 +476,17 @@ if(capTimer) clearInterval(capTimer);
 switchMode('explain');
 startExplain();
 }
-// 讲解模式 → 引导模式（保留对话历史）
+// 讲解模式 → 引导模式（带着当前题目无缝切换）
 function backToChat(){
-if(!chatHistory.length){ alert('你还没开始引导，先点「开始引导」。'); return; }
 if(capTimer) clearInterval(capTimer);
 document.getElementById('explainOut').style.display='none';
 document.getElementById('setup').style.display='none';
+if(!chatHistory.length){
+  if(!curProblem){ backToSetup(); return; }
+  document.getElementById('problem').value = curProblem;  // 没引导过：用讲解的题目直接开始引导
+  start();
+  return;
+}
 document.getElementById('chat').style.display='block';
 }
 async function startExplain(){
@@ -466,28 +561,34 @@ done: true
 function startExplainDemo(){ showExplain(); curProblem = '一本书看了 1/3，还剩 40 页，全书多少页？'; renderExplain(EXPLAIN_DEMO); }
 function restart(){ location.reload();}
 
-var recog = null, listening = false;
-function toggleVoice(){
+var recog = null, listening = false, voiceBtnEl = null;
+function toggleVoice(targetId, btnId, autoSend){
+  targetId = targetId || 'problem';
+  btnId = btnId || 'voiceBtn';
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ alert('当前浏览器不支持语音输入，请用 Chrome 或 Edge 打开。'); return; }
-  var btn = document.getElementById('voiceBtn');
+  var btn = document.getElementById(btnId);
+  if(!btn) return;
   if(listening){ recog.stop(); return; }
+  if(!btn.getAttribute('data-label')) btn.setAttribute('data-label', btn.textContent);
+  voiceBtnEl = btn;
   recog = new SR();
   recog.lang = 'zh-CN';
   recog.interimResults = false;
   recog.maxAlternatives = 1;
   recog.onresult = function(e){
     var t = e.results[0][0].transcript;
-    var ta = document.getElementById('problem');
-    ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + t;
-    ta.focus();
+    var ta = document.getElementById(targetId);
+    if(!ta) return;
+    if(autoSend){ ta.value = t; setTimeout(function(){ send(); }, 350); }  // 回答：说完自动发送，孩子不用打字
+    else { ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + t; ta.focus(); }
   };
-  recog.onend = function(){ listening = false; btn.textContent = '🎤 语音输入题目'; };
+  recog.onend = function(){ listening = false; if(voiceBtnEl) voiceBtnEl.textContent = voiceBtnEl.getAttribute('data-label'); voiceBtnEl = null; };
   recog.onerror = function(e){
-    listening = false; btn.textContent = '🎤 语音输入题目';
+    listening = false; if(voiceBtnEl) voiceBtnEl.textContent = voiceBtnEl.getAttribute('data-label'); voiceBtnEl = null;
     if(e.error !== 'aborted') alert('语音识别出错（'+e.error+'），请重试或手动输入。');
   };
-  try{ recog.start(); listening = true; btn.textContent = '⏹ 停止录音'; }
+  try{ recog.start(); listening = true; btn.textContent = '⏹ 停止'; }
   catch(e){ alert('语音启动失败，请重试。'); }
 }
 
@@ -537,5 +638,18 @@ function ocrPhoto(input){
   img.src = URL.createObjectURL(file);
 }
 </script>
+<!-- 导航栏卡密弹窗 -->
+<div class="code-modal" id="codeModal">
+  <div class="box">
+    <h3>输入卡密</h3>
+    <p>免费次数用完后，输入已购买的卡密可继续使用。卡密保存在本机浏览器中。<a href="pricing.html" style="color:#4f8cff">买卡密 →</a></p>
+    <div class="row">
+      <input id="accessCodeNav" placeholder="输入卡密">
+      <button class="btn-accent" onclick="saveCodeNav()">保存</button>
+    </div>
+    <div class="ok" id="codeOkNav"></div>
+    <div class="actions"><button class="btn-subtle" onclick="closeCodeModal()">关闭</button></div>
+  </div>
+</div>
 </body>
 </html>
