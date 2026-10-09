@@ -899,9 +899,9 @@ function compileGeo(data){
   // 由 A、D（上底两端）与 B（下底左端）确定，C 用对称性精确推导（C=B+λv，λ=1-2(w·v)/|v|²）
   function trapezoidPts(names){
     var tA=getPt(names[0]), tD=getPt(names[3]), tB=getPt(names[1]);
-    if(!tA){ P[names[0]]={x:0,y:6}; tA=P[names[0]]; }
-    if(!tD){ P[names[3]]={x:2,y:6}; tD=P[names[3]]; }
-    if(!tB){ P[names[1]]={x:-3,y:0}; tB=P[names[1]]; }
+    if(!tA){ P[names[0]]={x:0,y:5}; tA=P[names[0]]; }
+    if(!tD){ P[names[3]]={x:3,y:5}; tD=P[names[3]]; }
+    if(!tB){ P[names[1]]={x:-2.5,y:0}; tB=P[names[1]]; }
     var tvx=tD.x-tA.x, tvy=tD.y-tA.y;
     var tvv=tvx*tvx+tvy*tvy;
     var twx=tB.x-tA.x, twy=tB.y-tA.y;
@@ -1147,9 +1147,11 @@ function compileGeo(data){
     else if(t === 'seg'){
       var sa=getPt(it.from), sb=getPt(it.to);
       if(!sa || !sb){ itemLabel.push('线段（点未定义，已跳过）'); continue; }
+      ensurePt(it.from); ensurePt(it.to);
       updSeg(sa,sb);
       var sn = 'sg'+i;
-      cmds.push(sn+'=Segment(('+geoFmt(sa.x)+','+geoFmt(sa.y)+'),('+geoFmt(sb.x)+','+geoFmt(sb.y)+'))');
+      cmds.push(sn+'=Segment('+it.from+','+it.to+')');
+      lineDefs[it.from+''+it.to] = sn; lineDefs[it.to+''+it.from] = sn;   // AE -> sg3 双向注册（不算辅助线，不隐藏）
       var segKeys = [];
       if(it.label){ textCmds.push('tlb'+i+'=Text("'+it.label+'",('+geoFmt((sa.x+sb.x)/2)+','+geoFmt((sa.y+sb.y)/2)+'))'); segKeys.push(it.label); hlMap[it.label]=hlMap[it.label]||[]; hlMap[it.label].push('tlb'+i); }
       else { segKeys.push((it.from||'')+(it.to||'')); segKeys.push((it.to||'')+(it.from||'')); }  // DE / ED 双向都可高亮
@@ -1164,8 +1166,9 @@ function compileGeo(data){
     else if(t === 'line'){
       var la=getPt(it.from), lb=getPt(it.to);
       if(!la || !lb){ itemLabel.push('直线（点未定义，已跳过）'); continue; }
+      ensurePt(it.from); ensurePt(it.to);
       var ln = 'li'+i;
-      cmds.push(ln+'=Line(('+geoFmt(la.x)+','+geoFmt(la.y)+'),('+geoFmt(lb.x)+','+geoFmt(lb.y)+'))');
+      cmds.push(ln+'=Line('+it.from+','+it.to+')');
       var nmL = (it.from||'')+(it.to||'');
       hlMap[nmL] = hlMap[nmL]||[]; hlMap[nmL].push(ln);
       // 直线延伸后包围盒扩到两端点外各 4 个单位
@@ -1174,29 +1177,35 @@ function compileGeo(data){
       itemLabel.push('直线 '+nmL);
     }
     else if(t === 'mid'){
-      var e = segEnds(it.of);
-      if(!e){ itemLabel.push('中点（线段不存在）'); continue; }
-      P[it.name] = {x:(e[0].x+e[1].x)/2, y:(e[0].y+e[1].y)/2};
-      upd(P[it.name]);
-      cmds.push('pt_'+it.name+'=('+geoFmt(P[it.name].x)+','+geoFmt(P[it.name].y)+')');
-      texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(P[it.name].x)+','+geoFmt(P[it.name].y)+'))');
-      hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name];
+      // D = Midpoint(B,C)：点名式逻辑指令，GGB 自己保证中点精确
+      var eM = segEnds(it.of);
+      if(!eM){ itemLabel.push(it.name+'：中点线段不存在'); continue; }
+      ensurePt(it.of[0]); ensurePt(it.of[1]);
+      cmds.push(it.name+'=Midpoint('+it.of[0]+','+it.of[1]+')');
+      var mp = {x:(eM[0].x+eM[1].x)/2, y:(eM[0].y+eM[1].y)/2};   // 仅供标注/包围盒用
+      upd(mp);
+      texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(mp.x)+','+geoFmt(mp.y)+'))');
+      hlMap[it.name] = [it.name, 'tx_'+it.name];
       itemLabel.push(it.name+' 是 '+(it.of||'')+' 的中点');
     }
     else if(t === 'meet'){
+      // F = Intersect(lnAE, lnCD)：两线名先进 lineDefs，GGB 自己算交点
       var e1 = segEnds(it.of), e2 = segEnds(it.of2);
-      if(!e1 || !e2){ itemLabel.push('交点（线段不存在）'); continue; }
+      if(!e1 || !e2){ itemLabel.push(it.name+'：交点线段不存在'); continue; }
+      var ln1 = ensureLine(it.of), ln2 = ensureLine(it.of2);
       var ip = segX(e1[0],e1[1],e2[0],e2[1]);
-      if(!ip){ itemLabel.push('交点（两线平行无交点）'); continue; }
+      if(!ln1 || !ln2){ itemLabel.push(it.name+'：交点线段不存在'); continue; }
+      if(!ip){ itemLabel.push(it.name+'：两线平行无交点'); continue; }
       P[it.name] = {x:ip.x, y:ip.y};
       upd(P[it.name]);
-      cmds.push('pt_'+it.name+'=('+geoFmt(P[it.name].x)+','+geoFmt(P[it.name].y)+')');
-      texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(P[it.name].x)+','+geoFmt(P[it.name].y)+'))');
-      hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name];
+      cmds.push(it.name+'=Intersect('+ln1+','+ln2+')');
+      texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(ip.x)+','+geoFmt(ip.y)+'))');
+      hlMap[it.name] = [it.name, 'tx_'+it.name];
       itemLabel.push(it.name+' 是 '+(it.of||'')+' 与 '+(it.of2||'')+' 的交点');
     }
     else if(t === 'parallel'){
-      // 过 from 点作 to 线段的平行线；若给 len（如"AE=AC"）则解二次方程精确求线上点的位置
+      /* 过 from 作 to 线段的平行线，name 在线上：系统用解析几何精确解位置（长度条件/方向），
+         再以坐标定义点——点位置由系统解算而非 AI 手写，可接受（GGB 无直接指令表达长度约束） */
       var pf = getPt(it.from), pe = segEnds(it.to);
       if(!pf || !pe){ itemLabel.push('平行线（点或线段不存在）'); continue; }
       var v = {x:pe[1].x-pe[0].x, y:pe[1].y-pe[0].y};
@@ -1223,18 +1232,19 @@ function compileGeo(data){
       if(it.below === true){ pos = {x:pf.x - v.x, y:pf.y - v.y}; }  // 反向
       P[it.name] = pos;
       upd(pos);
-      cmds.push('pt_'+it.name+'=('+geoFmt(pos.x)+','+geoFmt(pos.y)+')');
+      ensurePt(it.from);
+      cmds.push(it.name+'=('+geoFmt(pos.x)+','+geoFmt(pos.y)+')');   // 点位置由系统解算
       texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(pos.x)+','+geoFmt(pos.y)+'))');
-      hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name];
+      hlMap[it.name] = [it.name, 'tx_'+it.name];
       var lbl = (it.from||'')+(it.name||'');
       var pl = 'pl'+i;
-      cmds.push(pl+'=Segment(('+geoFmt(pf.x)+','+geoFmt(pf.y)+'),('+geoFmt(pos.x)+','+geoFmt(pos.y)+'))');
+      cmds.push(pl+'=Segment('+it.from+','+it.name+')');
       hlMap[lbl] = hlMap[lbl]||[]; hlMap[lbl].push(pl);
       hlMap[(it.name||'')+(it.from||'')] = hlMap[lbl];
       itemLabel.push((it.name||'')+' 在过 '+it.from+' 且平行于 '+(it.to||'')+' 的线上'+(lenExpr?'，'+lenExpr:''));
     }
     else if(t === 'perp'){
-      // 两种语义：
+      // 两种语义（都用 PerpendicularLine + Intersect，GGB 自己保证垂直精确）：
       //  ① 默认：from 到 to 线段的垂足 = name（过 from 作 to 的垂线，垂足在 to 上）
       //  ② 若给 toLine：过 from 作 toLine 的垂线，该垂线与 to 线段相交于 name（如"AF⊥AE交BC于F"）
       var pf2 = getPt(it.from), pe2 = segEnds(it.to), tline = it.toLine ? segEnds(it.toLine) : null;
@@ -1247,11 +1257,16 @@ function compileGeo(data){
         if(foot){
           P[it.name] = foot;
           upd(pf2); upd(foot);
-          cmds.push('pt_'+it.name+'=('+geoFmt(foot.x)+','+geoFmt(foot.y)+')');
+          ensurePt(it.from);
+          var lnTL = ensureLine(it.toLine), lnTo = ensureLine(it.to);   // 两根辅助线
+          var qn = 'q'+i;   // 垂线（过 from 垂直 toLine）
+          cmds.push(qn+'=PerpendicularLine('+it.from+','+lnTL+')');
+          hiddenObjs.push(qn);
+          cmds.push(it.name+'=Intersect('+qn+','+lnTo+')');
           var pn = 'pe'+i;
-          cmds.push(pn+'=Segment(('+geoFmt(pf2.x)+','+geoFmt(pf2.y)+'),('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
+          cmds.push(pn+'=Segment('+it.from+','+it.name+')');
           texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
-          hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name, pn];
+          hlMap[it.name] = [it.name, 'tx_'+it.name, pn];
           itemLabel.push(it.name+' 是过 '+it.from+' 作 '+(it.toLine||'')+' 垂线与 '+(it.to||'')+' 的交点');
         }else{
           itemLabel.push('垂线交点（'+it.toLine+'⊥'+it.to+' 不相交，已跳过）');
@@ -1263,11 +1278,16 @@ function compileGeo(data){
         var foot = {x:a2.x+vx*t2, y:a2.y+vy*t2};
         P[it.name] = foot;
         upd(pf2); upd(foot);
-        cmds.push('pt_'+it.name+'=('+geoFmt(foot.x)+','+geoFmt(foot.y)+')');
+        ensurePt(it.from);
+        var lnTo2 = ensureLine(it.to);   // 目标线（隐藏）
+        var qn2 = 'q'+i;   // 过 from 垂直 to 的直线（隐藏）
+        cmds.push(qn2+'=PerpendicularLine('+it.from+','+lnTo2+')');
+        hiddenObjs.push(qn2);
+        cmds.push(it.name+'=Intersect('+qn2+','+lnTo2+')');   // 垂足
         var pn = 'pe'+i;
-        cmds.push(pn+'=Segment(('+geoFmt(pf2.x)+','+geoFmt(pf2.y)+'),('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
+        cmds.push(pn+'=Segment('+it.from+','+it.name+')');
         texts.push('tx_'+it.name+'=Text("'+it.name+'",('+geoFmt(foot.x)+','+geoFmt(foot.y)+'))');
-        hlMap[it.name] = ['pt_'+it.name, 'tx_'+it.name, pn];
+        hlMap[it.name] = [it.name, 'tx_'+it.name, pn];
         itemLabel.push(it.name+' 是 '+it.from+' 到 '+(it.to||'')+' 的垂足');
       }else{
         itemLabel.push('垂线（点或线段不存在）');
@@ -1276,16 +1296,18 @@ function compileGeo(data){
     else if(t === 'circle'){
       var pc = getPt(it.center);
       if(!pc){ itemLabel.push('圆（圆心不存在）'); continue; }
+      ensurePt(it.center);
       var r = 2;
       if(it.through){
         var pt = getPt(it.through);
-        if(pt) r = Math.sqrt(Math.pow(pt.x-pc.x,2)+Math.pow(pt.y-pc.y,2));
+        if(!pt){ itemLabel.push('圆（圆周点不存在）'); continue; }
+        r = Math.sqrt(Math.pow(pt.x-pc.x,2)+Math.pow(pt.y-pc.y,2));
       }else if(it.r != null){
         r = geoNum(it.r);
       }
       upd({x:pc.x-r,y:pc.y-r}); upd({x:pc.x+r,y:pc.y+r});
       var cn = 'ci'+i;
-      cmds.push(cn+'=Circle(('+geoFmt(pc.x)+','+geoFmt(pc.y)+'),'+geoFmt(r)+')');
+      cmds.push(cn+'=Circle('+it.center+','+(it.through ? it.through : geoFmt(r))+')');   // Circle(O,A) 或 Circle(O,r)
       hlMap[it.center] = hlMap[it.center]||[]; hlMap[it.center].push(cn);
       hlMap['O'] = hlMap['O']||[]; hlMap['O'].push(cn);
       itemLabel.push('圆：圆心 '+(it.center||'')+(it.through?('，过点 '+it.through):('，半径 '+geoFmt(r))));
@@ -1325,7 +1347,8 @@ function compileGeo(data){
       sPts = sPts.filter(Boolean);
       if(sPts.length >= 3){
         var shn = 'sh'+i;
-        shadeCmds.push(shn+'=Polygon('+sPts.map(function(p){ return '('+geoFmt(p.x)+','+geoFmt(p.y)+')'; }).join(',')+')');
+        (it.pts && it.pts.length ? it.pts : String(it.poly||'').split('')).forEach(function(n){ if(n) ensurePt(n); });
+        shadeCmds.push(shn+'=Polygon('+(it.pts && it.pts.length ? it.pts.join(',') : String(it.poly||'').split('').join(','))+')');
         shadeCmds.push('SetFilling('+shn+',0.45)');
         if(it.color){
           var hex = String(it.color||'#f59e0b').replace('#','');
@@ -1345,8 +1368,11 @@ function compileGeo(data){
       var anchorName = '';
       if(it.at){ var paT = getPt(it.at); if(paT){ pT = {x:paT.x, y:paT.y}; anchorName = String(it.at||'').trim(); } }
       if(!pT && it.xy) pT = {x:geoNum(it.xy[0]), y:geoNum(it.xy[1])};
-      if(!pT && items.length){ /* 默认放图形顶部中央 */ pT = {x:(bbox.minX+bbox.maxX)/2, y:bbox.maxY+0.4}; }
-      if(pT){
+      if(!pT && items.length){ /* 默认放图形顶部中央；包围盒未初始化（乱序输入）时跳过 */ 
+        if(bbox.maxX === -Infinity){ itemLabel.push('标注「'+(it.s||'')+'」（锚点不存在，已跳过）'); continue; }
+        pT = {x:(bbox.minX+bbox.maxX)/2, y:bbox.maxY+0.4}; 
+      }
+      if(pT && isFinite(pT.x) && isFinite(pT.y)){
         var tn = 'txt'+i;
         // GGB Text 引擎对部分 Unicode 符号（∥/⊥）显示异常，换成 ASCII 安全写法
         var sTxt = String(it.s||'').replace(/"/g,'')
@@ -1375,58 +1401,67 @@ function compileGeo(data){
   var cx = (bbox.minX + bbox.maxX)/2, cy = (bbox.minY + bbox.maxY)/2;
   var half = Math.max(w, h)/2 + pad;
   var setup = ['ShowAxes(false)','ShowGrid(false)','SetCoordSystem('+geoFmt(cx-half)+','+geoFmt(cx+half)+','+geoFmt(cy-half)+','+geoFmt(cy+half)+')'];
-  cmds = shadeCmds.concat(cmds).concat(texts).concat(textCmds);
-  // 步骤分配：对象按首次被 hl 引用归入该步，未引用的归第 1 步
+  /* build：全部构造命令按依赖拓扑排序。点名化后命令间存在依赖链
+     （lnAE=Line(A,E) 依赖 A、E 的定义；Intersect 依赖垂线；样式命令依赖目标对象），
+     乱序执行会报「未定义变量」，必须拓扑排序：坐标点定义无依赖自然排最前，
+     逻辑指令按引用顺序排，SetFilling/SetColor/SetVisible 跟在目标对象之后。 */
+  var all = shadeCmds.concat(cmds).concat(texts).concat(textCmds);
+  hiddenObjs.forEach(function(o){ all.push('SetVisible('+o+',false)'); });   // 辅助线统一隐藏
+  var defIdx = {};   // 对象名 -> 定义命令下标（首个定义）
+  all.forEach(function(c, ci3){
+    var m3 = String(c).match(/^([A-Za-z]\w*)=/);
+    if(m3 && defIdx[m3[1]] == null) defIdx[m3[1]] = ci3;
+  });
+  var cmdDeps = all.map(function(c, ci3){
+    var m3 = String(c).match(/^([A-Za-z]\w*)=/);
+    var body = m3 ? String(c).slice(m3[0].length) : String(c);
+    var selfN = m3 ? m3[1] : null;
+    var toks = body.match(/[A-Za-z]\w*/g) || [];
+    var ds = [], seenD = {};
+    for(var ti=0; ti<toks.length; ti++){
+      var tk = toks[ti];
+      if(tk === selfN || seenD[tk]) continue;
+      var di = defIdx[tk];
+      if(di != null && di !== ci3){ ds.push(di); seenD[tk] = true; }
+    }
+    return ds;
+  });
+  // Kahn 拓扑排序（稳定、带环兜底）
+  var inDeg = [], adj = [];
+  for(var ai2=0; ai2<all.length; ai2++){ inDeg.push(0); adj.push([]); }
+  cmdDeps.forEach(function(ds, ci3){
+    (ds||[]).forEach(function(di){ adj[di].push(ci3); inDeg[ci3]++; });
+  });
+  var queue = [];
+  for(var qi=0; qi<all.length; qi++){ if(inDeg[qi]===0) queue.push(qi); }
+  var order = [], head = 0;
+  while(head < queue.length){
+    var u2 = queue[head++];
+    order.push(u2);
+    for(var wi=0; wi<adj[u2].length; wi++){ if(--inDeg[adj[u2][wi]] === 0) queue.push(adj[u2][wi]); }
+  }
+  if(order.length < all.length){   // 理论上不会环，兑底按原顺序追加防丢命令
+    for(var ri=0; ri<all.length; ri++){ if(order.indexOf(ri) < 0) order.push(ri); }
+  }
+  var build = order.map(function(i4){ return all[i4]; });
+  // 步骤只保留讲解放文字与 hl（高亮对象由 geoStepsWithHighlight 按 hlIndex 生成）
   var steps = [];
   var aiSteps = (data && data.steps) || [];
-  var used = {};
   if(!aiSteps.length){
-    steps.push({say:'如图所示', cmds: cmds.slice()});
+    steps.push({say:'如图所示', hl: []});
   }else{
     for(var si2=0; si2<aiSteps.length; si2++){
-      var st = aiSteps[si2];
-      var sc = [];
-      var hls = st.hl || [];
-      for(var hi=0; hi<hls.length; hi++){
-        var objs = hlMap[String(hls[hi]).trim()];
-        if(!objs) continue;
-        for(var oi=0; oi<objs.length; oi++){
-          var oname = objs[oi];
-          if(used[oname]) continue;
-          used[oname] = true;
-          var idxIn = cmds.indexOf(oname + '=');
-          var fullCmd = null;
-          for(var ci=0; ci<cmds.length; ci++){ if(cmds[ci].indexOf(oname+'=')===0){ fullCmd = cmds[ci]; break; } }
-          if(fullCmd != null) sc.push(fullCmd);
-        }
-      }
-      steps.push({say: st.say||'', cmds: sc});
+      steps.push({say: aiSteps[si2].say||'', hl: aiSteps[si2].hl||[]});
     }
-    // 未被任何步骤引用的基础对象 → 第 1 步（骨架）
-    var rest = [];
-    for(var ci2=0; ci2<cmds.length; ci2++){ if(!used[cmds[ci2].split('=')[0]]) rest.push(cmds[ci2]); }
-    if(rest.length) steps[0].cmds = (steps[0]||{cmds:[]}).cmds.concat(rest);
   }
-  /* 依赖修复：点定义 X=(x,y) 自身无依赖，全部提前到第1步最前面；
-     引用点名的命令（如 Polygon(O,M,N)）必须在点定义之后执行，否则 GGB 报"未定义变量"。
-     （步骤分配可能把 Polygon 抽到点定义前面，动画观感不变，只保证执行顺序） */
-  var _ptDefs = [];
-  steps.forEach(function(s){
-    var _keep = [];
-    (s.cmds||[]).forEach(function(c){
-      if(/^\w+=\(\s*-?[\d.]+\s*,\s*-?[\d.]+\s*\)$/.test(c)) _ptDefs.push(c); else _keep.push(c);
-    });
-    s.cmds = _keep;
-  });
-  if(_ptDefs.length && steps.length) steps[0].cmds = _ptDefs.concat(steps[0].cmds || []);
-  return {title:(data&&data.title)||'几何图形', setup: setup, steps: steps, labels: itemLabel, hlIndex: hlMap, warnings: constructWarnings};
+  return {title:(data&&data.title)||'几何图形', setup: setup, build: build, steps: steps, labels: itemLabel, hlIndex: hlMap, warnings: constructWarnings};
 }
 /* geo chips：把 items 渲染成人话标签，支持删除/添加后重新编译 */
 var geoDraft = null;   // 当前 geo 草稿（{title,items,steps}），确认后编译渲染
 function geoItemDesc(it){
   if(!it || !it.t) return '';
   var t = it.t;
-  if(t==='pt') return '点 '+it.name+' ('+it.x+','+it.y+')';
+  if(t==='pt') return '点 '+it.name;
       if(t==='triangle'||t==='square'||t==='rect'||t==='para'||t==='diamond') return ({triangle:'三角形',square:'正方形',rect:'长方形',para:'平行四边形',diamond:'菱形'})[t]+' '+(it.pts||[]).join('');
   if(t==='poly') return ({triangle:'三角形',square:'正方形',rect:'长方形',para:'平行四边形',trapezoid:'等腰梯形',diamond:'菱形',penta:'正五边形'})[it.kind]+' '+(it.pts||[]).join('');
   if(t==='seg') return '连 '+(it.from||'')+(it.to||'');
@@ -1543,19 +1578,14 @@ function confirmGeo(){
   var errBox = document.getElementById('geoErr');
   try{
     var compiled = compileGeo(geoDraft);
-    if(!compiled.steps.length || !compiled.steps.some(function(s){ return s.cmds.length; })){
+    if(!compiled.build || !compiled.build.length){
       if(errBox){ errBox.style.display='block'; errBox.textContent='⚠ 没有可画的几何对象，请检查条件或补充点/图形。'; }
       return;
     }
     var wrap = document.getElementById('geoDraftBox');
     if(wrap) wrap.style.display = 'none';
-    // geo 模式：全部对象命令进 setup（加载完即显示完整图形），steps 只负责分步高亮讲解
-    var allCmds = [];
-    compiled.steps.forEach(function(s){ allCmds = allCmds.concat(s.cmds || []); });
-    compiled.setup = compiled.setup.concat(allCmds);
-    compiled.steps = compiled.steps.map(function(s){
-      return {say: s.say, hl: s.hl || [], cmds: []};
-    });
+    // geo 模式：全部构造命令（已拓扑排序）进 setup，加载完即显示完整图形；steps 只负责分步高亮讲解
+    compiled.setup = compiled.setup.concat(compiled.build);
     // steps 保留 hl 信息供高亮；讲解放进 say 里由 ggbSay 展示
     compiled.steps = geoStepsWithHighlight(compiled);
     renderGeoStage(geoDraft.say, compiled, geoDraft.kp);
@@ -1564,14 +1594,21 @@ function confirmGeo(){
   }
 }
 /* geo 步骤高亮：先收集全部 ggb 对象名，每步「淡化其余+高亮当前」。
-   初始色：图形黑(0,0,0)、辅助线蓝(51,102,255)、标注灰(73,80,87)、阴影橙(245,158,11) */
+    线/面/圆用 SetLineThickness；点用 SetPointSize（SetLineThickness 对点无效）。
+    初始色：图形黑(0,0,0)、辅助线蓝(51,102,255)、标注灰(73,80,87)、阴影橙(245,158,11) */
 function geoStepsWithHighlight(compiled){
   var hlSteps = (geoDraft && geoDraft.steps) || [];
-  // 全部对象名（从 setup 命令里抠出 xx= 前缀）
+  // 全部对象名（从 setup 命令里抠出 xx= 前缀；点名化后单字母点、ln/q 辅助对象也要收进来）
   var objNames = [];
+  var ptObjs = {};   // 点对象集合：A=(x,y) / X=Midpoint(..) / X=Intersect(..)
   (compiled.setup || []).forEach(function(c){
-    var mm = String(c).match(/^(\w+)=/);
-    if(mm && /^(pt_|sg|li|pl|pe|ci|tri|poly|rq|sh|tx|tlb|txt)/.test(mm[1])) objNames.push(mm[1]);
+    var mm = String(c).match(/^([A-Za-z]\w*)=/);
+    if(!mm) return;
+    var nm = mm[1];
+    if(!(/^(pt_|sg|li|ln|pl|pe|q\d|ci|tri|poly|rq|sh|tx|tlb|txt)/.test(nm) || /^[A-Z]$/.test(nm))) return;
+    if(objNames.indexOf(nm) < 0) objNames.push(nm);
+    var body = String(c).slice(mm[0].length);
+    if(/^\(/.test(body) || /^Midpoint\(/.test(body) || /^Intersect\(/.test(body)) ptObjs[nm] = true;
   });
   var stepsOut = [];
   for(var i=0;i<hlSteps.length;i++){
@@ -1586,12 +1623,10 @@ function geoStepsWithHighlight(compiled){
       }
     }
     var cmds = [];
-    // 淡化全部 → 再突出高亮对象
+    // 淡化全部 → 再突出高亮对象（点用 SetPointSize，线/面/圆用 SetLineThickness）
     objNames.forEach(function(on){
-      if(!hlSet[on]) cmds.push('SetLineThickness('+on+',2)');
-    });
-    objNames.forEach(function(on){
-      if(hlSet[on]) cmds.push('SetLineThickness('+on+',7)');
+      if(ptObjs[on]) cmds.push('SetPointSize('+on+','+(hlSet[on]?9:3)+')');
+      else cmds.push('SetLineThickness('+on+','+(hlSet[on]?7:2)+')');
     });
     stepsOut.push({say: st.say||'', cmds: cmds});
   }
@@ -1682,6 +1717,8 @@ function runGgbCmd(cmd){
   if(m){ GGB.setFilling(m[1], parseFloat(m[2])); return; }
   m = cmd.match(/^SetLineThickness\(\s*(\w+)\s*,\s*(\d+)\s*\)$/i);
   if(m){ GGB.setLineThickness(m[1], +m[2]); return; }
+  m = cmd.match(/^SetPointSize\(\s*(\w+)\s*,\s*(\d+)\s*\)$/i);
+  if(m){ try{ GGB.setPointSize(m[1], +m[2]); }catch(e){} return; }
   m = cmd.match(/^SetCoordSystem\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)$/i);
   if(m){ GGB.setCoordSystem(+m[1], +m[2], +m[3], +m[4]); return; }
   m = cmd.match(/^ShowAxes\(\s*(true|false)\s*\)$/i);
