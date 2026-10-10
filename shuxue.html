@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>数学解题助手 · XSKAI</title>
-<meta name="description" content="AI 数学解题助手：一步步引导孩子自己想通，或看动画讲解帮家长备课。免费。">
+<meta name="description" content="AI 数学解题助手：拍照或输入题目，一次生成动画分步讲解，数形结合看得懂。免费。">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <style>
@@ -30,12 +30,6 @@
 .input-tools{position:absolute;right:10px;bottom:10px;display:flex;gap:8px}
 .tool-btn{background:#1e293b;border:1px solid #334155;border-radius:8px;color:#cbd5e1;font-size:13px;padding:7px 12px;cursor:pointer}
 .tool-btn:hover{border-color:#0ea5e9;color:#38bdf8}
-.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 6px}
-.mode-card{background:rgba(15,23,42,.6);border:2px solid #334155;border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;transition:all .18s ease;font-family:inherit;color:inherit}
-.mode-card b{display:block;font-size:15px;color:#f1f5f9;margin-bottom:5px}
-.mode-card span{font-size:13px;color:#94a3b8;line-height:1.6}
-.mode-card.on{border-color:#0ea5e9;background:rgba(14,165,233,.12);box-shadow:0 0 0 3px rgba(14,165,233,.12)}
-.mode-card.on b{color:#7dd3fc}
 .btn-primary{display:block;width:100%;background:#0284c7;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px;cursor:pointer;margin-top:16px;transition:background .2s;font-family:inherit}
 .btn-primary:hover{background:#0ea5e9}
 .demo-row{text-align:center;margin-top:12px}
@@ -75,21 +69,11 @@ nav.main .nav-code:hover{background:#0ea5e9}
 .loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
 .prob-show{margin:0 0 14px;padding:12px 16px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:12px;font-size:15px;line-height:1.8;color:#e2e8f0}
 .prob-show b{color:#7dd3fc}
-#answerRow{display:flex;gap:10px;margin-top:12px}
-#answerRow input{flex:1;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#e2e8f0;padding:12px;font-size:16px;min-width:0}
-#answerRow input:focus{outline:none;border-color:#0ea5e9}
-.btn-send{background:#0284c7;color:#fff;border:none;border-radius:10px;padding:0 24px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
-.btn-send:hover{background:#0ea5e9}
 .chat-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .btn-subtle{background:rgba(15,23,42,.6);border:1px solid #334155;color:#cbd5e1;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
 .btn-subtle:hover{border-color:#0ea5e9;color:#7dd3fc}
 .btn-accent{background:#0284c7;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .btn-accent:hover{background:#0ea5e9}
-.visual{margin-top:10px;border:1px solid #334155;border-radius:12px;overflow:hidden}
-.visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#34d399;background:rgba(16,185,129,.08);font-weight:600}
-.visual summary .replay-btn{float:right;background:#1e293b;border:1px solid rgba(16,185,129,.4);border-radius:8px;color:#34d399;font-size:12px;padding:4px 10px;cursor:pointer;font-family:inherit}
-.visual summary .replay-btn:hover{background:rgba(16,185,129,.15)}
-.visual iframe{width:100%;aspect-ratio:400/340;border:0;display:block;background:#0f1420}
 /* ===== 几何思维演练场（SVG 画布 + 分步面板 + quiz，纯 CSS 复刻参考模板视觉） ===== */
 .arena{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:18px;align-items:start;margin-top:14px}
 .arena-left{display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -190,7 +174,6 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 }
 @media(max-width:640px){
   .math-card{padding:22px 16px;margin:14px auto;border-radius:14px}
-  .mode-cards{grid-template-columns:1fr}
   .math-title{font-size:20px}
 }
 </style>
@@ -210,7 +193,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <div class="wrap">
 <section class="math-card">
 <h2 class="math-title">数学解题助手</h2>
-<p class="math-sub"><b>一步步引导</b>：AI 提问启发，孩子自己想通，不直接给答案。<br><b>看动画讲解</b>：一次生成完整动画，家长先看懂，再讲给孩子听。</p>
+<p class="math-sub">拍照或输入题目，AI 一次生成<b>动画分步讲解</b>：图形一步步画出来、每步配讲解，家长先看懂，再讲给孩子听。</p>
 
 <div id="setup">
 <label class="fld-label" for="grade">年级</label>
@@ -237,17 +220,8 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 </div>
 <div id="ocrStatus" class="hint" style="display:none"></div>
 
-<div class="mode-cards">
-<button id="tabGuide" class="mode-card on" onclick="switchMode('guide')">
-<b>一步步引导</b><span>AI 提问启发，孩子自己想出答案，真正学会</span>
-</button>
-<button id="tabExplain" class="mode-card" onclick="switchMode('explain')">
-<b>看动画讲解</b><span>一次生成完整动画，家长先看懂再讲</span>
-</button>
-</div>
-
-<button class="btn-primary" id="startBtn" onclick="startMain()">开始引导</button>
-<div class="demo-row"><button class="link-demo" id="demoLink" onclick="startDemoMain()">先看演示 →</button></div>
+<button class="btn-primary" id="startBtn" onclick="startExplain()">看动画讲解</button>
+<div class="demo-row"><button class="link-demo" id="demoLink" onclick="startExplainDemo()">先看演示 →</button></div>
 
 <div class="codebar">
 <div class="code-label">卡密 <span>每天免费 5 次 · 有卡密在这里填</span><a href="pricing.html">买卡密 →</a></div>
@@ -260,35 +234,11 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <p class="hint">拍照后 AI 会同时看到题目图片，能识别几何图形/示意图。文字识别率有限，请核对修正后再开始。</p>
 </div>
 
-<div id="chat" style="display:none">
-<div id="probBar" class="prob-show" style="display:none"></div>
-<div id="msgs"></div>
-<div class="loading" id="loading">老师正在思考…</div>
-<div id="answerRow">
-<input id="answer" placeholder="输入你的想法，回车发送…" onkeydown="if(event.key==='Enter')send()" onfocus="setTimeout(function(){var a=document.getElementById('answer');if(a)a.scrollIntoView({behavior:'smooth',block:'center'});},350)">
-<button class="btn-subtle" id="voiceAnswerBtn" onclick="toggleVoice('answer','voiceAnswerBtn',true)">语音</button>
-<button class="btn-send" onclick="send()">发送</button>
-</div>
-<div class="chat-tools">
-<button class="btn-subtle" onclick="stuck()">我卡住了，给个提示</button>
-<button class="btn-accent" onclick="toExplain()">直接看动画讲解</button>
-<button class="btn-subtle" onclick="restart()">问下一题</button>
-</div>
-<div class="codebar">
-<div class="code-label">卡密 <span>免费次数用完？填卡密继续</span><a href="pricing.html">买卡密 →</a></div>
-<div class="code-row">
-<input id="accessCodeChat" placeholder="输入卡密后点保存">
-<button onclick="saveCodeChat()">保存</button>
-<span id="codeOkChat" style="color:#047857;font-size:13px"></span>
-</div>
-</div>
-</div>
-
 <div id="explainOut" style="display:none">
 <div id="explainBody"></div>
+<div class="loading" id="loading">老师正在生成动画讲解…</div>
 <div class="chat-tools">
 <button class="btn-subtle" onclick="replayExplain()">重播动画</button>
-<button class="btn-subtle" onclick="backToChat()">回到一步步引导</button>
 <button class="btn-subtle" onclick="backToSetup()">问下一题</button>
 </div>
 <div class="codebar">
@@ -301,7 +251,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 </div>
 </div>
 </section>
-<p class="parent-note">给家长：引导模式故意不给答案——孩子自己想通的才是真学会；讲解模式一次讲完，适合你先看懂，再讲给孩子听。</p>
+<p class="parent-note">给家长：动画一次讲完整道题，适合你先看懂，再讲给孩子听。每步都有“为什么”，看懂思路比背答案更重要。</p>
 </div>
 
 <footer class="site">
@@ -546,32 +496,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { executeC
 
 </script>
 <script>
-var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题；整个引导控制在4-6步内完成，学生连续答对时合并步骤加速，不要为了提问而提问\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过900字符，只保留讲题必需的图形，保证JSON一次成型不截断";
 var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"title\":\"步骤短标题(6字内)\",\"badge\":\"阶段标签如:作图/观察/推理/总结\",\"say\":\"步骤讲解\",\"desc\":\"详细讲解(可HTML换行,与say二选一或都给)\",\"why\":\"为什么这一步成立(60字内,可省)\",\"hl\":[\"对象名\"],\"quiz\":{\"question\":\"小测验问题\",\"options\":[{\"text\":\"选项\",\"correct\":true},{\"text\":\"选项\",\"correct\":false}],\"explanation\":\"解析\"}}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，\n重要：协议里不存在任何坐标指令，你绝不输出坐标数字（x/y 一律不写）！所有顶点位置由系统自动放置，你只描述几何关系。items 顺序：基础图形（poly/circle 放第一条）→派生点（mid/meet/parallel/perp）→连线（seg）→文字（text）。\n【图形分类器（务必准确）】两腰相等且两底平行的四边形=trapezoid等腰梯形；对边平行且相等=para平行四边形；等长邻边直角=square正方形；直角不等边=rect长方形；四边相等=diamond菱形；五边等长=penta。题目写『等腰梯形』就必须用trapezoid，严禁用para冒充。\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|trapezoid|diamond|penta\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 基础图形，只需顶点字母，位置系统自动算。四边形顶点顺序按绕行顺序（如梯形ABCD：A左上、B左下、C右下、D右上）。\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆。\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} BC的中点叫D。\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} AE与CD的交点叫F。\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC平行线，E是线上一点（有长度条件加\"len\":\"AE=AC\"）。\n  {\"t\":\"perp\",\"name\":\"F\",\"from\":\"A\",\"toLine\":\"AE\",\"to\":\"BC\"} 过A作AE的垂线交BC于F（作XX⊥YY交ZZ于W专用）；若只是垂足：省略toLine，{\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"}表示垂足H在AC上。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段。\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线。\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} G处直角标记。\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影。\n  {\"t\":\"text\",\"s\":\"说明\",\"at\":\"F\"} 文字标注，at为锚点名。\n  {\"t\":\"angle\",\"at\":\"A\",\"of\":[\"B\",\"C\"],\"deg\":60,\"label\":\"60°\"} 角度弧标记：at 顶点，of 两边点，deg 度数（可省略则不标数），label 可省。\n  {\"t\":\"ticks\",\"on\":\"AB\",\"n\":1} 等长刻度线：线段 AB 中点画 n 道短斜线（表示相等），对比用 {\"t\":\"ticks\",\"on\":\"CD\",\"n\":2}。\n注意：每条指令用到的点必须已在前面指令出现过；先图形后派生点再连线。{\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。角（如∠MON）用两条seg画两条边、再加text标注度数，不要把角画成三角形poly。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。【作图层 construct（度量精确，强烈推荐）】凡是由长度/角度/几何关系确定的点（如\"AE=2√3且∠DAE=30°的E\"、\"垂线与BC的交点F\"），必须用 construct 作图步骤让系统精确解算，禁止手写 pt 坐标猜位置！pt 只用于1-2个基准点，坐标可写表达式如\"sqrt(2)\"。\n\"construct\":[{\"op\":\"pt\",\"id\":\"D\",\"at\":[0,0]},{\"op\":\"pt\",\"id\":\"A\",\"at\":[\"sqrt(2)\",0]},{\"op\":\"ray\",\"id\":\"rAE\",\"from\":\"A\",\"angle\":150},{\"op\":\"circle\",\"id\":\"cA\",\"c\":\"A\",\"r\":\"2*sqrt(3)\"},{\"op\":\"isect\",\"id\":\"E\",\"of\":[\"cA\",\"rAE\"]},{\"op\":\"reflect\",\"id\":\"C\",\"of\":\"D\",\"through\":\"E\"},...]\nop一览：pt(基准点，at可写表达式)/mid(中点 of:[P1,P2])/reflect(对称点 of:P,through:Q)/line(直线 pts:[P1,P2])/ray(射线 from:P,angle:角度制从+x轴逆时针)/perp(垂线 through:P,to:线名或[点1,点2])/par(平行线 through:P,to:线)/circle(圆 c:圆心,r:表达式如\"2*sqrt(3)\"或{dist:[P1,P2]})/foot(垂足 of:P,to:线)/isect(交点 of:[对象1,对象2],pick:left/right/top/bottom)/onCircle(圆上点 id=点名,of=圆心名,r=半径可省,angle=角度制从+x轴逆时针)/angleBisect(角平分线方向点 id=辅助点,at=顶点,of=[角两边点])/circum(三点外接圆圆心 id=圆心,of=[三点])。表达式支持+ - * / ^、sqrt/sin/cos(角度制)/pi。复杂图形请用 construct 从头作图，不要混用 poly 自动摆位（摆位无度量，仅为示意）。construct 只负责算出点的位置；点要画出来仍需 items（如 poly/seg/text），引用点名即可，坐标会自动带入。\n\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：steps 数4-7步（宁精勿多），先画骨架→标关键点→讲性质→最后一步总结答案。每步必给 title（6字内短标题，时间轴按钮用）与 say；关键推理步给 why；2-3 个教学重点步配 quiz（question+2-3个options+explanation，correct 恰好一个）；hl 填该步要高亮的对象名（点字母或线段名如\"AC\"、\"阴影\"）。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
-var chatHistory = [];
-var demoMode = false, demoIdx = 0;
-var curProblem = '';  // 当前题目（跨模式保留）
-
-var DEMO = [
-  {w:'student', t:'1/2 + 1/4 等于多少？'},
-  {w:'tutor', o:{say:'好问题！先看 1/2 长什么样：把一个圆平均分成 2 份，涂 1 份。点下面的动画看看。', kp:'分数的意义', visual:{needed:true, title:'1/2 是什么', svg:'<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="p1-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#16a34a"/></linearGradient><linearGradient id="p1-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="p1-yellow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="p1-pink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><text id="p1-t0" x="200" y="32" text-anchor="middle" font-size="17" fill="#ffffff" font-weight="bold" font-family="sans-serif">1/2：一半</text><circle id="p1-c0" cx="200" cy="175" r="88" fill="#1b2338" stroke="#dbe4f5" stroke-width="2"/><path id="p1-s1" d="M 200 175 L 200 87 A 88 88 0 0 1 200 263 Z" fill="url(#p1-green)" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/><text id="p1-t1" x="200" y="300" text-anchor="middle" font-size="13" fill="#9fb0cc" font-family="sans-serif">把圆平均分成 2 份，涂了 1 份</text><script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.7,ease:"back.out(1.6)"}});tl.from("#p1-t0",{opacity:0,y:-10}).from("#p1-c0",{opacity:0,scale:.8,transformOrigin:"200px 175px"},"-=.35").from("#p1-s1",{scale:0,opacity:0,transformOrigin:"200px 175px",ease:"elastic.out(1,.55)",duration:1},"+=.15").from("#p1-t1",{opacity:0,y:12});}<\/script></svg>'}, done:false}},
-  {w:'student', t:'一半'},
-  {w:'tutor', o:{say:'对！再看 1/4：平均分成 4 份，只涂其中的 1 份。', kp:'分数的意义', visual:{needed:true, title:'1/4 是什么', svg:'<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="p2-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#16a34a"/></linearGradient><linearGradient id="p2-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="p2-yellow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="p2-pink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><text id="p2-t0" x="200" y="32" text-anchor="middle" font-size="17" fill="#ffffff" font-weight="bold" font-family="sans-serif">1/4：一小份</text><circle id="p2-c0" cx="200" cy="175" r="88" fill="#1b2338" stroke="#dbe4f5" stroke-width="2"/><path id="p2-s1" d="M 200 175 L 200 87 A 88 88 0 0 1 288 175 Z" fill="url(#p2-blue)" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/><text id="p2-t1" x="200" y="300" text-anchor="middle" font-size="13" fill="#9fb0cc" font-family="sans-serif">把圆平均分成 4 份，只涂 1 份</text><script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.7,ease:"back.out(1.6)"}});tl.from("#p2-t0",{opacity:0,y:-10}).from("#p2-c0",{opacity:0,scale:.8,transformOrigin:"200px 175px"},"-=.35").from("#p2-s1",{scale:0,opacity:0,transformOrigin:"200px 175px",ease:"elastic.out(1,.55)",duration:1},"+=.15").from("#p2-t1",{opacity:0,y:12});}<\/script></svg>'}, done:false}},
-  {w:'student', t:'一小份'},
-  {w:'tutor', o:{say:'没错！关键一步：1/2 其实就是 2/4。看动画——绿色占一半（2小份），再加蓝色1小份，一共几份？', kp:'通分', visual:{needed:true, title:'合在一起', svg:'<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="p3-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#16a34a"/></linearGradient><linearGradient id="p3-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="p3-yellow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="p3-pink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><text id="p3-t0" x="200" y="32" text-anchor="middle" font-size="17" fill="#ffffff" font-weight="bold" font-family="sans-serif">1/2 = 2/4，合在一起</text><circle id="p3-c0" cx="200" cy="175" r="88" fill="#1b2338" stroke="#dbe4f5" stroke-width="2"/><path id="p3-s1" d="M 200 175 L 200 87 A 88 88 0 0 1 200 263 Z" fill="url(#p3-green)" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/><path id="p3-s2" d="M 200 175 L 200 87 A 88 88 0 0 0 112 175 Z" fill="url(#p3-blue)" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/><text id="p3-t1" x="200" y="300" text-anchor="middle" font-size="13" fill="#9fb0cc" font-family="sans-serif">绿色 2 份 + 蓝色 1 份 = 3/4 ✓</text><script>if(window.gsap){var tl=gsap.timeline({defaults:{duration:.7,ease:"back.out(1.6)"}});tl.from("#p3-t0",{opacity:0,y:-10}).from("#p3-c0",{opacity:0,scale:.8,transformOrigin:"200px 175px"},"-=.35").from("#p3-s1",{scale:0,opacity:0,transformOrigin:"200px 175px",ease:"elastic.out(1,.55)",duration:1},"+=.15").from("#p3-s2",{scale:0,opacity:0,transformOrigin:"200px 175px",ease:"elastic.out(1,.55)",duration:1},"+=.3").from("#p3-t1",{opacity:0,y:12});}<\/script></svg>'}, done:false}},
-  {w:'student', t:'3份，是 3/4'},
-  {w:'tutor', o:{say:'🎉 总结：1/2 + 1/4 = 3/4！记住：先通分（1/2=2/4），再数一共有几份。知识点：分数的意义 → 通分 → 分数加法', kp:'分数加法', done:true}}
-];
+var curProblem = '';  // 当前题目
 
 function fmt(t){
 return t.replace(/【知识点：(.*?)】/g, '<span class="kp">📚 $1</span>');
-}
-function addMsg(who, text){
-var d = document.createElement('div');
-d.className = 'msg ' + (who==='tutor'?'tutor':'student');
-d.innerHTML = '<div class="who">'+(who==='tutor'?'🤖 AI 老师':'🧒 你')+'</div><div>'+fmt(text)+'</div>';
-document.getElementById('msgs').appendChild(d);
-d.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -679,43 +608,15 @@ function cleanVisual(o){
   }
   return o;
 }
-function addTutorObj(o){
-  var d = document.createElement('div');
-  d.className = 'msg tutor';
-  var h = '<div class="who">🤖 AI 老师</div><div>'+fmt(o.say)+'</div>';
-  if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
-  if(o.visual && o.visual.needed && o.visual.svg){
-    var doc = '<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"><\/script><meta charset=\"utf-8\"><style>html,body{margin:0;padding:6px;background:#0f1420}svg{width:100%;height:auto;display:block}</style></head><body>'+o.visual.svg+'</body></html>';
-    var vid = 'vis' + visualDocs.length;
-    visualDocs.push(doc);
-    h += '<details class="visual"><summary>📊 看动画演示：'+escHtml(o.visual.title||'数形结合')+'<button class="replay-btn" onclick="replayVisual(\''+vid+'\','+(visualDocs.length-1)+');event.stopPropagation();event.preventDefault()">↻ 重新播放</button></summary>'
-       + '<iframe id="'+vid+'" sandbox="allow-scripts" srcdoc="'+escAttr(doc)+'"></iframe></details>';
-  }
-  d.innerHTML = h;
-  document.getElementById('msgs').appendChild(d);
-  d.scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-/* 动画只生成一次（token 只花一次），重播是纯本地重新渲染，0 token */
-var visualDocs = [];
-function replayVisual(id, i){
-  var f = document.getElementById(id);
-  if(f && visualDocs[i]) f.srcdoc = visualDocs[i];
-}
-function showChat(){
-document.getElementById('setup').style.display='none';
-document.getElementById('explainOut').style.display='none';
-var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
-document.getElementById('chat').style.display='block';
-}function setCode(v){
+function setCode(v){
   localStorage.setItem('xskai_code', v);
-  [['accessCode','codeOk'],['accessCodeChat','codeOkChat'],['accessCodeEx','codeOkEx'],['accessCodeNav','codeOkNav']].forEach(function(p){
+  [['accessCode','codeOk'],['accessCodeEx','codeOkEx'],['accessCodeNav','codeOkNav']].forEach(function(p){
     var i = document.getElementById(p[0]), o = document.getElementById(p[1]);
     if(i) i.value = v;
     if(o) o.textContent = v ? '已保存' : '已清除';
   });
 }
 function saveCode(){ setCode(document.getElementById('accessCode').value.trim()); }
-function saveCodeChat(){ setCode(document.getElementById('accessCodeChat').value.trim()); }
 function saveCodeEx(){ setCode(document.getElementById('accessCodeEx').value.trim()); }
 function saveCodeNav(){ setCode(document.getElementById('accessCodeNav').value.trim()); }
 function openCodeModal(){
@@ -727,7 +628,7 @@ function openCodeModal(){
 function closeCodeModal(){ document.getElementById('codeModal').classList.remove('open'); }
 (function(){
   var v = localStorage.getItem('xskai_code')||'';
-  ['accessCode','accessCodeChat','accessCodeEx','accessCodeNav'].forEach(function(id){ var i = document.getElementById(id); if(i) i.value = v; });
+  ['accessCode','accessCodeEx','accessCodeNav'].forEach(function(id){ var i = document.getElementById(id); if(i) i.value = v; });
 })();
 function apiHeaders(){
   var h = {'Content-Type':'application/json'};
@@ -736,128 +637,17 @@ function apiHeaders(){
   return h;
 }
 
-function startDemo(){
-  demoMode = true; demoIdx = 0;
-  showChat();
-  var pb = document.getElementById('probBar');
-  pb.innerHTML = '<b>📚 原题：</b>1/2 + 1/4 等于多少？';
-  pb.style.display = 'block';
-  document.getElementById('msgs').innerHTML = '';
-  demoStep();
-}
-function demoStep(){
-  if(demoIdx >= DEMO.length){
-    document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">演示结束，点“问下一题”开始真实引导。</span> <button class="btn-subtle" onclick="restart()">问下一题</button>';
-    return;
-  }
-  var m = DEMO[demoIdx++];
-  if(m.o) addTutorObj(m.o); else addMsg(m.w, m.t);
-  document.getElementById('answerRow').innerHTML = '<button class="btn-accent" onclick="demoStep()">下一步</button> <button class="btn-subtle" onclick="restart()">问下一题</button>';
-}
-
-async function callAI(){
-var endpoint = SITE_WORKER;
-var headers = apiHeaders();
-var res = await fetch(endpoint, {method:'POST', headers:headers,
-body: JSON.stringify({model:'deepseek-v4-flash', messages:chatHistory, temperature:0.5})});
-var data = await res.json();
-if(data.error) throw new Error(data.error);
-return data.choices[0].message.content;
-}
-function start(){
-var p = document.getElementById('problem').value.trim();
-if(p.length < 5){ alert('请先输入一道数学题（至少5个字）。'); return;}
-curProblem = p;
-demoMode = false; chatHistory = [];
-var grade = document.getElementById('grade').value;
-var sysExtra = "\n学生是"+grade+"学生，题目是："+p;
-  if(lastPhoto) sysExtra += "。题目附带了一张图片，图片展示了题目中的几何图形/示意图，请结合图片理解题意再引导。";
-  chatHistory.push({role:'system', content: SYSTEM + sysExtra});
-  if(lastPhoto){
-    chatHistory.push({role:'user', content: [{type:'text', text:"题目："+p+"。请开始引导我，第一步问一个引导性问题。"},{type:'image_url', image_url:{url:lastPhoto, detail:'high'}}]});
-  }else{
-    chatHistory.push({role:'user', content: "题目："+p+"。请开始引导我，第一步问一个引导性问题。"});
-  }
-showChat();
-var pb = document.getElementById('probBar');
-pb.innerHTML = '<b>📚 原题：</b>'+escHtml(p);
-pb.style.display = 'block';
-document.getElementById('msgs').innerHTML = '';
-addMsg('student', p);
-ask();
-}
-async function ask(){
-document.getElementById('loading').style.display='block';
-try{
-    var t = await callAI(); chatHistory.push({role:'assistant', content:t});
-    var o = parseTutor(t);
-    if(o){ addTutorObj(o); if(o.done){ document.getElementById('answerRow').innerHTML = '<span style="color:#4ade80;font-size:14px">这道题完成啦！可以看讲解动画回顾，或问下一题继续。</span> <button class="btn-accent" onclick="toExplain()">直接看动画讲解</button> <button class="btn-subtle" onclick="restart()">问下一题</button>'; } }
-    else addMsg('tutor', escHtml(t));
-  }
-catch(e){ addMsg('tutor', '出错了：'+e.message+'。检查网络后重试。');}
-document.getElementById('loading').style.display='none';
-}
-function send(){
-if(demoMode){ alert('演示模式请点"下一步"继续。点"问下一题"开始真实引导。'); return;}
-var v = document.getElementById('answer').value.trim();
-if(!v) return;
-document.getElementById('answer').value = '';
-addMsg('student', v);
-chatHistory.push({role:'user', content:v});
-ask();
-}
-function stuck(){
-if(demoMode){ alert('演示模式请点"下一步"继续。'); return;}
-addMsg('student', '💡 我卡住了，给我一个提示吧');
-chatHistory.push({role:'user', content:'我这一步卡住了，请给我一个提示（hint），不要直接给答案，用提问的方式引导我。'});
-ask();
-}
-
-var currentMode = 'guide';
-function switchMode(m){
-currentMode = m;
-document.getElementById('tabGuide').classList.toggle('on', m==='guide');
-document.getElementById('tabExplain').classList.toggle('on', m==='explain');
-document.getElementById('startBtn').textContent = m==='guide' ? '开始引导' : '生成讲解动画';
-document.getElementById('demoLink').textContent = m==='guide' ? '先看演示 →' : '先看讲解演示 →';
-}
-function startMain(){ if(currentMode==='guide') start(); else startExplain(); }
-function startDemoMain(){ if(currentMode==='guide') startDemo(); else startExplainDemo(); }
 var lastExplain = null, capTimer = null;
 function showExplain(){
 document.getElementById('setup').style.display='none';
-document.getElementById('chat').style.display='none';
 document.getElementById('explainOut').style.display='block';
 }
 function backToSetup(){
-stopArena();
-if(capTimer) clearInterval(capTimer);
-var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
-document.getElementById('explainOut').style.display='none';
-document.getElementById('chat').style.display='none';
-document.getElementById('setup').style.display='block';
-}
-// 引导模式 → 讲解模式（带着当前题目过去）
-function toExplain(){
-if(!curProblem){ alert('请先输入题目。'); return; }
-if(capTimer) clearInterval(capTimer);
-switchMode('explain');
-startExplain();
-}
-// 讲解模式 → 引导模式（带着当前题目无缝切换）
-function backToChat(){
-stopArena();
-var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
-if(capTimer) clearInterval(capTimer);
-document.getElementById('explainOut').style.display='none';
-document.getElementById('setup').style.display='none';
-if(!chatHistory.length){
-  if(!curProblem){ backToSetup(); return; }
-  document.getElementById('problem').value = curProblem;  // 没引导过：用讲解的题目直接开始引导
-  start();
-  return;
-}
-document.getElementById('chat').style.display='block';
+  stopArena();
+  if(capTimer) clearInterval(capTimer);
+  var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
+  document.getElementById('explainOut').style.display='none';
+  document.getElementById('setup').style.display='block';
 }
 async function startExplain(){
 var p = document.getElementById('problem').value.trim() || curProblem;
@@ -1906,7 +1696,6 @@ function confirmGeo(){
 function renderGeoStage(say, compiled, kp){
   stopArena();
   document.getElementById('setup').style.display='none';
-  document.getElementById('chat').style.display='none';
   var eo = document.getElementById('explainOut');
   if(eo) eo.style.display='block';
   var cw = document.querySelector('.math-card');
@@ -2507,7 +2296,6 @@ function startExplainDemo(){
   geoDraft.say = EXPLAIN_DEMO.say; geoDraft.kp = EXPLAIN_DEMO.kp;
   confirmGeo();
 }
-function restart(){ location.reload();}
 
 var recog = null, listening = false, voiceBtnEl = null;
 function toggleVoice(targetId, btnId, autoSend){
@@ -2528,7 +2316,7 @@ function toggleVoice(targetId, btnId, autoSend){
     var t = e.results[0][0].transcript;
     var ta = document.getElementById(targetId);
     if(!ta) return;
-    if(autoSend){ ta.value = t; setTimeout(function(){ send(); }, 350); }  // 回答：说完自动发送，孩子不用打字
+    if(autoSend){ ta.value = t; }  // 自动填充目标输入框（题目输入用），不再自动发送
     else { ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + t; ta.focus(); }
   };
   recog.onend = function(){ listening = false; if(voiceBtnEl) voiceBtnEl.textContent = voiceBtnEl.getAttribute('data-label'); voiceBtnEl = null; };
@@ -2591,7 +2379,7 @@ function onOcrText(txt, fromWorker){
     if(prev && prev === lastOcrText) ta.value = '';
     lastOcrText = txt.replace(/\s+/g,'');
     ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + lastOcrText;
-    status.textContent = '✔ 文字已识别，图片也会一并发给 AI。AI 能看懂图形，直接点「看动画讲解」或「一步步引导」即可，无需手动补充图形条件。';
+    status.textContent = '✔ 文字已识别，图片也会一并发给 AI。AI 能看懂图形，直接点「看动画讲解」即可，无需手动补充图形条件。';
     status.style.color = '#4ade80';
   }else{
     status.textContent = '✘ 没识别出文字，请把题目拍得更清晰、更正，或手动输入。';
