@@ -31,6 +31,9 @@
 .input-tools{position:absolute;right:10px;bottom:10px;display:flex;gap:8px}
 .tool-btn{background:#1e293b;border:1px solid #334155;border-radius:8px;color:#cbd5e1;font-size:13px;padding:7px 12px;cursor:pointer}
 .tool-btn:hover{border-color:#0ea5e9;color:#38bdf8}
+/* 拍照识别强调样式：亮蓝实底，视觉上明显引导拍照入口 */
+.tool-btn-photo{background:#0284c7;border-color:#0284c7;color:#fff;font-weight:600;font-size:14px;padding:8px 16px;box-shadow:0 2px 8px rgba(2,132,199,.35)}
+.tool-btn-photo:hover{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
 .btn-primary{display:block;width:100%;background:#0284c7;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px;cursor:pointer;margin-top:16px;transition:background .2s;font-family:inherit}
 .btn-primary:hover{background:#0ea5e9}
 .demo-row{text-align:center;margin-top:12px}
@@ -194,7 +197,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <div class="wrap">
 <section class="math-card">
 <h2 class="math-title">数学解题助手</h2>
-<p class="math-sub">拍照或输入题目，AI 一次生成<b>动画分步讲解</b>：图形一步步画出来、每步配讲解，家长先看懂，再讲给孩子听。</p>
+<p class="math-sub">提示选择对应年级，拍照或输入题目，AI 一次生成<b>动画分步讲解</b>：图形一步步画出来、每步配讲解。</p>
 
 <div id="setup">
 <label class="fld-label" for="grade">年级</label>
@@ -215,7 +218,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 </div>
 <div class="input-tools">
 <button class="tool-btn" id="voiceBtn" onclick="toggleVoice()">语音输入</button>
-<button class="tool-btn" onclick="document.getElementById('photoInput').click()">拍照识别</button>
+<button class="tool-btn tool-btn-photo" onclick="document.getElementById('photoInput').click()">📷 拍照识别</button>
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
 </div>
 </div>
