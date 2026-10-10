@@ -814,15 +814,41 @@ async function callAI(messages){
   if(data.error) throw new Error(data.error);
   return data.choices[0].message.content;
 }
-/* 从 AI 回复中提取 JSON（去围栏/取大括号段）；截断时尝试修复 */
+/* 修复 JSON 字符串内的非法转义：AI 常在 LaTeX/文本里输出单反斜杠（如 \(、\[、\s），
+ * JSON 字面量中这是非法转义（Bad escaped character）。把 \X（X 非合法转义符）改为 \\X，
+ * 使其成为合法的"反斜杠+字面字符"，既满足 JSON 语法又保留 LaTeX 原义。合法的 \\ \" 等不受影响。 */
+function fixBadEscapes(s){
+  var out = '', i = 0;
+  while(i < s.length){
+    var c = s[i];
+    if(c !== '\\'){ out += c; i++; continue; }
+    var n = s[i+1];
+    if(n === undefined){ out += c; i++; continue; }
+    if(n === '\\'){            // 双反斜杠：合法，原样保留
+      out += '\\\\'; i += 2; continue;
+    }
+    if('\\"/bfnrt'.indexOf(n) >= 0){  // 合法单转义
+      out += '\\' + n; i += 2; continue;
+    }
+    out += '\\\\' + n;        // 非法转义 → 字面反斜杠+字符
+    i += 2;
+  }
+  return out;
+}
+/* 从 AI 回复中提取 JSON（去围栏/取大括号段）；先修非法转义，再尝试修复截断 */
 function parseTutor(t){
   var clean = String(t).replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
   var m = clean.match(/\{[\s\S]*\}/);
   var s = m ? m[0] : clean;
+  s = fixBadEscapes(s);
   try{ return JSON.parse(s); }catch(e){}
   // 截断兜底：逐层修复未闭合结构（尾逗号/未闭合字符串/未闭合括号）
   var repaired = repairJSON(s);
-  return JSON.parse(repaired);
+  try{ return JSON.parse(repaired); }catch(e2){
+    // repairJSON 补括号后若仍含非法转义（截断切到反斜杠），再兜底修一次
+    var r2 = fixBadEscapes(repaired);
+    return JSON.parse(r2);
+  }
 }
 /* 修复被 max_tokens 截断的 JSON：补齐字符串引号、数组与对象括号、去掉尾逗号 */
 function repairJSON(s){
