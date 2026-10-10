@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -8,117 +8,188 @@
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <style>
-/* ===== 数学助手 · 清爽浅色主题 ===== */
-.math-card{background:#ffffff;border-radius:20px;padding:32px 30px;margin:28px auto;max-width:720px;box-shadow:0 12px 40px rgba(0,0,0,.35);color:#1e293b}
-.math-title{font-size:22px;font-weight:700;margin:0 0 8px;color:#0f172a}
-.math-sub{font-size:14px;color:#64748b;margin:0 0 6px;line-height:1.8}
-.math-sub b{color:#1d4ed8}
-.fld-label{display:block;font-size:14px;font-weight:600;color:#334155;margin:20px 0 8px}
-.grade-select{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;padding:10px 14px;font-size:15px;min-width:150px}
+/* ===== 数学助手 · 深色演练场主题（对齐几何思维演练场视觉，零外部依赖） ===== */
+.math-card{background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.8);border-radius:18px;padding:30px;margin:24px auto;max-width:720px;box-shadow:0 16px 48px rgba(0,0,0,.5);color:#e2e8f0;transition:max-width .3s ease}
+.math-card.open-wide{max-width:1240px;padding:18px}
+.math-title{font-size:22px;font-weight:700;margin:0 0 8px;color:#f1f5f9}
+.math-sub{font-size:14px;color:#94a3b8;margin:0 0 6px;line-height:1.8}
+.math-sub b{color:#38bdf8}
+.fld-label{display:block;font-size:13px;font-weight:600;color:#cbd5e1;margin:20px 0 8px;letter-spacing:.5px}
+.grade-select{background:#0f172a;border:1px solid #334155;border-radius:10px;color:#e2e8f0;padding:10px 14px;font-size:15px;min-width:150px}
+.grade-select:focus{outline:none;border-color:#0ea5e9}
 .input-wrap{position:relative}
-.input-wrap textarea{width:100%;min-height:96px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;padding:14px;font-size:16px;line-height:1.8;font-family:inherit;resize:vertical;box-sizing:border-box}
-.input-wrap textarea:focus{outline:none;border-color:#4f8cff;box-shadow:0 0 0 3px rgba(79,140,255,.15)}
+.input-wrap textarea{width:100%;min-height:96px;background:#0f172a;border:1px solid #334155;border-radius:12px;color:#e2e8f0;padding:14px;font-size:16px;line-height:1.8;font-family:inherit;resize:vertical;box-sizing:border-box}
+.input-wrap textarea:focus{outline:none;border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.15)}
 /* 拍照图片预览 */
 .photo-preview{display:none;margin-top:10px;position:relative}
 .photo-preview.show{display:block}
-.photo-preview img{max-width:100%;max-height:200px;border-radius:10px;border:1px solid #e2e8f0;display:block}
-.photo-preview .pv-bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:#94a3b8}
-.photo-preview .pv-remove{background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;padding:2px 6px;font-family:inherit}
+.photo-preview img{max-width:100%;max-height:200px;border-radius:10px;border:1px solid #334155;display:block}
+.photo-preview .pv-bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:#64748b}
+.photo-preview .pv-remove{background:none;border:none;color:#f87171;font-size:12px;cursor:pointer;padding:2px 6px;font-family:inherit}
 .photo-preview .pv-remove:hover{text-decoration:underline}
 .input-tools{position:absolute;right:10px;bottom:10px;display:flex;gap:8px}
-.tool-btn{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;color:#475569;font-size:13px;padding:7px 12px;cursor:pointer}
-.tool-btn:hover{border-color:#4f8cff;color:#4f8cff}
+.tool-btn{background:#1e293b;border:1px solid #334155;border-radius:8px;color:#cbd5e1;font-size:13px;padding:7px 12px;cursor:pointer}
+.tool-btn:hover{border-color:#0ea5e9;color:#38bdf8}
 .mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 6px}
-.mode-card{background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;transition:all .18s ease;font-family:inherit}
-.mode-card b{display:block;font-size:15px;color:#0f172a;margin-bottom:5px}
-.mode-card span{font-size:13px;color:#64748b;line-height:1.6}
-.mode-card.on{border-color:#4f8cff;background:#eff6ff;box-shadow:0 0 0 3px rgba(79,140,255,.12)}
-.mode-card.on b{color:#1d4ed8}
-.btn-primary{display:block;width:100%;background:#4f8cff;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px;cursor:pointer;margin-top:16px;transition:background .2s;font-family:inherit}
-.btn-primary:hover{background:#3b76f6}
+.mode-card{background:rgba(15,23,42,.6);border:2px solid #334155;border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;transition:all .18s ease;font-family:inherit;color:inherit}
+.mode-card b{display:block;font-size:15px;color:#f1f5f9;margin-bottom:5px}
+.mode-card span{font-size:13px;color:#94a3b8;line-height:1.6}
+.mode-card.on{border-color:#0ea5e9;background:rgba(14,165,233,.12);box-shadow:0 0 0 3px rgba(14,165,233,.12)}
+.mode-card.on b{color:#7dd3fc}
+.btn-primary{display:block;width:100%;background:#0284c7;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px;cursor:pointer;margin-top:16px;transition:background .2s;font-family:inherit}
+.btn-primary:hover{background:#0ea5e9}
 .demo-row{text-align:center;margin-top:12px}
-.link-demo{background:none;border:none;color:#4f8cff;font-size:14px;cursor:pointer;font-family:inherit;padding:4px}
+.link-demo{background:none;border:none;color:#38bdf8;font-size:14px;cursor:pointer;font-family:inherit;padding:4px}
 .link-demo:hover{text-decoration:underline}
-.hint{font-size:13px;color:#94a3b8;margin-top:12px;line-height:1.7}
-.codebar{margin-top:18px;border-top:1px dashed #e2e8f0;padding-top:14px}
-.code-label{font-size:14px;font-weight:600;color:#334155}
-.code-label span{font-weight:400;font-size:13px;color:#94a3b8}
-.code-label a{font-size:13px;color:#4f8cff;margin-left:8px}
+.hint{font-size:13px;color:#64748b;margin-top:12px;line-height:1.7}
+.codebar{margin-top:18px;border-top:1px dashed #334155;padding-top:14px}
+.code-label{font-size:13px;font-weight:600;color:#cbd5e1}
+.code-label span{font-weight:400;font-size:12px;color:#64748b}
+.code-label a{font-size:12px;color:#38bdf8;margin-left:8px}
 /* 导航栏卡密入口 */
-nav.main .nav-code{background:#4f8cff;color:#fff!important;border-radius:8px;padding:6px 14px;font-weight:600}
-nav.main .nav-code:hover{background:#3b76f6}
+nav.main .nav-code{background:#0284c7;color:#fff!important;border-radius:8px;padding:6px 14px;font-weight:600}
+nav.main .nav-code:hover{background:#0ea5e9}
 /* 卡密弹窗 */
-.code-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:999;padding:20px}
+.code-modal{position:fixed;inset:0;background:rgba(2,6,23,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:999;padding:20px}
 .code-modal.open{display:flex}
-.code-modal .box{background:#fff;border-radius:16px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);color:#1e293b}
-.code-modal h3{margin:0 0 6px;font-size:17px;color:#0f172a}
-.code-modal p{font-size:13px;color:#64748b;margin:0 0 6px;line-height:1.7}
+.code-modal .box{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);color:#e2e8f0}
+.code-modal h3{margin:0 0 6px;font-size:17px;color:#f1f5f9}
+.code-modal p{font-size:13px;color:#94a3b8;margin:0 0 6px;line-height:1.7}
 .code-modal .row{display:flex;gap:8px;margin-top:12px}
-.code-modal input{flex:1;min-width:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#1e293b;padding:11px;font-size:15px}
-.code-modal .ok{font-size:13px;color:#047857;margin-top:8px;min-height:18px}
+.code-modal input{flex:1;min-width:0;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:11px;font-size:15px}
+.code-modal .ok{font-size:13px;color:#34d399;margin-top:8px;min-height:18px}
 .code-modal .actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
 .code-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
-.code-row input{flex:1;min-width:140px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#1e293b;padding:10px;font-size:14px}
-.code-row button{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#475569;cursor:pointer}
-.code-row a{font-size:14px;color:#4f8cff;white-space:nowrap}
+.code-row input{flex:1;min-width:140px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:10px;font-size:14px}
+.code-row button{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 14px;font-size:14px;color:#cbd5e1;cursor:pointer}
+.code-row a{font-size:14px;color:#38bdf8;white-space:nowrap}
 /* 聊天区 */
-.who{font-size:13px;color:#64748b;font-weight:600}
+.who{font-size:13px;color:#94a3b8;font-weight:600}
 .msg{margin:10px 0;padding:12px 16px;border-radius:14px;font-size:15px;line-height:1.8}
-.msg.tutor{background:#f8fafc;border:1px solid #e2e8f0;color:#1e293b;max-width:96%}
-.msg.student{background:#4f8cff;color:#fff;margin-left:auto;max-width:88%}
+.msg.tutor{background:rgba(15,23,42,.6);border:1px solid #334155;color:#e2e8f0;max-width:96%}
+.msg.student{background:#0284c7;color:#fff;margin-left:auto;max-width:88%}
 .msg .who{margin-bottom:4px}
-.msg.tutor .who{color:#64748b}
+.msg.tutor .who{color:#94a3b8}
 .msg.student .who{color:rgba(255,255,255,.75)}
-.kp{display:inline-block;background:#ecfdf5;color:#047857;font-size:12px;font-weight:600;padding:3px 12px;border-radius:20px;margin:4px 4px 0 0}
-.loading{color:#b45309;font-size:14px;margin-top:12px;display:none}
-.prob-show{margin:0 0 14px;padding:12px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;font-size:15px;line-height:1.8;color:#1e293b}
-.prob-show b{color:#1d4ed8}
+.kp{display:inline-block;background:rgba(16,185,129,.15);color:#34d399;font-size:12px;font-weight:600;padding:3px 12px;border-radius:20px;margin:4px 4px 0 0;border:1px solid rgba(16,185,129,.3)}
+.loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
+.prob-show{margin:0 0 14px;padding:12px 16px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:12px;font-size:15px;line-height:1.8;color:#e2e8f0}
+.prob-show b{color:#7dd3fc}
 #answerRow{display:flex;gap:10px;margin-top:12px}
-#answerRow input{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;padding:12px;font-size:16px;min-width:0}
-#answerRow input:focus{outline:none;border-color:#4f8cff}
-.btn-send{background:#4f8cff;color:#fff;border:none;border-radius:10px;padding:0 24px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
-.btn-send:hover{background:#3b76f6}
+#answerRow input{flex:1;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#e2e8f0;padding:12px;font-size:16px;min-width:0}
+#answerRow input:focus{outline:none;border-color:#0ea5e9}
+.btn-send{background:#0284c7;color:#fff;border:none;border-radius:10px;padding:0 24px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.btn-send:hover{background:#0ea5e9}
 .chat-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.btn-subtle{background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
-.btn-subtle:hover{border-color:#4f8cff;color:#4f8cff}
-.btn-accent{background:#4f8cff;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-.btn-accent:hover{background:#3b76f6}
-.visual{margin-top:10px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
-.visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#047857;background:#f0fdf4;font-weight:600}
-.visual summary .replay-btn{float:right;background:#fff;border:1px solid #6ee7b7;border-radius:8px;color:#047857;font-size:12px;padding:4px 10px;cursor:pointer;font-family:inherit}
-.visual summary .replay-btn:hover{background:#047857;color:#fff}
+.btn-subtle{background:rgba(15,23,42,.6);border:1px solid #334155;color:#cbd5e1;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+.btn-subtle:hover{border-color:#0ea5e9;color:#7dd3fc}
+.btn-accent{background:#0284c7;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-accent:hover{background:#0ea5e9}
+.visual{margin-top:10px;border:1px solid #334155;border-radius:12px;overflow:hidden}
+.visual summary{cursor:pointer;padding:10px 14px;font-size:14px;color:#34d399;background:rgba(16,185,129,.08);font-weight:600}
+.visual summary .replay-btn{float:right;background:#1e293b;border:1px solid rgba(16,185,129,.4);border-radius:8px;color:#34d399;font-size:12px;padding:4px 10px;cursor:pointer;font-family:inherit}
+.visual summary .replay-btn:hover{background:rgba(16,185,129,.15)}
 .visual iframe{width:100%;aspect-ratio:400/340;border:0;display:block;background:#0f1420}
-/* GeoGebra 动画画板 */
-.ggb-wrap{width:100%;background:#fff;overflow-x:auto}
-.ggb-wrap #ggbBox{width:100%;min-width:340px;position:relative;background:#fff}
-.ggb-wrap .algebraPanel,.ggb-wrap .algebraPanelParent{display:none!important}
-.ggb-say{margin:0;padding:12px 14px;font-size:14px;color:#1e293b;background:#f8fafc;border-top:1px solid #e2e8f0;line-height:1.7}
-.ggb-nav{padding:10px 14px;background:#f0fdf4;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ggb-nav .n{font-size:13px;color:#64748b}
-.explain-stage{margin-top:12px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
-.explain-stage .stage-title{padding:10px 14px;font-size:14px;color:#047857;background:#f0fdf4;font-weight:600}
-.explain-stage iframe{width:100%;aspect-ratio:1/1;border:0;display:block;background:#0f1420}
-/* geo 条件确认栏（AI 读出的几何条件 chips，可增删） */
+/* ===== 几何思维演练场（SVG 画布 + 分步面板 + quiz，纯 CSS 复刻参考模板视觉） ===== */
+.arena{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:18px;align-items:start;margin-top:14px}
+.arena-left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.arena-canvas{background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.8);border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.arena-head{background:#1e293b;padding:10px 14px;border-bottom:1px solid rgba(51,65,85,.6);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#94a3b8}
+.arena-head .live{display:flex;align-items:center;gap:8px;font-weight:500;color:#cbd5e1}
+.arena-head .dot{width:10px;height:10px;border-radius:50%;background:#10b981;animation:pulseDot 1.6s infinite}
+@keyframes pulseDot{50%{opacity:.4}}
+.badge-step{background:rgba(14,165,233,.15);color:#7dd3fc;font-weight:600;padding:3px 10px;border-radius:6px;border:1px solid rgba(14,165,233,.3)}
+.arena-surface{position:relative;width:100%;aspect-ratio:500/380;background:#020617;display:flex;align-items:center;justify-content:center;overflow:hidden;user-select:none}
+.arena-surface .gridbg{position:absolute;inset:0;background-image:radial-gradient(#334155 1px,transparent 1px);background-size:16px 16px;opacity:.4;pointer-events:none}
+.arena-surface svg{width:100%;height:100%;max-height:520px;position:relative;z-index:1;overflow:visible}
+/* SVG 文本按 viewBox 放大更醒目（1.28 倍）；节点半径由 JS 属性控制，勿用 CSS r（会覆盖大圆的 r） */
+#arenaSvg text{font-size:1.28em}
+.arena-tooltip{position:absolute;bottom:10px;left:10px;background:rgba(15,23,42,.92);border:1px solid #334155;color:#e2e8f0;font-size:12px;padding:6px 12px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .3s;z-index:2;display:flex;align-items:center;gap:6px}
+.arena-tooltip.show{opacity:1}
+.arena-ctrl{background:#1e293b;padding:12px 14px;border-top:1px solid rgba(51,65,85,.8);display:flex;flex-direction:column;gap:10px}
+.timeline-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.timeline-row .lb{font-size:12px;font-weight:600;color:#94a3b8}
+.timeline{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.tl-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;background:rgba(51,65,85,.6);color:#cbd5e1;border:1px solid #475569;cursor:pointer;font-family:inherit;transition:all .15s}
+.tl-btn:hover{background:#334155}
+.tl-btn.on{background:#0284c7;color:#fff;border-color:#0ea5e9;transform:scale(1.06);box-shadow:0 2px 10px rgba(14,165,233,.4)}
+.arena-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.arena-nav{display:flex;gap:8px}
+.btn-step{padding:8px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s}
+.btn-step.prev{background:#334155;border:1px solid #475569;color:#e2e8f0}
+.btn-step.prev:hover:not(:disabled){background:#475569}
+.btn-step.next{background:#0284c7;color:#fff;border:none;box-shadow:0 4px 14px rgba(14,165,233,.35)}
+.btn-step.next:hover:not(:disabled){background:#0ea5e9}
+.btn-step:disabled{opacity:.4;cursor:not-allowed}
+.btn-autoplay{padding:8px 14px;background:rgba(51,65,85,.6);border:1px solid #475569;color:#cbd5e1;border-radius:12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px}
+.btn-autoplay:hover{background:#334155}
+.btn-autoplay.on{border-color:#10b981}
+/* 右侧分步讲解面板 */
+.arena-panel{background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.8);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;min-height:480px;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(51,65,85,.6);padding-bottom:10px;gap:8px}
+.panel-head .tl2{display:flex;align-items:center;gap:10px;min-width:0}
+.step-num{width:28px;height:28px;border-radius:8px;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,.4)}
+.step-title{font-weight:700;font-size:15px;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step-badge{font-size:11px;background:#334155;color:#cbd5e1;padding:3px 8px;border-radius:6px;border:1px solid #475569;white-space:nowrap}
+.step-desc{color:#cbd5e1;font-size:14px;line-height:1.8;flex:1;min-height:120px}
+.step-desc ul,.step-desc ol{padding-left:20px;margin:6px 0}
+.step-desc li{margin:4px 0}
+.why-box{border:1px solid #334155;border-radius:12px;background:rgba(2,6,23,.6);overflow:hidden}
+.why-btn{width:100%;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:#7dd3fc;background:none;border:none;cursor:pointer;font-family:inherit}
+.why-btn:hover{background:rgba(30,41,59,.6)}
+.why-btn .ar{transition:transform .3s}
+.why-btn.open .ar{transform:rotate(180deg)}
+.why-body{display:none;padding:10px 14px;border-top:1px solid rgba(51,65,85,.5);font-size:12px;color:#cbd5e1;line-height:1.8;background:rgba(2,6,23,.4)}
+.why-body.open{display:block}
+.quiz-box{background:rgba(49,46,129,.25);border:1px solid rgba(99,102,241,.35);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.quiz-head{display:flex;justify-content:space-between;align-items:center}
+.quiz-tt{font-size:12px;font-weight:700;color:#a5b4fc}
+.quiz-state{font-size:10px;color:#818cf8;background:rgba(67,56,202,.5);padding:2px 8px;border-radius:6px}
+.quiz-state.ok{color:#6ee7b7;background:rgba(6,78,59,.6)}
+.quiz-state.no{color:#fda4af;background:rgba(136,19,55,.55)}
+.quiz-q{font-size:13px;font-weight:500;color:#e2e8f0}
+.quiz-opts{display:grid;gap:8px}
+.quiz-opt{width:100%;text-align:left;padding:10px 12px;font-size:12px;background:rgba(2,6,23,.7);border:1px solid rgba(51,65,85,.8);border-radius:10px;color:#e2e8f0;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;gap:8px;transition:all .15s}
+.quiz-opt:hover{background:rgba(30,41,59,.9);border-color:#64748b}
+.quiz-opt .oi{color:#64748b;font-style:normal}
+.quiz-feedback{font-size:12px;padding:10px;border-radius:8px;display:none;line-height:1.7}
+.quiz-feedback.ok{display:block;background:rgba(6,78,59,.5);color:#6ee7b7;border:1px solid rgba(16,185,129,.4)}
+.quiz-feedback.no{display:block;background:rgba(136,19,55,.35);color:#fda4af;border:1px solid rgba(244,63,94,.4)}
+/* SVG 画布内动画 */
+.flowline{stroke-dasharray:8;animation:dashflow 1.5s linear infinite}
+@keyframes dashflow{to{stroke-dashoffset:-16}}
+.nodepulse{animation:nodeGlow 1.6s infinite alternate}
+@keyframes nodeGlow{0%{filter:drop-shadow(0 0 2px rgba(236,72,153,.5));}100%{filter:drop-shadow(0 0 8px rgba(236,72,153,.95));}}
+.geo-elem{transition:opacity .4s}
+/* geo 条件确认栏 */
 .geo-chips{display:flex;flex-wrap:wrap;gap:8px;padding:14px 14px 8px}
-.geo-chips .chip{display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;font-size:13px;border-radius:20px;padding:6px 12px;line-height:1.4}
-.geo-chips .chip b{cursor:pointer;color:#ef4444;font-weight:700;padding:0 3px;font-size:12px}
+.geo-chips .chip{display:inline-flex;align-items:center;gap:6px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.3);color:#7dd3fc;font-size:13px;border-radius:20px;padding:6px 12px;line-height:1.4}
+.geo-chips .chip b{cursor:pointer;color:#f87171;font-weight:700;padding:0 3px;font-size:12px}
 .geo-add{display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 8px;align-items:center}
-.geo-add select,.geo-add input{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#1e293b;padding:7px 10px;font-size:13px;font-family:inherit}
+.geo-add select,.geo-add input{background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:7px 10px;font-size:13px;font-family:inherit}
+.geo-add select option{background:#0f172a}
 .geo-add input{width:110px}
 .geo-add input.wide{width:170px}
 .geo-actions{padding:8px 14px 14px}
-.geo-err{display:none;padding:10px 14px;color:#b91c1c;font-size:13px;background:#fef2f2;border-top:1px solid #fecaca;line-height:1.6}
+.geo-err{display:none;padding:10px 14px;color:#fca5a5;font-size:13px;background:rgba(136,19,55,.3);border-top:1px solid rgba(244,63,94,.3);line-height:1.6}
 /* chips 配色：warn=AI 手填坐标（仅供参考），cons=作图步骤（系统精确解算） */
-.geo-chips .chip.warn{background:#fef3c7;border-color:#fcd34d;color:#92400e}
-.geo-chips .chip.cons{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
+.geo-chips .chip.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#fcd34d}
+.geo-chips .chip.cons{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.4);color:#c4b5fd}
+.explain-stage{margin-top:12px;border:1px solid #334155;border-radius:14px;overflow:hidden;background:rgba(15,23,42,.4)}
+.explain-stage .stage-title{padding:10px 14px;font-size:14px;color:#34d399;background:rgba(16,185,129,.08);font-weight:600;border-bottom:1px solid rgba(51,65,85,.6)}
+.explain-stage iframe{width:100%;aspect-ratio:1/1;border:0;display:block;background:#0f1420}
 ol.steps{list-style:none;padding:0;margin:12px 0}
-ol.steps li{padding:10px 14px;border-radius:12px;margin:8px 0;background:#f8fafc;border:1px solid #e2e8f0;font-size:14px;color:#64748b;transition:all .3s;list-style:none;line-height:1.7}
-ol.steps li.on{background:#ecfdf5;border-color:#6ee7b7;color:#0f172a}
-ol.steps li .n{display:inline-block;width:22px;height:22px;border-radius:11px;background:#e2e8f0;color:#475569;text-align:center;font-size:12px;line-height:22px;margin-right:8px;font-weight:600}
+ol.steps li{padding:10px 14px;border-radius:12px;margin:8px 0;background:rgba(15,23,42,.6);border:1px solid #334155;font-size:14px;color:#94a3b8;transition:all .3s;list-style:none;line-height:1.7}
+ol.steps li.on{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.5);color:#f1f5f9}
+ol.steps li .n{display:inline-block;width:22px;height:22px;border-radius:11px;background:#334155;color:#cbd5e1;text-align:center;font-size:12px;line-height:22px;margin-right:8px;font-weight:600}
 ol.steps li.on .n{background:#10b981;color:#fff}
-.parent-note{max-width:720px;margin:0 auto 30px;font-size:13px;color:#9fb0cc;line-height:1.8;padding:0 6px}
+.parent-note{max-width:720px;margin:0 auto 30px;font-size:13px;color:#64748b;line-height:1.8;padding:0 6px}
+@media(max-width:960px){
+  .arena{grid-template-columns:1fr}
+  .arena-panel{min-height:0}
+}
 @media(max-width:640px){
-  .math-card{padding:24px 18px;margin:16px auto;border-radius:16px}
+  .math-card{padding:22px 16px;margin:14px auto;border-radius:14px}
   .mode-cards{grid-template-columns:1fr}
   .math-title{font-size:20px}
 }
@@ -476,7 +547,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { executeC
 </script>
 <script>
 var SYSTEM = "你是一名亲切耐心的小学数学老师，用苏格拉底式提问法引导学生解题，同时擅长\"数形结合\"——用图形和动画帮助学生直观理解。严格遵守：\n1. 永远不要直接给出答案或完整解题过程，一次只问一个引导性问题；整个引导控制在4-6步内完成，学生连续答对时合并步骤加速，不要为了提问而提问\n2. 学生答对：表扬，进入下一步；答错：温和指出，给更小的提示\n3. 学生说卡住/不知道时，给一个提示（hint），绝不是答案\n4. 语气亲切鼓励，适合小学生，简洁\n5. 每次回复必须是JSON（不要其他文字、不要markdown代码块）：{\"say\":\"对学生说的话（120字内）\",\"kp\":\"本步知识点\",\"visual\":{\"needed\":true/false,\"title\":\"动画标题\",\"svg\":\"SVG代码\"},\"done\":false}\n6. visual规则：这一步能用图形帮助理解（分数、几何、行程、倍数、和差、面积等）时needed=true，生成自包含SVG动画：只许SVG+CSS动画（<style>中@keyframes），不许JS、不许外部资源；viewBox=\"0 0 400 340\"；文字浅色#dbe4f5；用animation-delay让图形分步骤出现并配文字说明；svg为单行字符串。不需要图形时needed=false；SVG精简规则（省token，必须遵守）：①图形元素不超过25个；②禁止渐变、滤镜、阴影效果；③尽量不用<defs>，除非同一图形复用3次以上；④所有坐标取整数，颜色用最短hex（如#f00不用#ff0000）；⑤优先用circle/rect/line/text等基础形状，少用path；⑥重复图形用<use>复用，不复制代码；⑦SVG所有属性一律用单引号（如<circle cx='200'/>），绝不用双引号——这样JSON里无需转义，能省一半token。动画规则：①简单动画（生长、淡入、位移）只用CSS @keyframes（<style>中@keyframes+animation-delay），不用GSAP；②只有复杂轨迹动画（追击、相遇、多阶段联动）才用GSAP timeline（iframe已内置gsap 3.12）：在svg末尾加script标签，例如：<script>if(window.gsap){gsap.from(\"#a\",{scale:0,opacity:0,transformOrigin:\"200px 175px\"});gsap.from(\"#b\",{y:12,opacity:0,delay:.3});}<\/script>（<\/script>即闭合标签）；③GSAP代码保持最简：只用gsap.from()，不用嵌套timeline。每个动画元素给唯一id；元素初始状态保持可见（不要写opacity=0属性），无JS时显示完整静态图；文字分层（标题17px白色加粗、标注13px #9fb0cc）\n7. 全部完成时done=true，say以\"🎉 总结\"开头列出知识点\n8. 严控篇幅：SVG代码总长不超过900字符，只保留讲题必需的图形，保证JSON一次成型不截断";
-var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"say\":\"步骤讲解\",\"hl\":[\"对象名\"]}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，\n重要：协议里不存在任何坐标指令，你绝不输出坐标数字（x/y 一律不写）！所有顶点位置由系统自动放置，你只描述几何关系。items 顺序：基础图形（poly/circle 放第一条）→派生点（mid/meet/parallel/perp）→连线（seg）→文字（text）。\n【图形分类器（务必准确）】两腰相等且两底平行的四边形=trapezoid等腰梯形；对边平行且相等=para平行四边形；等长邻边直角=square正方形；直角不等边=rect长方形；四边相等=diamond菱形；五边等长=penta。题目写『等腰梯形』就必须用trapezoid，严禁用para冒充。\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|trapezoid|diamond|penta\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 基础图形，只需顶点字母，位置系统自动算。四边形顶点顺序按绕行顺序（如梯形ABCD：A左上、B左下、C右下、D右上）。\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆。\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} BC的中点叫D。\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} AE与CD的交点叫F。\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC平行线，E是线上一点（有长度条件加\"len\":\"AE=AC\"）。\n  {\"t\":\"perp\",\"name\":\"F\",\"from\":\"A\",\"toLine\":\"AE\",\"to\":\"BC\"} 过A作AE的垂线交BC于F（作XX⊥YY交ZZ于W专用）；若只是垂足：省略toLine，{\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"}表示垂足H在AC上。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段。\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线。\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} G处直角标记。\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影。\n  {\"t\":\"text\",\"s\":\"说明\",\"at\":\"F\"} 文字标注，at为锚点名。\n注意：每条指令用到的点必须已在前面指令出现过；先图形后派生点再连线。{\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。角（如∠MON）用两条seg画两条边、再加text标注度数，不要把角画成三角形poly。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。【作图层 construct（度量精确，强烈推荐）】凡是由长度/角度/几何关系确定的点（如\"AE=2√3且∠DAE=30°的E\"、\"垂线与BC的交点F\"），必须用 construct 作图步骤让系统精确解算，禁止手写 pt 坐标猜位置！pt 只用于1-2个基准点，坐标可写表达式如\"sqrt(2)\"。\n\"construct\":[{\"op\":\"pt\",\"id\":\"D\",\"at\":[0,0]},{\"op\":\"pt\",\"id\":\"A\",\"at\":[\"sqrt(2)\",0]},{\"op\":\"ray\",\"id\":\"rAE\",\"from\":\"A\",\"angle\":150},{\"op\":\"circle\",\"id\":\"cA\",\"c\":\"A\",\"r\":\"2*sqrt(3)\"},{\"op\":\"isect\",\"id\":\"E\",\"of\":[\"cA\",\"rAE\"]},{\"op\":\"reflect\",\"id\":\"C\",\"of\":\"D\",\"through\":\"E\"},...]\nop一览：pt(基准点，at可写表达式)/mid(中点 of:[P1,P2])/reflect(对称点 of:P,through:Q)/line(直线 pts:[P1,P2])/ray(射线 from:P,angle:角度制从+x轴逆时针)/perp(垂线 through:P,to:线名或[点1,点2])/par(平行线 through:P,to:线)/circle(圆 c:圆心,r:表达式如\"2*sqrt(3)\"或{dist:[P1,P2]})/foot(垂足 of:P,to:线)/isect(交点 of:[对象1,对象2],pick:left/right/top/bottom)/onCircle(圆上点 id=点名,of=圆心名,r=半径可省,angle=角度制从+x轴逆时针)/angleBisect(角平分线方向点 id=辅助点,at=顶点,of=[角两边点])/circum(三点外接圆圆心 id=圆心,of=[三点])。表达式支持+ - * / ^、sqrt/sin/cos(角度制)/pi。复杂图形请用 construct 从头作图，不要混用 poly 自动摆位（摆位无度量，仅为示意）。construct 只负责算出点的位置；点要画出来仍需 items（如 poly/seg/text），引用点名即可，坐标会自动带入。\n\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：geo协议 steps 数4-8步，每步 say 讲解一个动作（先画骨架、再标关键点、再讲性质、最后总结），hl 是该步高亮对象；ggb协议同之前规范。最后一步总结答案。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
+var EXPLAIN_SYSTEM = "你是一名擅长\"数形结合\"的小学数学老师。用户给你一道数学题，你一次输出完整的动画讲解（不是一步步提问，而是一次讲完）。严格遵守：\n0. 若用户附了题目图片，请仔细看图：图片里可能有文字中没有的几何关系（中点、垂线、平行线、交点、重心、阴影等）。把图里的几何关系主动读出并体现在你的输出里；若文字与图不一致，以图片为准。图中标注的字母（A、B、C、G等）保持同名。所有几何条件必须无一遗漏地输出（这是画图准确的前提）。\n1. 输出必须是JSON（不要其他文字、不要markdown代码块）。两种格式二选一：\n(A) 几何图形题（含三角形/正方形/长方形/平行四边形/圆/中点/垂线/平行线/交点等几何结构）用geo协议：{\"say\":\"开场白(60字内)\",\"kp\":\"知识点\",\"geo\":{\"title\":\"图形标题\",\"items\":[...],\"steps\":[{\"title\":\"步骤短标题(6字内)\",\"badge\":\"阶段标签如:作图/观察/推理/总结\",\"say\":\"步骤讲解\",\"desc\":\"详细讲解(可HTML换行,与say二选一或都给)\",\"why\":\"为什么这一步成立(60字内,可省)\",\"hl\":[\"对象名\"],\"quiz\":{\"question\":\"小测验问题\",\"options\":[{\"text\":\"选项\",\"correct\":true},{\"text\":\"选项\",\"correct\":false}],\"explanation\":\"解析\"}}]},\"done\":true}\ngeo.items 每条是一个几何指令（按构建顺序），t 是类型，\n重要：协议里不存在任何坐标指令，你绝不输出坐标数字（x/y 一律不写）！所有顶点位置由系统自动放置，你只描述几何关系。items 顺序：基础图形（poly/circle 放第一条）→派生点（mid/meet/parallel/perp）→连线（seg）→文字（text）。\n【图形分类器（务必准确）】两腰相等且两底平行的四边形=trapezoid等腰梯形；对边平行且相等=para平行四边形；等长邻边直角=square正方形；直角不等边=rect长方形；四边相等=diamond菱形；五边等长=penta。题目写『等腰梯形』就必须用trapezoid，严禁用para冒充。\n  {\"t\":\"poly\",\"kind\":\"triangle|square|rect|para|trapezoid|diamond|penta\",\"pts\":[\"A\",\"B\",\"C\"]或[\"A\",\"B\",\"C\",\"D\"]} 基础图形，只需顶点字母，位置系统自动算。四边形顶点顺序按绕行顺序（如梯形ABCD：A左上、B左下、C右下、D右上）。\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆。\n  {\"t\":\"mid\",\"name\":\"D\",\"of\":\"BC\"} BC的中点叫D。\n  {\"t\":\"meet\",\"name\":\"F\",\"of\":\"AE\",\"of2\":\"CD\"} AE与CD的交点叫F。\n  {\"t\":\"parallel\",\"name\":\"E\",\"from\":\"D\",\"to\":\"AC\"} 过D作AC平行线，E是线上一点（有长度条件加\"len\":\"AE=AC\"）。\n  {\"t\":\"perp\",\"name\":\"F\",\"from\":\"A\",\"toLine\":\"AE\",\"to\":\"BC\"} 过A作AE的垂线交BC于F（作XX⊥YY交ZZ于W专用）；若只是垂足：省略toLine，{\"t\":\"perp\",\"name\":\"H\",\"from\":\"D\",\"to\":\"AC\"}表示垂足H在AC上。\n  {\"t\":\"seg\",\"from\":\"A\",\"to\":\"C\",\"label\":\"AC\"} 两点连线段。\n  {\"t\":\"line\",\"from\":\"A\",\"to\":\"C\"} 两点连直线。\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} G处直角标记。\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影。\n  {\"t\":\"text\",\"s\":\"说明\",\"at\":\"F\"} 文字标注，at为锚点名。\n  {\"t\":\"angle\",\"at\":\"A\",\"of\":[\"B\",\"C\"],\"deg\":60,\"label\":\"60°\"} 角度弧标记：at 顶点，of 两边点，deg 度数（可省略则不标数），label 可省。\n  {\"t\":\"ticks\",\"on\":\"AB\",\"n\":1} 等长刻度线：线段 AB 中点画 n 道短斜线（表示相等），对比用 {\"t\":\"ticks\",\"on\":\"CD\",\"n\":2}。\n注意：每条指令用到的点必须已在前面指令出现过；先图形后派生点再连线。{\"t\":\"equal\",\"expr\":\"AE=AC\"} 长度相等约束（在parallel/perp指令的len里用，或独立用于对已有点的约束提示）\n  {\"t\":\"circle\",\"center\":\"O\",\"r\":2或\"through\":\"A\"} 圆，圆心加半径或过某点\n  {\"t\":\"right\",\"at\":\"G\",\"of\":\"AD\",\"of2\":\"BE\"} 在G处画直角标记（AD与BE垂直）\n  {\"t\":\"shade\",\"pts\":[\"A\",\"B\",\"C\"]或\"poly\":\"ABCD\",\"color\":\"#f59e0b\"} 阴影区域\n  {\"t\":\"text\",\"s\":\"说明文字\",\"at\":\"F\"或\"xy\":[1,2]} 文字标注，at为点名或xy坐标\n注意：items里每条指令用到的点必须已定义（pt/poly/mid/meet/parallel/perp 在前面出现过）。不要自己计算坐标值！坐标由系统精确计算。角（如∠MON）用两条seg画两条边、再加text标注度数，不要把角画成三角形poly。hl填步骤要高亮的对象名（如\"AC\"、\"E\"、\"F\"）。【作图层 construct（度量精确，强烈推荐）】凡是由长度/角度/几何关系确定的点（如\"AE=2√3且∠DAE=30°的E\"、\"垂线与BC的交点F\"），必须用 construct 作图步骤让系统精确解算，禁止手写 pt 坐标猜位置！pt 只用于1-2个基准点，坐标可写表达式如\"sqrt(2)\"。\n\"construct\":[{\"op\":\"pt\",\"id\":\"D\",\"at\":[0,0]},{\"op\":\"pt\",\"id\":\"A\",\"at\":[\"sqrt(2)\",0]},{\"op\":\"ray\",\"id\":\"rAE\",\"from\":\"A\",\"angle\":150},{\"op\":\"circle\",\"id\":\"cA\",\"c\":\"A\",\"r\":\"2*sqrt(3)\"},{\"op\":\"isect\",\"id\":\"E\",\"of\":[\"cA\",\"rAE\"]},{\"op\":\"reflect\",\"id\":\"C\",\"of\":\"D\",\"through\":\"E\"},...]\nop一览：pt(基准点，at可写表达式)/mid(中点 of:[P1,P2])/reflect(对称点 of:P,through:Q)/line(直线 pts:[P1,P2])/ray(射线 from:P,angle:角度制从+x轴逆时针)/perp(垂线 through:P,to:线名或[点1,点2])/par(平行线 through:P,to:线)/circle(圆 c:圆心,r:表达式如\"2*sqrt(3)\"或{dist:[P1,P2]})/foot(垂足 of:P,to:线)/isect(交点 of:[对象1,对象2],pick:left/right/top/bottom)/onCircle(圆上点 id=点名,of=圆心名,r=半径可省,angle=角度制从+x轴逆时针)/angleBisect(角平分线方向点 id=辅助点,at=顶点,of=[角两边点])/circum(三点外接圆圆心 id=圆心,of=[三点])。表达式支持+ - * / ^、sqrt/sin/cos(角度制)/pi。复杂图形请用 construct 从头作图，不要混用 poly 自动摆位（摆位无度量，仅为示意）。construct 只负责算出点的位置；点要画出来仍需 items（如 poly/seg/text），引用点名即可，坐标会自动带入。\n\n(B) 线段图/数轴/纯应用题（无几何结构，靠线段示意）用ggb协议：{\"say\":\"...\",\"kp\":\"...\",\"ggb\":{\"title\":\"...\",\"setup\":[\"ShowAxes(false)\",\"ShowGrid(false)\",\"SetCoordSystem(xmin,xmax,ymin,ymax)\"],\"steps\":[{\"say\":\"...\",\"cmds\":[\"s1=Segment((0,0),(1,0))\",\"SetColor(s1,255,60,60)\",\"t1=Text(\\\"内容\\\",(x,y))\"]}]},\"done\":true}\nggb命令规范：构造命令 Segment/Polygon/Circle/Text；样式 SetColor(名字,r,g,b)/SetFilling(名字,0到1)/SetLineThickness(名字,2-5)；坐标系范围必须完整包住全部元素并四周留1-1.5空边。对象名用s1/sh1/t1等，字母标注一律用Text(\\\"A\\\",(x,y))。\n2. 分步原则：steps 数4-7步（宁精勿多），先画骨架→标关键点→讲性质→最后一步总结答案。每步必给 title（6字内短标题，时间轴按钮用）与 say；关键推理步给 why；2-3 个教学重点步配 quiz（question+2-3个options+explanation，correct 恰好一个）；hl 填该步要高亮的对象名（点字母或线段名如\"AC\"、\"阴影\"）。\n3. 答案必须准确。计数类题目（数方格、数图形个数）先系统枚举核对结果再写进讲解，绝对不允许编造数字。\n4. 严控篇幅：保证JSON一次成型不截断。";
 var chatHistory = [];
 var demoMode = false, demoIdx = 0;
 var curProblem = '';  // 当前题目（跨模式保留）
@@ -633,6 +704,7 @@ function replayVisual(id, i){
 function showChat(){
 document.getElementById('setup').style.display='none';
 document.getElementById('explainOut').style.display='none';
+var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
 document.getElementById('chat').style.display='block';
 }function setCode(v){
   localStorage.setItem('xskai_code', v);
@@ -758,8 +830,9 @@ document.getElementById('chat').style.display='none';
 document.getElementById('explainOut').style.display='block';
 }
 function backToSetup(){
-clearGgbTimer();
+stopArena();
 if(capTimer) clearInterval(capTimer);
+var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
 document.getElementById('explainOut').style.display='none';
 document.getElementById('chat').style.display='none';
 document.getElementById('setup').style.display='block';
@@ -773,7 +846,8 @@ startExplain();
 }
 // 讲解模式 → 引导模式（带着当前题目无缝切换）
 function backToChat(){
-clearGgbTimer();
+stopArena();
+var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
 if(capTimer) clearInterval(capTimer);
 document.getElementById('explainOut').style.display='none';
 document.getElementById('setup').style.display='none';
@@ -821,7 +895,7 @@ document.getElementById('loading').style.display='none';
 }
 /* geo 草稿确认页：AI 开场白 + 几何条件 chips（可删/可补）+ 生成按钮 */
 function renderGeoDraft(o){
-  clearGgbTimer();
+  stopArena();
   var h = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(curProblem || '')+'</div>';
   h += '<div class="msg tutor"><div class="who">🤖 AI 老师 · 读图结果</div><div>'+fmt(o.say||'')+'</div>';
   if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
@@ -831,16 +905,16 @@ function renderGeoDraft(o){
   showGeoDraft();
 }
 function renderExplain(o){
-clearGgbTimer();
+stopArena();
 lastExplain = o;
 var h = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(curProblem || '')+'</div>';
 h += '<div class="msg tutor"><div class="who">🤖 AI 老师 · 动画讲解</div><div>'+fmt(o.say||'')+'</div>';
 if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
   h += '</div>';
-if(o.ggb && o.ggb.steps && o.ggb.steps.length){
-h += '<div class="explain-stage"><div class="stage-title">📊 '+escHtml(o.ggb.title||'动画讲解')+'</div>'
-+ '<div class="ggb-wrap"><div id="ggbBox"></div><div class="ggb-say" id="ggbSay">正在加载动画画板…</div></div>'
-+ '<div class="ggb-nav"><span class="n" id="ggbStepN"></span><button class="btn-accent" id="ggbNext" onclick="ggbNext()">开始 ▶</button></div></div>';
+if(o.ggb && o.ggb.steps){   // 旧 ggb 协议已废弃：转为纯文字讲解展示
+  var gs = o.ggb;
+  h += '<div class="explain-stage"><div class="stage-title">📊 '+escHtml(gs.title||'动画讲解')+'</div><div style="padding:12px 14px;color:#cbd5e1;font-size:14px;line-height:1.8">'
+     + (gs.steps||[]).map(function(s,i){ return '<b style="color:#7dd3fc">第'+(i+1)+'步：</b>'+escHtml(s.say||''); }).join('<br>') + '</div></div>';
 }
 if(o.visual && o.visual.needed && o.visual.svg){
 var doc = '<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"><\/script><meta charset="utf-8"><style>html,body{margin:0;padding:6px;background:#0f1420}svg{width:100%;height:auto;display:block}</style></head><body>'+o.visual.svg+'</body></html>';
@@ -853,7 +927,6 @@ h += '<div class="who" style="margin:14px 0 4px">📝 解题过程（与动画�
 + '</ol>';
 }
 document.getElementById('explainBody').innerHTML = h;
-if(o.ggb && o.ggb.steps && o.ggb.steps.length) initGgb(o.ggb);
 if(o.captions && o.captions.length) playCaps(o.captions);
 }
 function playCaps(caps){
@@ -869,7 +942,6 @@ if(t > caps[caps.length-1].t + 5) clearInterval(capTimer);
 }, 200);
 }
 function replayExplain(){
-if(ggbData){ ggbRestart(); return; }
 var f = document.getElementById('exFrame');
 if(f){ var d = f.getAttribute('srcdoc'); f.setAttribute('srcdoc',''); setTimeout(function(){ f.setAttribute('srcdoc', d); }, 60); }
 if(lastExplain && lastExplain.captions) playCaps(lastExplain.captions);
@@ -1208,8 +1280,18 @@ function compileGeo(data){
       cmds.push(sn+'=Segment('+it.from+','+it.to+')');
       lineDefs[it.from+''+it.to] = sn; lineDefs[it.to+''+it.from] = sn;   // AE -> sg3 双向注册（不算辅助线，不隐藏）
       var segKeys = [];
-      if(it.label){ textCmds.push('tlb'+i+'=Text("'+it.label+'",('+geoFmt((sa.x+sb.x)/2)+','+geoFmt((sa.y+sb.y)/2)+'))'); segKeys.push(it.label); hlMap[it.label]=hlMap[it.label]||[]; hlMap[it.label].push('tlb'+i); }
-      else { segKeys.push((it.from||'')+(it.to||'')); segKeys.push((it.to||'')+(it.from||'')); }  // DE / ED 双向都可高亮
+      if(it.label){
+        // 线段标签放中点上方（按图形跨度比例偏移），不压线、不与端点字母重叠；斜线段沿法向偏移
+        var lgSc = Math.max(bbox.maxX-bbox.minX, bbox.maxY-bbox.minY, 4);
+        var lgDx = sb.x-sa.x, lgDy = sb.y-sa.y, lgLen = Math.hypot(lgDx, lgDy)||1;
+        var lgNx = -lgDy/lgLen, lgNy = lgDx/lgLen;
+        if(lgNy < 0){ lgNx = -lgNx; lgNy = -lgNy; }   // 法向朝上
+        var lbX = (sa.x+sb.x)/2 + lgNx*lgSc*0.09, lbY = (sa.y+sb.y)/2 + lgNy*lgSc*0.09;
+        textCmds.push('tlb'+i+'=Text("'+it.label+'",('+geoFmt(lbX)+','+geoFmt(lbY)+'))');
+        segKeys.push(it.label); hlMap[it.label]=hlMap[it.label]||[]; hlMap[it.label].push('tlb'+i);
+        upd({x:lbX-lgSc*0.06, y:lbY+lgSc*0.03}); upd({x:lbX+lgSc*0.06, y:lbY+lgSc*0.05});   // 文字进包围盒
+      }
+      segKeys.push((it.from||'')+(it.to||'')); segKeys.push((it.to||'')+(it.from||''));  // DE / ED 双向都可高亮
       segKeys.push('seg'+i);
       for(var sk=0; sk<segKeys.length; sk++){
         var keyS = segKeys[sk];
@@ -1365,6 +1447,8 @@ function compileGeo(data){
       cmds.push(cn+'=Circle('+it.center+','+(it.through ? it.through : geoFmt(r))+')');   // Circle(O,A) 或 Circle(O,r)
       hlMap[it.center] = hlMap[it.center]||[]; hlMap[it.center].push(cn);
       hlMap['O'] = hlMap['O']||[]; hlMap['O'].push(cn);
+      hlMap['circle'] = hlMap['circle']||[]; hlMap['circle'].push(cn);   // 通用键「circle」也可高亮
+      hlMap['圆'] = hlMap['圆']||[]; hlMap['圆'].push(cn);
       itemLabel.push('圆：圆心 '+(it.center||'')+(it.through?('，过点 '+it.through):('，半径 '+geoFmt(r))));
     }
     else if(t === 'onCircle'){
@@ -1434,6 +1518,8 @@ function compileGeo(data){
       var an = 'ar'+i;
       cmds.push(an+'=CircularArc('+it.center+','+it.from+','+it.to+')');   // GGB: CircularArc(C,M,N) 中心C，M起点，N终点
       hlMap[an]=hlMap[an]||[]; hlMap[an].push(an);
+      hlMap['arc'] = hlMap['arc']||[]; hlMap['arc'].push(an);   // 通用键「arc」
+      hlMap['弧'] = hlMap['弧']||[]; hlMap['弧'].push(an);
       itemLabel.push('弧：以 '+it.center+' 为圆心、'+it.from+' 到 '+it.to);
     }
     else if(t === 'right'){
@@ -1459,6 +1545,66 @@ function compileGeo(data){
       cmds.push('rq'+i+'_2=Segment(('+geoFmt(q1.x)+','+geoFmt(q1.y)+'),('+geoFmt(q2.x)+','+geoFmt(q2.y)+'))');
       cmds.push('rq'+i+'_3=Segment(('+geoFmt(q2.x)+','+geoFmt(q2.y)+'),('+geoFmt(q3.x)+','+geoFmt(q3.y)+'))');
       itemLabel.push((it.at||'')+' 处的直角');
+    }
+    else if(t === 'angle'){
+      // 角度弧标记：{t:"angle",at:"A",of:["B","C"],deg:60,label:"60°"}
+      var agPt = getPt(it.at), agB = getPt(it.of && it.of[0]), agC = getPt(it.of && it.of[1]);
+      if(!agPt || !agB || !agC){ itemLabel.push('角度标记（点缺失，已跳过）'); continue; }
+      var a1 = Math.atan2(agB.y-agPt.y, agB.x-agPt.x);
+      var a2 = Math.atan2(agC.y-agPt.y, agC.x-agPt.x);
+      // 取劣角（跨越≤180°）
+      var dd = (a2 - a1) % (2*Math.PI);
+      if(dd > Math.PI) dd -= 2*Math.PI;
+      if(dd < -Math.PI) dd += 2*Math.PI;
+      var a2b = a1 + dd;
+      var ab = Math.abs(dd);
+      // 弧半径：两边较短边的 22%，且不超过较长边的 45%（避免弧穿过对面）
+      var lB = Math.hypot(agB.x-agPt.x, agB.y-agPt.y)||1, lC = Math.hypot(agC.x-agPt.x, agC.y-agPt.y)||1;
+      var ar = Math.min(lB, lC) * 0.22;
+      ar = Math.max(0.35, Math.min(ar, Math.max(lB,lC)*0.45));
+      // 弧的两个端点（作为辅助点走 CircularArc）
+      var pA1 = {x:agPt.x + ar*Math.cos(a1), y:agPt.y + ar*Math.sin(a1)};
+      var pA2 = {x:agPt.x + ar*Math.cos(a2b), y:agPt.y + ar*Math.sin(a2b)};
+      P['ag'+i+'a'] = pA1; P['ag'+i+'b'] = pA2; upd(pA1); upd(pA2); upd(agPt);
+      cmds.push('ag'+i+'=CircularArc('+it.at+',ag'+i+'a,ag'+i+'b)');
+      cmds.push('ag'+i+'a=('+geoFmt(pA1.x)+','+geoFmt(pA1.y)+')');
+      cmds.push('ag'+i+'b=('+geoFmt(pA2.x)+','+geoFmt(pA2.y)+')');
+      // 键名与默认标注都带顶点：∠BAC（of 顺序=边点1,顶点,边点2）；度数优先于角度名
+      var angleKey = '∠'+(it.of&&it.of[0]||'')+it.at+(it.of&&it.of[1]||'');
+      hlMap[angleKey] = hlMap[angleKey]||[]; hlMap[angleKey].push('ag'+i);
+      hlMap['angle'] = hlMap['angle']||[]; hlMap['angle'].push('ag'+i);
+      // 度数标注：弧中角方向外推
+      var aMid = a1 + dd/2;
+      var labTxt = it.label || (it.deg != null ? (it.deg+'°') : angleKey);
+      var pL = {x:agPt.x + ar*1.55*Math.cos(aMid), y:agPt.y + ar*1.55*Math.sin(aMid)};
+      upd(pL);
+      textCmds.push('agx'+i+'=Text("'+labTxt+'",('+geoFmt(pL.x)+','+geoFmt(pL.y)+'))');
+      hlMap[angleKey].push('agx'+i);
+      itemLabel.push(angleKey+' 角度标记'+(it.deg!=null?('（'+it.deg+'°）'):''));
+    }
+    else if(t === 'ticks'){
+      // 等长刻度线：{t:"ticks",on:"AB",n:1} 线段中点处画 n 道短斜线
+      var tkE = segEnds(it.on);
+      if(!tkE){ itemLabel.push('刻度线（线段不存在，已跳过）'); continue; }
+      var tkN = Math.max(1, Math.min(3, parseInt(it.n||1,10)||1));
+      var mid = {x:(tkE[0].x+tkE[1].x)/2, y:(tkE[0].y+tkE[1].y)/2};
+      var tdx = tkE[1].x-tkE[0].x, tdy = tkE[1].y-tkE[0].y;
+      var tlen = Math.hypot(tdx,tdy)||1;
+      var ux2 = tdx/tlen, uy2 = tdy/tlen;      // 沿线方向
+      var nx2 = -uy2, ny2 = ux2;               // 垂直方向
+      var tkSize = Math.min(0.3, tlen*0.08);   // 刻度半长
+      var tkGap = tkSize*0.9;                  // 刻度间距
+      for(var tk=0; tk<tkN; tk++){
+        var off = (tk - (tkN-1)/2) * tkGap;
+        var c0 = {x:mid.x + nx2*tkSize + ux2*off, y:mid.y + ny2*tkSize + uy2*off};
+        var c1 = {x:mid.x - nx2*tkSize + ux2*off, y:mid.y - ny2*tkSize + uy2*off};
+        upd(c0); upd(c1);
+        cmds.push('tk'+i+'_'+tk+'=Segment(('+geoFmt(c0.x)+','+geoFmt(c0.y)+'),('+geoFmt(c1.x)+','+geoFmt(c1.y)+'))');
+        var tkKey = 'ticks'+it.on;
+        hlMap[tkKey] = hlMap[tkKey]||[]; hlMap[tkKey].push('tk'+i+'_'+tk);
+        hlMap[it.on] = hlMap[it.on]||[]; hlMap[it.on].push('tk'+i+'_'+tk);
+      }
+      itemLabel.push((it.on||'')+' 等长标记 ×'+tkN);
     }
     else if(t === 'shade'){
       // 支持两类：
@@ -1547,12 +1693,16 @@ function compileGeo(data){
       itemLabel.push('等量关系：'+(it.expr||''));
     }
   }
-  // 坐标系：包围盒四周留 1.2 边距（宽高比适配画布 1:1，取较大者）
+  // 坐标系：按内容包围盒独立留边（左右/上下分别扩充），宽高各自适配画布 500:380
   var w = Math.max(bbox.maxX - bbox.minX, 2), h = Math.max(bbox.maxY - bbox.minY, 2);
-  var pad = Math.max(w, h) * 0.12 + 0.8;
+  var padX = w * 0.18 + 0.8, padY = h * 0.25 + 0.8;   // 上下多留：容纳点标签/线段文字标注
   var cx = (bbox.minX + bbox.maxX)/2, cy = (bbox.minY + bbox.maxY)/2;
-  var half = Math.max(w, h)/2 + pad;
-  var setup = ['ShowAxes(false)','ShowGrid(false)','SetCoordSystem('+geoFmt(cx-half)+','+geoFmt(cx+half)+','+geoFmt(cy-half)+','+geoFmt(cy+half)+')'];
+  var halfW = w/2 + padX, halfH = h/2 + padY;
+  // 非等比留边后按画布比例补齐（保持 500:380 视觉比例，避免细长图大面积空白）
+  var needH_byRatio = halfW * 380 / 500, needW_byRatio = halfH * 500 / 380;
+  if(needH_byRatio > halfH) halfH = needH_byRatio;
+  if(needW_byRatio > halfW) halfW = needW_byRatio;
+  var setup = ['ShowAxes(false)','ShowGrid(false)','SetCoordSystem('+geoFmt(cx-halfW)+','+geoFmt(cx+halfW)+','+geoFmt(cy-halfH)+','+geoFmt(cy+halfH)+')'];
   /* build：全部构造命令按依赖拓扑排序。点名化后命令间存在依赖链
      （lnAE=Line(A,E) 依赖 A、E 的定义；Intersect 依赖垂线；样式命令依赖目标对象），
      乱序执行会报「未定义变量」，必须拓扑排序：坐标点定义无依赖自然排最前，
@@ -1596,14 +1746,15 @@ function compileGeo(data){
     for(var ri=0; ri<all.length; ri++){ if(order.indexOf(ri) < 0) order.push(ri); }
   }
   var build = order.map(function(i4){ return all[i4]; });
-  // 步骤只保留讲解放文字与 hl（高亮对象由 geoStepsWithHighlight 按 hlIndex 生成）
+  // 步骤透传：title/badge/desc/why/quiz/hl 全保留（渲染器按需消费）
   var steps = [];
   var aiSteps = (data && data.steps) || [];
   if(!aiSteps.length){
     steps.push({say:'如图所示', hl: []});
   }else{
     for(var si2=0; si2<aiSteps.length; si2++){
-      steps.push({say: aiSteps[si2].say||'', hl: aiSteps[si2].hl||[]});
+      var as2 = aiSteps[si2] || {};
+      steps.push({title: as2.title||'', badge: as2.badge||'', say: as2.say||'', desc: as2.desc||'', why: as2.why||'', hl: as2.hl||[], quiz: as2.quiz||null});
     }
   }
   return {title:(data&&data.title)||'几何图形', setup: setup, build: build, steps: steps, labels: itemLabel, hlIndex: hlMap, warnings: constructWarnings};
@@ -1629,6 +1780,8 @@ function geoItemDesc(it){
   if(t==='circumcircle') return '外接圆 ⊙'+(it.center||'')+' 过 '+(it.through||[]).join('');
   if(t==='arc') return '弧 '+(it.from||'')+(it.to||'')+'（圆心 '+(it.center||'')+'）';
   if(t==='right') return '直角@'+(it.at||'');
+  if(t==='angle') return '∠'+((it.of||[]).join(''))+(it.deg!=null?('='+it.deg+'°'):'');
+  if(t==='ticks') return '等长刻度 '+(it.on||'')+' ×'+(it.n||1);
   if(t==='shade') return '阴影'+(it.poly?(' '+it.poly):'');
   if(t==='text') return '标注「'+(it.s||'')+'」';
   return JSON.stringify(it);
@@ -1743,70 +1896,49 @@ function confirmGeo(){
     }
     var wrap = document.getElementById('geoDraftBox');
     if(wrap) wrap.style.display = 'none';
-    // geo 模式：全部构造命令（已拓扑排序）进 setup，加载完即显示完整图形；steps 只负责分步高亮讲解
-    compiled.setup = compiled.setup.concat(compiled.build);
-    // steps 保留 hl 信息供高亮；讲解放进 say 里由 ggbSay 展示
-    compiled.steps = geoStepsWithHighlight(compiled);
+    // geoSVG 引擎直接消费 setup+build 全量命令流；steps 保留 hl 供渲染器高亮映射
     renderGeoStage(geoDraft.say, compiled, geoDraft.kp);
   }catch(e){
     if(errBox){ errBox.style.display='block'; errBox.textContent='⚠ 图形生成失败：'+e.message+'。可删除问题条件后重试。'; }
   }
 }
-/* geo 步骤高亮：先收集全部 ggb 对象名，每步「淡化其余+高亮当前」。
-    线/面/圆用 SetLineThickness；点用 SetPointSize（SetLineThickness 对点无效）。
-    初始色：图形黑(0,0,0)、辅助线蓝(51,102,255)、标注灰(73,80,87)、阴影橙(245,158,11) */
-function geoStepsWithHighlight(compiled){
-  var hlSteps = (geoDraft && geoDraft.steps) || [];
-  // 全部对象名（从 setup 命令里抠出 xx= 前缀；点名化后单字母点、ln/q 辅助对象也要收进来）
-  var objNames = [];
-  var ptObjs = {};   // 点对象集合：A=(x,y) / X=Midpoint(..) / X=Intersect(..)
-  (compiled.setup || []).forEach(function(c){
-    var mm = String(c).match(/^([A-Za-z]\w*)=/);
-    if(!mm) return;
-    var nm = mm[1];
-    if(!(/^(pt_|sg|li|ln|pl|pe|q\d|ci|tri|poly|rq|sh|shr|ar\d|bis\d|bs\d|tx|tlb|txt)/.test(nm) || /^[A-Z]$/.test(nm))) return;
-    if(objNames.indexOf(nm) < 0) objNames.push(nm);
-    var body = String(c).slice(mm[0].length);
-    if(/^\(/.test(body) || /^Midpoint\(/.test(body) || /^Intersect\(/.test(body)) ptObjs[nm] = true;
-  });
-  var stepsOut = [];
-  for(var i=0;i<hlSteps.length;i++){
-    var st = hlSteps[i];
-    var hlSet = {};
-    var hls = st.hl || [];
-    for(var h=0; h<hls.length; h++){
-      // hl 名可能是字母（A）、线段名（AC）、点+线组合；映射到编译时的对象组
-      var nm = String(hls[h]).trim();
-      if(compiled.hlIndex && compiled.hlIndex[nm]){
-        compiled.hlIndex[nm].forEach(function(on){ hlSet[on] = true; });
-      }
-    }
-    var cmds = [];
-    // 淡化全部 → 再突出高亮对象（点用 SetPointSize，线/面/圆用 SetLineThickness）
-    objNames.forEach(function(on){
-      if(ptObjs[on]) cmds.push('SetPointSize('+on+','+(hlSet[on]?9:3)+')');
-      else cmds.push('SetLineThickness('+on+','+(hlSet[on]?7:2)+')');
-    });
-    stepsOut.push({say: st.say||'', cmds: cmds});
-  }
-  return stepsOut;
-}
-/* geo 渲染舞台（复用 ggb 引擎）：say 开场白 + kp + 画板 + steps 导航 */
+/* geo 渲染舞台（geoSVG 引擎）：say 开场白 + kp + 双栏演练场（左画布右面板） */
 function renderGeoStage(say, compiled, kp){
-  // 确保讲解面板可见（容器隐藏时画板会注入 0x0）
+  stopArena();
   document.getElementById('setup').style.display='none';
   document.getElementById('chat').style.display='none';
   var eo = document.getElementById('explainOut');
   if(eo) eo.style.display='block';
+  var cw = document.querySelector('.math-card');
+  if(cw) cw.classList.add('open-wide');
+  var steps = (compiled.steps && compiled.steps.length) ? compiled.steps : [{say:'如图所示', hl:[]}];
   var h = '<div class="msg tutor"><div class="who">🤖 AI 老师 · 动画讲解</div><div>'+fmt(say||'')+'</div>';
   if(kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(kp)+'</span></div>';
   h += '</div>';
-  h += '<div class="explain-stage"><div class="stage-title">📊 '+escHtml(compiled.title||'几何图形')+'</div>';
   if(compiled.warnings && compiled.warnings.length){
-    h += '<div style="padding:10px 14px;background:#fffbeb;border-bottom:1px solid #fde68a;color:#92400e;font-size:13px;line-height:1.7">⚠ 作图提示：'+compiled.warnings.map(function(w){return escHtml(w);}).join('；')+'</div>';
+    h += '<div style="padding:10px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fcd34d;font-size:13px;line-height:1.7;border-radius:10px;margin:10px 0">⚠ 作图提示：'+compiled.warnings.map(function(w){return escHtml(w);}).join('；')+'</div>';
   }
-  h += '<div class="ggb-wrap"><div id="ggbBox"></div><div class="ggb-say" id="ggbSay">正在加载动画画板…</div></div>'
-     + '<div class="ggb-nav"><span class="n" id="ggbStepN"></span><button class="btn-accent" id="ggbNext" onclick="ggbNext()">开始 ▶</button></div></div>';
+  h += '<div class="arena">'
+     +  '<div class="arena-left">'
+     +   '<div class="arena-canvas">'
+     +    '<div class="arena-head"><span class="live"><span class="dot"></span>'+escHtml(compiled.title||'几何图形')+'</span><span class="badge-step" id="arenaBadge">第 0 步</span></div>'
+     +    '<div class="arena-surface" id="arenaSurface"><div class="gridbg"></div><svg id="arenaSvg" viewBox="0 0 500 380" preserveAspectRatio="xMidYMid meet"></svg><div class="arena-tooltip" id="arenaTip"></div></div>'
+     +    '<div class="arena-ctrl">'
+     +     '<div class="timeline-row"><span class="lb">时间轴</span><div class="timeline" id="arenaTl"></div></div>'
+     +     '<div class="arena-actions">'
+     +      '<div class="arena-nav"><button class="btn-step prev" id="arenaPrev" onclick="arenaPrev()">← 上一步</button><button class="btn-step next" id="arenaNext" onclick="arenaNext()">开始 ▶</button></div>'
+     +      '<button class="btn-autoplay" id="arenaAutoplay" onclick="arenaAutoplayToggle()">▶ 自动播放</button>'
+     +     '</div>'
+     +    '</div>'
+     +   '</div>'
+     +  '</div>'
+     +  '<div class="arena-panel">'
+     +   '<div class="panel-head"><div class="tl2"><div class="step-num" id="panelNum">0</div><div class="step-title" id="panelTitle"></div></div><span class="step-badge" id="panelBadge"></span></div>'
+     +   '<div class="step-desc" id="panelDesc"></div>'
+     +   '<div class="why-box" id="whyBox" style="display:none"><button class="why-btn" id="whyBtn" onclick="arenaWhyToggle()">💡 为什么？<span class="ar">▾</span></button><div class="why-body" id="whyBody"></div></div>'
+     +   '<div class="quiz-box" id="quizBox" style="display:none"></div>'
+     +  '</div>'
+     + '</div>';
   var body = document.getElementById('explainBody');
   var keep = body.querySelector('.prob-show');
   body.innerHTML = '';
@@ -1814,165 +1946,567 @@ function renderGeoStage(say, compiled, kp){
   var stage = document.createElement('div');
   stage.innerHTML = h;
   while(stage.firstChild) body.appendChild(stage.firstChild);
-  initGgb(compiled);
+  initArena(compiled);
 }
-/* ===== GeoGebra 动画画板（讲解模式） ===== */
-var GGB = null, ggbData = null, ggbSteps = [], ggbIdx = 0, ggbReady = false, ggbStarted = false;
-function clearGgbTimer(){}
-function loadGGBLib(cb){
-  if(window.GGBApplet){ cb(); return; }
-  var s = document.createElement('script');
-  s.src = 'https://www.geogebra.org/apps/deployggb.js';
-  s.onload = cb;
-  s.onerror = function(){ var d = document.getElementById('ggbSay'); if(d) d.textContent = '动画引擎加载失败，请检查网络后点击重播。'; };
-  document.head.appendChild(s);
+/* ===== geoSVG 渲染引擎：解析 compileGeo 输出的命令流，纯 SVG 绘制几何思维演练场 =====
+   摆脱 GeoGebra CDN 依赖（国内加速）；命令词汇表：
+   点：A=(x,y) / X=Midpoint(A,B) / X=Intersect(l1,l2)
+   线：sg/li/pl/pe/bis/rq*=Segment|Line(...)（rq* 为直角标记）
+   逻辑：lnAE/q*=Line|PerpendicularLine(...)（辅助线，SetVisible 隐藏）
+   面：triN/polyN/shN/shrN=Polygon(...)、ciN=Circle(O,A|r)、arN=CircularArc(O,A,B)、shN=CircularSector(O,A,B)
+   文本：tx_X/tlb/txt=Text("…",(x,y))；样式：SetFilling/SetColor/SetVisible/SetCoordSystem */
+var arena = null;   // {compiled, objs:{名->元素组}, steps, idx, timer}
+var lineReg = {};   // 全局（单实例）辅助线注册表：线对象名 -> [p1,p2]（数学坐标），供 Intersect 回退求交
+function lineEnds(n){ return lineReg[n] || null; }
+function svgEl(tag, attrs){
+  var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(var k in attrs){ if(attrs[k] != null) e.setAttribute(k, attrs[k]); }
+  return e;
 }
-function createGGBApp(){
-  var div = document.getElementById('ggbBox');
-  if(!div || !window.GGBApplet) return;
-  // 容器不可见时 clientWidth=0：用卡片宽度兜底，避免画板注入 0x0
-  var boxW = Math.max(div.clientWidth || 0, 340);
-  var cardW = document.querySelector('.math-card');
-  if(div.clientWidth < 340 && cardW && cardW.clientWidth > 340){
-    boxW = Math.max(cardW.clientWidth - 64, 340);
-    try{ div.style.width = boxW + 'px'; }catch(e){}
+// 解析命令参数列表（逗号分隔，跳过嵌套括号内逗号）
+function svgArgs(s){
+  var out = [], cur = '', depth = 0;
+  for(var i=0;i<s.length;i++){
+    var ch = s[i];
+    if(ch === '(' || ch === '[') depth++;
+    else if(ch === ')' || ch === ']') depth--;
+    if(ch === ',' && depth === 0){ out.push(cur.trim()); cur = ''; }
+    else cur += ch;
   }
-  var boxH = Math.round(boxW);
-  var params = {
-    appName: 'classic',
-    width: boxW, height: boxH,
-    showToolBar: false, showAlgebraInput: false, showMenuBar: false,
-    showResetIcon: false, enableRightClick: false, enableLabelDrags: false,
-    enableShiftDragZoom: false, showZoomButtons: false, showFullscreenButton: false,
-    showAlgebraPanel: false,
-    appletOnLoad: function(api){
-      GGB = api; ggbReady = true;
-      try{ GGB.setPerspective('G'); }catch(e){}  // 只保留绘图视图，关闭代数区/坐标系面板
-      var gd = ggbData;
-      if(!gd) return;
-      var su = gd.setup || [];
-      for(var i=0;i<su.length;i++) runGgbCmd(su[i]);
-      hideGgbLabels();
-      // geo 模式：setup 已含全部对象，加载完即显示完整图形
-      var say = document.getElementById('ggbSay');
-      if(say) say.innerHTML = '<b>图形已生成。点击「开始 ▶」分步讲解</b>';
-      var nb = document.getElementById('ggbNext');
-      if(nb) nb.textContent = '开始 ▶';
-      var sn = document.getElementById('ggbStepN');
-      if(sn) sn.textContent = '';
+  if(cur.trim() !== '') out.push(cur.trim());
+  return out;
+}
+function svgClr(r,g,b){ return 'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')'; }
+/* 弧起点角→终点角，取劣弧（≤180°），方向自动选跨度小的 */
+function arcAngles(a1, a2){
+  var d = (a2 - a1) % (2*Math.PI);
+  if(d > Math.PI) d -= 2*Math.PI;
+  if(d < -Math.PI) d += 2*Math.PI;
+  return [a1, a1 + d];
+}
+function initArena(compiled){
+  stopArena();
+  lineReg = {};
+  var svg = document.getElementById('arenaSvg');
+  if(!svg) return;
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var cmds = (compiled.setup || []).concat(compiled.build || []);
+  // 1) 坐标系：SetCoordSystem(xmin,xmax,ymin,ymax) → 500×380 viewBox 映射
+  var cs = null;
+  cmds.forEach(function(c){
+    var m = String(c).match(/^SetCoordSystem\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)$/);
+    if(m) cs = {xmin:+m[1], xmax:+m[2], ymin:+m[3], ymax:+m[4]};
+  });
+  // 等比适配（保持纵横比，居中）
+  var VW = 500, VH = 380, PAD = 24;
+  var sx = 1, sy = 1;
+  if(cs){
+    var wx = cs.xmax - cs.xmin, wy = cs.ymax - cs.ymin;
+    sx = (VW - 2*PAD) / wx; sy = (VH - 2*PAD) / wy;
+    var uni = Math.min(sx, sy);
+    var cxW = VW/2, cyW = VH/2;
+    var cxG = (cs.xmin + cs.xmax)/2, cyG = (cs.ymin + cs.ymax)/2;
+    sx = sy = uni;
+    var mx = function(x){ return cxW + (x - cxG) * uni; };
+    var my = function(y){ return cyW - (y - cyG) * uni; };
+  }else{
+    mx = function(x){ return x; }; my = function(y){ return y; };
+  }
+  var P = {};   // 点名 -> [x,y]（数学坐标）
+  function ptXY(n){
+    n = String(n||'').trim();
+    if(P[n]) return P[n];
+    var m = n.match(/^\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)$/);
+    if(m){ P[n] = [+m[1], +m[2]]; return P[n]; }
+    return null;
+  }
+  var objs = {};   // 对象名 -> {els:[SVG元素], kind:'pt'|'line'|'poly'|'arc'|'text'|'sector', baseColor, ax(点x for label)}
+  var defStyle = {line:'#94a3b8', lineW:2.5, aux:'#38bdf8', auxW:1.8, node:'#38bdf8', label:'#cbd5e1', shade:'rgba(245,158,11,.35)', text:'#e2e8f0'};
+  var hidden = {};   // SetVisible(名,false) 对象集
+  var pendingStyle = {};   // 对象名 -> {fill,fillOp,stroke}（命令乱序时积攒，定义时应用）
+  var layers = {};  // 分层：<g> 元素
+  ['shade','shape','aux','mark','node','text'].forEach(function(k){
+    var g = svgEl('g', {}); g.setAttribute('data-layer', k); svg.appendChild(g); layers[k] = g;
+  });
+  function addObj(name, kind, els, opt){
+    objs[name] = {kind:kind, els:els, hl:(opt&&opt.hl)||[], baseColor:(opt&&opt.baseColor)||null};
+    if(pendingStyle[name]){
+      var ps = pendingStyle[name];
+      els.forEach(function(el){
+        if(ps.fill != null) el.setAttribute('fill', ps.fillOp!=null ? ps.fill : ps.fill);
+        if(ps.stroke != null) el.setAttribute('stroke', ps.stroke);
+      });
+      delete pendingStyle[name];
     }
+    if(hidden[name]) els.forEach(function(el){ el.setAttribute('display','none'); });
+    return objs[name];
+  }
+  function segXY(a, b, opt){
+    var p1 = ptXY(a), p2 = ptXY(b);
+    if(!p1 || !p2) return null;
+    var el = svgEl('line', {x1:mx(p1[0]), y1:my(p1[1]), x2:mx(p2[0]), y2:my(p2[1]),
+      stroke:(opt&&opt.color)||defStyle.line, 'stroke-width':(opt&&opt.w)||defStyle.lineW, 'stroke-linecap':'round'});
+    (opt&&opt.layer ? layers[opt.layer] : layers.shape).appendChild(el);
+    return el;
+  }
+  function segX2(p1, p2, p3, p4){
+    var d = (p2[0]-p[0]) * (p4[1]-p3[1]) - (p2[1]-p[1]) * (p4[0]-p3[0]);
+    if(Math.abs(d) < 1e-9) return null;
+    var t = ((p3[0]-p[0]) * (p4[1]-p3[1]) - (p3[1]-p[1]) * (p4[0]-p3[0])) / d;
+    var u = ((p3[0]-p[0]) * (p2[1]-p[1]) - (p3[1]-p[1]) * (p2[0]-p[0])) / d;
+    return {x: p1[0] + t*(p2[0]-p[0]), y: p1[1] + t*(p2[1]-p[1]), t:t, u:u};
+  }
+  // 顺序执行命令
+  cmds.forEach(function(raw){
+    var c = String(raw||'').trim();
+    if(!c) return;
+    var m;
+    // —— 坐标点定义：A=(x,y) / bs0=(x,y) —— 
+    m = c.match(/^([A-Za-z]\w*)\s*=\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)$/);
+    if(m && !objs[m[1]]){
+      var pn = m[1];
+      if(/^(tx_|tlb|txt)/.test(pn)) return;   // 文本对象误匹配保护（正常应为 Text(...) 形式，不会到这）
+      P[pn] = [+m[2], +m[3]];
+      var x = mx(+m[2]), y = my(+m[3]);
+      // 点圆 + （若是用户可见顶点，非 bs/q/ln 辅助）标签；非辅助顶点跳过字母标签，统一由 tx_ Text 命令绘制
+      var isAux = /^(bs\d|q\d|ln[A-Z]{2})$/.test(pn);
+      var gr = svgEl('g', {});
+      var c1 = svgEl('circle', {cx:x, cy:y, r:5, fill:defStyle.node, class:'geo-elem'});
+      gr.appendChild(c1);
+      if(!isAux && /^tx_/.test(pn)){   // 只有 tx_X 点名命令才带内联字母（正常编译器均用 tx_，此处防御性兼容）
+        var tx = svgEl('text', {x:x+9, y:y+4, 'font-size':14, 'font-weight':600, fill:defStyle.label, class:'geo-elem', 'font-family':'inherit'});
+        tx.textContent = pn;
+        gr.appendChild(tx);
+      }
+      layers.node.appendChild(gr);
+      addObj(pn, 'pt', [c1], {baseColor:defStyle.node});
+      return;
+    }
+    // —— Midpoint / Intersect：点名化派生点（回退：直接算） ——
+    m = c.match(/^([A-Za-z]\w*)\s*=\s*Midpoint\(\s*([A-Za-z]+)\s*,\s*([A-Za-z]+)\s*\)$/);
+    if(m){
+      var a1 = ptXY(m[2]), b1 = ptXY(m[3]);
+      if(a1 && b1 && !P[m[1]]) P[m[1]] = [(a1[0]+b1[0])/2, (a1[1]+b1[1])/2];
+      return;   // 点的绘制统一由 tx_ 标签 + 后续引用处理（中点/交点作为可见顶点：画节点）
+    }
+    m = c.match(/^([A-Za-z]\w*)\s*=\s*Intersect\(\s*([A-Za-z]\w*)\s*,\s*([A-Za-z]\w*)\s*\)$/);
+    if(m){
+      // 交点：从已注册的线对象求交
+      if(!P[m[1]]){
+        var l1p = lineEnds(m[2]), l2p = lineEnds(m[3]);
+        if(l1p && l2p){
+          var ip = segX2(l1p[0], l1p[1], l2p[0], l2p[1]);
+          if(ip) P[m[1]] = [ip.x, ip.y];
+        }
+      }
+      return;
+    }
+    // —— 辅助线：lnXX=Line(A,B)（可能后置 SetVisible 隐藏）——
+    m = c.match(/^([A-Za-z]\w*)\s*=\s*Line\(\s*([A-Za-z]+)\s*,\s*([A-Za-z]+)\s*\)$/);
+    if(m){
+      var p1 = ptXY(m[2]), p2 = ptXY(m[3]);
+      if(!p1 || !p2) return;
+      var isAuxL = /^ln/.test(m[1]);
+      // 辅助线虚线；被 pass 拓扑排序后通常在 SetVisible 前，先记入 aux 层
+      var w1 = isAuxL ? defStyle.auxW : defStyle.lineW;
+      var col = isAuxL ? defStyle.aux : defStyle.line;
+      var dash = isAuxL ? '5 4' : null;
+      var el = svgEl('line', {x1:mx(p1[0]), y1:my(p1[1]), x2:mx(p2[0]), y2:my(p2[1]), stroke:col, 'stroke-width':w1, 'stroke-linecap':'round'});
+      if(dash) el.setAttribute('stroke-dasharray', dash);
+      layers.aux.appendChild(el);
+      registerLine(m[1], p1, p2);
+      addObj(m[1], 'line', [el], {baseColor:col});
+      return;
+    }
+    // —— 垂线：qN=PerpendicularLine(A, line)：先画（若未隐藏）——
+    m = c.match(/^([A-Za-z]\w*)\s*=\s*PerpendicularLine\(\s*([A-Za-z]+)\s*,\s*([A-Za-z]\w*)\s*\)$/);
+    if(m){
+      var lp = lineEnds(m[3]);
+      var ap = ptXY(m[2]);
+      if(!lp || !ap) return;
+      var dxx = lp[1][0]-lp[0][0], dyy = lp[1][1]-lp[0][1];
+      var len0 = Math.hypot(dxx,dyy)||1;
+      // 垂线方向：(-dyy,dxx)/len；画穿过 ap 长 20 单位的虚线（后续 SetVisible 通常会隐藏）
+      var ex = ap[0] - dyy/len0*10, ey = ap[1] + dxx/len0*10;
+      var fx = ap[0] + dyy/len0*10, fy = ap[1] - dxx/len0*10;
+      var el = svgEl('line', {x1:mx(ex), y1:my(ey), x2:mx(fx), y2:my(fy), stroke:defStyle.aux, 'stroke-width':defStyle.auxW, 'stroke-dasharray':'5 4'});
+      layers.aux.appendChild(el);
+      registerLine(m[1], [ex,ey], [fx,fy]);
+      addObj(m[1], 'line', [el], {baseColor:defStyle.aux});
+      return;
+    }
+    // —— 已注册线信息（供 Intersect 回退求交） ——
+    function registerLine(name, p1, p2){ lineReg[name] = [p1, p2]; }
+    // —— Segment：sg/li/pl/pe/rq*_1..3 ——
+    m = c.match(/^(sg\d*|li\d*|pl\d*|pe\d*|rq\d+_?\d*|bis\d*|tk\d+_\d*)\s*=\s*Segment\(\s*([A-Za-z]\w*|\(-?[\d.]+,-?[\d.]+\))\s*,\s*([A-Za-z]\w*|\(-?[\d.]+,-?[\d.]+\))\s*\)$/);
+    if(m){
+      // 特例：bisN=Segment(C, bs0)——角平分线（辅助淡色实线）
+      var sa = m[2], sb = m[3];
+      if(/^bis/.test(m[1])){
+        var bp1 = ptXY(sa), bp2 = ptXY(sb);
+        if(bp1 && bp2){
+          var el = svgEl('line', {x1:mx(bp1[0]), y1:my(bp1[1]), x2:mx(bp2[0]), y2:my(bp2[1]), stroke:defStyle.aux, 'stroke-width':1.9});
+          layers.aux.appendChild(el);
+          addObj(m[1], 'line', [el], {baseColor:defStyle.aux});
+        }
+        return;
+      }
+    // rq*：直角标记（小方块）；tk*：等长刻度线——细紫短划
+    if(/^rq/.test(m[1])){
+      var e1 = segXY(sa, sb, {color:'#64748b', w:1.4, layer:'mark'});
+      if(e1) addObj(m[1], 'mark', [e1], {baseColor:'#64748b'});
+      return;
+    }
+    if(/^tk/.test(m[1])){
+      var e1t = segXY(sa, sb, {color:'#c4b5fd', w:2, layer:'mark'});
+      if(e1t) addObj(m[1], 'mark', [e1t], {baseColor:'#c4b5fd'});
+      return;
+    }
+      // pe*：垂线段（from 到垂足）——虚线蓝色辅助线
+      var isAuxSeg = /^pe/.test(m[1]);
+      var el2 = segXY(sa, sb, {color: isAuxSeg ? defStyle.aux : defStyle.line, w: isAuxSeg ? defStyle.auxW : defStyle.lineW, layer: isAuxSeg ? 'aux' : 'shape'});
+      if(el2){
+        if(isAuxSeg) el2.setAttribute('stroke-dasharray','5 4');
+        addObj(m[1], 'line', [el2], {baseColor: isAuxSeg ? defStyle.aux : defStyle.line});
+      }
+      return;
+    }
+    // —— Polygon：tri/poly/sh/shr（顶点列表可带逗号 A,B,C 或连写 ABC）——
+    m = c.match(/^((?:tri|poly|sh|shr)\w*)\s*=\s*Polygon\(\s*([A-Za-z][A-Za-z,]*)\s*\)$/);
+    if(m){
+      var names = m[2].replace(/,/g,'').split('');
+      var pts = names.map(ptXY).filter(Boolean);
+      if(pts.length >= 3){
+        var pl = pts.map(function(p){ return mx(p[0])+','+my(p[1]); }).join(' ');
+        var isShade = /^sh/.test(m[1]);
+        var fill = isShade ? defStyle.shade : 'none';
+        var el = svgEl('polygon', {points:pl, fill:fill, stroke: isShade ? 'none' : defStyle.line, 'stroke-width': isShade ? 0 : defStyle.lineW, 'stroke-linejoin':'round', class:'geo-elem'});
+        (isShade ? layers.shade : layers.shape).appendChild(el);
+        addObj(m[1], 'poly', [el], {baseColor: isShade ? defStyle.shade : defStyle.line});
+      }
+      return;
+    }
+    // —— Circle(O,A) / Circle(O,r) ——
+    m = c.match(/^(ci\d*)\s*=\s*Circle\(\s*([A-Za-z]+)\s*,\s*([A-Za-z]+|-?[\d.]+)\s*\)$/);
+    if(m){
+      var oc = ptXY(m[2]);
+      var rr = null;
+      var thr = ptXY(m[3]);
+      if(thr) rr = Math.hypot(thr[0]-oc[0], thr[1]-oc[1]);
+      else if(/^[\d.-]+$/.test(m[3])) rr = parseFloat(m[3]);
+      if(oc && rr){
+        // 屏幕半径 = rr * uni（等比缩放）
+        var scr = rr * (sx || 1);
+        var el = svgEl('circle', {cx:mx(oc[0]), cy:my(oc[1]), r:Math.max(scr,2), fill:'none', stroke:defStyle.line, 'stroke-width':defStyle.lineW, class:'geo-elem'});
+        layers.shape.appendChild(el);
+        addObj(m[1], 'circle', [el], {baseColor:defStyle.line});
+      }
+      return;
+    }
+    // —— CircularArc(O,M,N)：劣弧（含角度标记 agN）——
+    m = c.match(/^((?:ar|ag)\d*)\s*=\s*CircularArc\(\s*([A-Za-z]+)\s*,\s*([A-Za-z]\w*)\s*,\s*([A-Za-z]\w*)\s*\)$/);
+    if(m){
+      var ac = ptXY(m[2]), am = ptXY(m[3]), an = ptXY(m[4]);
+      if(ac && am && an){
+        var r1 = Math.hypot(am[0]-ac[0], am[1]-ac[1]);
+        var ang1 = Math.atan2(-(am[1]-ac[1]), am[0]-ac[0]);
+        var ang2 = Math.atan2(-(an[1]-ac[1]), an[0]-ac[0]);
+        var aa = arcAngles(ang1, ang2);
+        var scr1 = r1 * (sx || 1);
+        var px = mx(ac[0]) + scr1*Math.cos(aa[0]), py = my(ac[1]) - scr1*Math.sin(aa[0]);
+        var qx = mx(ac[0]) + scr1*Math.cos(aa[1]), qy = my(ac[1]) - scr1*Math.sin(aa[1]);
+        var large = Math.abs(aa[1]-aa[0]) > Math.PI ? 1 : 0;
+        var sweep = (aa[1] > aa[0]) ? 1 : 0;
+        var isMarkArc = /^ag/.test(m[1]);   // 角度标记弧：亮紫色细线
+        var pth = svgEl('path', {d:'M '+px.toFixed(2)+' '+py.toFixed(2)+' A '+scr1.toFixed(2)+' '+scr1.toFixed(2)+' 0 '+large+' '+sweep+' '+qx.toFixed(2)+' '+qy.toFixed(2), fill:'none', stroke:(isMarkArc?'#a78bfa':defStyle.line), 'stroke-width':(isMarkArc?2.4:defStyle.lineW), 'stroke-linecap':'round', class:'geo-elem'});
+        (isMarkArc ? layers.mark : layers.shape).appendChild(pth);
+        addObj(m[1], 'arc', [pth], {baseColor:(isMarkArc?'#a78bfa':defStyle.line)});
+      }
+      return;
+    }
+    // —— CircularSector(O,P,Q)：扇形填充 ——
+    m = c.match(/^(sh\d*)\s*=\s*CircularSector\(\s*([A-Za-z]+)\s*,\s*([A-Za-z]+)\s*,\s*([A-Za-z]+)\s*\)$/);
+    if(m){
+      var sc = ptXY(m[2]), sp = ptXY(m[3]), sq = ptXY(m[4]);
+      if(sc && sp && sq){
+        var rs = Math.hypot(sp[0]-sc[0], sp[1]-sc[1]) * (sx||1);
+        var as1 = Math.atan2(-(sp[1]-sc[1]), sp[0]-sc[0]);
+        var as2 = Math.atan2(-(sq[1]-sc[1]), sq[0]-sc[0]);
+        var asa = arcAngles(as1, as2);
+        var sPx = mx(sc[0]) + rs*Math.cos(asa[0]), sPy = my(sc[1]) - rs*Math.sin(asa[0]);
+        var sQx = mx(sc[0]) + rs*Math.cos(asa[1]), sQy = my(sc[1]) - rs*Math.sin(asa[1]);
+        var sLarge = Math.abs(asa[1]-asa[0]) > Math.PI ? 1 : 0;
+        var sSweep = (asa[1] > asa[0]) ? 1 : 0;
+        var sPath = svgEl('path', {d:'M '+mx(sc[0]).toFixed(2)+' '+my(sc[1]).toFixed(2)+' L '+sPx.toFixed(2)+' '+sPy.toFixed(2)+' A '+rs.toFixed(2)+' '+rs.toFixed(2)+' 0 '+sLarge+' '+sSweep+' '+sQx.toFixed(2)+' '+sQy.toFixed(2)+' Z', fill:defStyle.shade, stroke:'none', class:'geo-elem'});
+        layers.shade.appendChild(sPath);
+        addObj(m[1], 'sector', [sPath], {baseColor:defStyle.shade});
+      }
+      return;
+    }
+    // —— Text("…",(x,y))：tx_字号15点标注 / 其余（tlb/txt/agx）字号12.5 说明文字；agx 是角度度数（高亮色）——
+    m = c.match(/^((?:tx_|tlb|txt|agx)\w*)\s*=\s*Text\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)$/);
+    if(m){
+      var isPtLab = /^tx_/.test(m[1]);
+      var isAng = /^agx/.test(m[1]);
+      var isSegLab = /^tlb/.test(m[1]);
+      var tx2 = svgEl('text', {x:mx(+m[3]), y:my(+m[4]), 'font-size':(isPtLab?15:12.5), 'font-weight':(isPtLab?600:(isSegLab?600:500)), fill:(isPtLab?defStyle.label:(isAng?'#c4b5fd':(isSegLab?'#93c5fd':defStyle.text))), 'text-anchor':(isSegLab?'middle':'start'), class:'geo-elem', 'font-family':'inherit'});
+      tx2.textContent = m[2].replace(/\\n/g,' ');
+      layers.text.appendChild(tx2);
+      addObj(m[1], 'text', [tx2], {baseColor:(isPtLab?defStyle.label:(isAng?'#c4b5fd':(isSegLab?'#93c5fd':defStyle.text)))});
+      return;
+    }
+    // —— 样式命令 ——
+    m = c.match(/^SetColor\(\s*(\w+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+    if(m){
+      var col2 = svgClr(+m[2], +m[3], +m[4]);
+      styleCmd(m[1], {stroke:col2, fill:col2});
+      return;
+    }
+    m = c.match(/^SetFilling\(\s*(\w+)\s*,\s*([0-9.]+)\s*\)$/);
+    if(m){
+      var alpha = parseFloat(m[2]);
+      if(objs[m[1]]){
+        objs[m[1]].els.forEach(function(el){
+          var cur = el.getAttribute('fill');
+          if(cur && cur !== 'none'){
+            // 保持 RGB 不变，只调 alpha（覆盖式扇形填充用背景色，特殊处理）
+            el.setAttribute('fill-opacity', alpha);
+          }else{
+            el.setAttribute('fill-opacity', alpha);
+            if(cur === null) el.setAttribute('fill', '#f59e0b');
+          }
+        });
+      }else{
+        pendingStyle[m[1]] = pendingStyle[m[1]]||{};
+        pendingStyle[m[1]].fillOp = alpha;
+      }
+      return;
+    }
+    m = c.match(/^SetVisible\(\s*(\w+)\s*,\s*(true|false)\s*\)$/);
+    if(m){
+      var vis = m[2] === 'true';
+      if(objs[m[1]]){ objs[m[1]].els.forEach(function(el){ el.setAttribute('display', vis ? null : 'none'); }); }
+      else hidden[m[1]] = !vis;
+      return;
+    }
+    // SetCoordSystem / ShowAxes / ShowGrid / refreshViews 等：已处理或忽略
+  });
+  function styleCmd(name, st){
+    if(objs[name]){
+      objs[name].els.forEach(function(el){
+        if(st.stroke != null) el.setAttribute('stroke', st.stroke);
+        if(st.fill != null && el.tagName !== 'line') el.setAttribute('fill', st.fill);
+      });
+    }else{
+      pendingStyle[name] = pendingStyle[name] || {};
+      if(st.stroke != null) pendingStyle[name].stroke = st.stroke;
+      if(st.fill != null) pendingStyle[name].fill = st.fill;
+    }
+  }
+  arena = {
+    compiled: compiled,
+    objs: objs,
+    mx: mx, my: my,
+    steps: (compiled.steps && compiled.steps.length) ? compiled.steps : [{say:'如图所示', hl:[]}],
+    idx: -1,
+    timer: null
   };
-  var app = new GGBApplet(params, true);
-  app.inject('ggbBox');
+  buildTimeline();
+  applyStep(0);
+  var nb = document.getElementById('arenaNext');
+  if(nb) nb.textContent = (arena.steps.length > 1) ? '下一步 ▶' : '重播 ↻';
 }
-// 命令执行：样式命令翻译为 Web API，构造命令走 evalCommand
-function runGgbCmd(cmd){
-  cmd = String(cmd||'').trim();
-  if(!cmd || !GGB) return;
-  var m;
-  m = cmd.match(/^SetColor\(\s*(\w+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
-  if(m){ GGB.setColor(m[1], +m[2], +m[3], +m[4]); return; }
-  m = cmd.match(/^SetFilling\(\s*(\w+)\s*,\s*([0-9.]+)\s*\)$/i);
-  if(m){ GGB.setFilling(m[1], parseFloat(m[2])); return; }
-  m = cmd.match(/^SetLineThickness\(\s*(\w+)\s*,\s*(\d+)\s*\)$/i);
-  if(m){ GGB.setLineThickness(m[1], +m[2]); return; }
-  m = cmd.match(/^SetPointSize\(\s*(\w+)\s*,\s*(\d+)\s*\)$/i);
-  if(m){ try{ GGB.setPointSize(m[1], +m[2]); }catch(e){} return; }
-  m = cmd.match(/^SetCoordSystem\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)$/i);
-  if(m){ GGB.setCoordSystem(+m[1], +m[2], +m[3], +m[4]); return; }
-  m = cmd.match(/^ShowAxes\(\s*(true|false)\s*\)$/i);
-  if(m){ var vis = m[1].toLowerCase()==='true'; try{ GGB.setAxesVisible(vis, vis); }catch(e){} return; }
-  m = cmd.match(/^ShowGrid\(\s*(true|false)\s*\)$/i);
-  if(m){ try{ GGB.setGridVisible(m[1]==='true'); }catch(e){} return; }
-  m = cmd.match(/^SetVisible\(\s*(\w+)\s*,\s*(true|false)\s*\)$/i);
-  if(m){ try{ GGB.setVisible(m[1], m[1].toLowerCase()==='true' ? true : false); }catch(e){} return; }
-  m = cmd.match(/^SetObjectColor\(\s*(\w+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
-  if(m){ try{ GGB.setColor(m[1], +m[2], +m[3], +m[4]); }catch(e){} return; }
-  m = cmd.match(/^refreshViews\(\)$/i);
-  if(m){ try{ GGB.refreshViews(); }catch(e){} return; }
-  m = cmd.match(/^(\w+)\s*=\s*(.+)$/);
-  if(m){
-    try{
-      var ok = GGB.evalCommand(cmd);
-      if(ok === true){ try{ GGB.setLabelStyle(m[1], 3); GGB.setCaption(m[1], ''); }catch(e){} }
-    }catch(e){}
-    return;
+/* 单步演示动画状态机：解析 commands 项，驱动 geoSVG 元素分步变化 */
+function runGgbStepDemo(){}
+/* 时间轴按钮 */
+function buildTimeline(){
+  var tl = document.getElementById('arenaTl');
+  if(!tl || !arena) return;
+  tl.innerHTML = '';
+  arena.steps.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'tl-btn'; b.textContent = (s.title || ('步骤'+(i+1)));
+    b.title = (s.title || '') + ' ' + (s.say || '');
+    b.setAttribute('data-tl', i);
+    b.onclick = function(){ applyStep(i); if(arena.timer){ stopAutoplay(); } };
+    tl.appendChild(b);
+  });
+}
+/* 应用步状态：高亮当前步对象（hlIndex 映射），其余淡化 */
+function applyStep(i){
+  if(!arena) return;
+  arena.idx = i;
+  var st = arena.steps[i] || {};
+  var hlSet = {};
+  var hls = st.hl || [];
+  var hli = (arena.compiled.hlIndex || {});
+  for(var h=0; h<hls.length; h++){
+    var nm = String(hls[h]||'').trim();
+    if(hli[nm]){ hli[nm].forEach(function(on){ hlSet[on] = true; }); }
+    if(arena.objs[nm]) hlSet[nm] = true;
   }
-try{ GGB.evalCommand(cmd); }catch(e){}
+  // 全部元素：高亮对象→激活态（黄线流动/粉节点脉冲）；其余→淡化
+  var hlColor = '#f59e0b', hlNode = '#ec4899';
+  for(var name in arena.objs){
+    var ob = arena.objs[name];
+    var isHl = !!hlSet[name];
+    ob.els.forEach(function(el){
+      el.style.opacity = isHl ? 1 : 0.55;
+      el.classList.remove('flowline','nodepulse');
+      if(isHl){
+        if(ob.kind === 'pt'){ el.setAttribute('r', 7); el.setAttribute('fill', hlNode); el.classList.add('nodepulse'); }
+        else if(ob.kind === 'poly' || ob.kind === 'sector'){ el.setAttribute('stroke', hlColor); el.setAttribute('stroke-width', 4); if(el.tagName==='polygon') el.classList.add('flowline'); }
+        else if(ob.kind === 'line' || ob.kind === 'arc' || ob.kind === 'circle' || ob.kind === 'mark'){ el.setAttribute('stroke', hlColor); el.setAttribute('stroke-width', 4); el.classList.add('flowline'); }
+        else if(ob.kind === 'text'){ el.setAttribute('fill', hlNode); }
+      }else{
+        if(ob.kind === 'pt'){ el.setAttribute('r', 5); el.setAttribute('fill', ob.baseColor || '#38bdf8'); }
+        else if(ob.kind === 'poly' || ob.kind === 'sector'){ if(!ob.baseStroke) el.setAttribute('stroke', ob.baseColor || '#94a3b8'); el.setAttribute('stroke-width', ob.kind==='sector'?0:2.5); }
+        else if(ob.kind === 'line' || ob.kind === 'arc' || ob.kind === 'circle' || ob.kind === 'mark'){ el.setAttribute('stroke', ob.baseColor || '#94a3b8'); el.setAttribute('stroke-width', ob.kind==='mark'?1.4: ob.kind==='line'?2.5 : 2.5); }
+        else if(ob.kind === 'text'){ el.setAttribute('fill', ob.baseColor || '#cbd5e1'); }
+      }
+    });
+  }
+  // 面板同步
+  var num = document.getElementById('panelNum');
+  if(num) num.textContent = (i+1);
+  var title = document.getElementById('panelTitle');
+  if(title) title.textContent = st.title || ('第 '+(i+1)+' 步');
+  var badge = document.getElementById('panelBadge');
+  if(badge) badge.textContent = st.badge || '';
+  var desc = document.getElementById('panelDesc');
+  if(desc) desc.innerHTML = st.desc ? String(st.desc).replace(/<(script|style)/gi,'&lt;$1') : escHtml(st.say||'');
+  var wb = document.getElementById('whyBox');
+  if(wb){ wb.style.display = st.why ? 'block' : 'none';
+    var wbB = document.getElementById('whyBody');
+    if(wbB){ wbB.innerHTML = st.why ? String(st.why).replace(/<(script|style)/gi,'&lt;$1') : ''; wbB.classList.remove('open'); }
+    var wbT = document.getElementById('whyBtn');
+    if(wbT) wbT.classList.remove('open');
+  }
+  renderQuiz(st.quiz, i);
+  // tooltip 提示 + 徽标 + 时间轴态
+  var tp = document.getElementById('arenaTip');
+  if(tp){ tp.innerHTML = '<b>'+(st.title||('步骤'+(i+1)))+'</b>&nbsp;' + escHtml((st.say||'').replace(/<[^>]+>/g,'').slice(0,40)); tp.classList.add('show');
+    clearTimeout(arena.tipTimer);
+    arena.tipTimer = setTimeout(function(){ tp.classList.remove('show'); }, 3000);
+  }
+  var bd2 = document.getElementById('arenaBadge');
+  if(bd2) bd2.textContent = '第 '+(i+1)+' / '+arena.steps.length+' 步';
+  var tlBtns = document.querySelectorAll('#arenaTl .tl-btn');
+  for(var tb=0; tb<tlBtns.length; tb++){ tlBtns[tb].classList.toggle('on', tb === i); }
+  var pb = document.getElementById('arenaPrev');
+  if(pb) pb.disabled = (i <= 0);
+  var nb = document.getElementById('arenaNext');
+  if(nb) nb.textContent = (i >= arena.steps.length-1) ? '重播 ↻' : '下一步 ▶';
 }
-// 隐藏全部对象标签（避免网格上的干扰标签）；tx_/tlb/txt 是文字标注对象，保留显示
-function hideGgbLabels(){
-  if(!GGB) return;
-  try{
-    GGB.setRepaintingActive(false);
-    var ns = GGB.getAllObjectNames() || [];
-    for(var i=0;i<ns.length;i++){
-      if(/^(tx_|tlb|txt)/.test(ns[i])) continue;   // 文字标注不隐藏
-      try{ GGB.setLabelVisible(ns[i], false); }catch(e){}
-    }
-    GGB.setRepaintingActive(true);
-    try{ GGB.refreshViews(); }catch(e){}
-  }catch(e){}
+function arenaPrev(){ if(arena && arena.idx > 0){ applyStep(arena.idx-1); } }
+function arenaNext(){
+  if(!arena) return;
+  if(arena.idx >= arena.steps.length-1){ applyStep(0); return; }   // 循环重播，符合参考模板：自动播放循环回步0
+  applyStep(arena.idx+1);
 }
-function initGgb(gd){
-  ggbData = gd; ggbSteps = (gd && gd.steps) || []; ggbIdx = 0; ggbStarted = false; ggbReady = false;
-  var box = document.getElementById('ggbBox');
-  if(box) box.innerHTML = '';
-  var say = document.getElementById('ggbSay');
-  if(say) say.textContent = '正在加载动画画板…';
-  loadGGBLib(createGGBApp);
+function arenaAutoplayToggle(){
+  var btn = document.getElementById('arenaAutoplay');
+  if(!arena) return;
+  if(arena.timer){ stopAutoplay(); return; }
+  if(btn){ btn.classList.add('on'); btn.textContent = '⏸ 暂停播放'; }
+  if(arena.idx >= arena.steps.length-1) applyStep(0);
+  arena.timer = setInterval(function(){
+    var nx = arena.idx + 1;
+    if(nx >= arena.steps.length) nx = 0;   // 4.5s 循环
+    applyStep(nx);
+  }, 4500);
 }
-function showGgbStep(i){
-  if(!ggbReady || !ggbSteps.length) return;
-  var st = ggbSteps[i];
-  if(!st) return;
-  ggbIdx = i; ggbStarted = true;
-  var say = document.getElementById('ggbSay');
-  if(say) say.innerHTML = '<b>第'+(i+1)+'步 / 共'+ggbSteps.length+'步：</b>'+escHtml(st.say||'');
-  var cmds = st.cmds || [];
-  for(var k=0;k<cmds.length;k++) runGgbCmd(cmds[k]);
-  try{ GGB.refreshViews(); }catch(e){}
-  var nb = document.getElementById('ggbNext');
-  if(nb) nb.textContent = (i >= ggbSteps.length-1) ? '↻ 重新播放' : '下一步 ▶';
+function stopAutoplay(){
+  var btn = document.getElementById('arenaAutoplay');
+  if(arena && arena.timer){ clearInterval(arena.timer); arena.timer = null; }
+  if(btn){ btn.classList.remove('on'); btn.textContent = '▶ 自动播放'; }
 }
-function ggbNext(){
-  if(!ggbReady || !ggbSteps.length) return;
-  if(!ggbStarted){ showGgbStep(0); return; }
-  if(ggbIdx >= ggbSteps.length-1){ ggbRestart(); return; }
-  showGgbStep(ggbIdx+1);
+function arenaWhyToggle(){
+  var b = document.getElementById('whyBtn'), bo = document.getElementById('whyBody');
+  if(b && bo){ b.classList.toggle('open'); bo.classList.toggle('open'); }
 }
-function ggbRestart(){
-  if(!ggbData) return;
-  ggbStarted = false; ggbReady = false;
-  var box = document.getElementById('ggbBox');
-  if(box) box.innerHTML = '';
-  loadGGBLib(createGGBApp);
+function renderQuiz(q, stepIdx){
+  var box = document.getElementById('quizBox');
+  if(!box) return;
+  box.innerHTML = '';
+  if(!q || !q.question || !q.options){ box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  var h = '<div class="quiz-head"><span class="quiz-tt">🎓 小测验</span><span class="quiz-state" id="quizState">未作答</span></div>'
+       + '<div class="quiz-q">'+escHtml(q.question)+'</div><div class="quiz-opts">';
+  (q.options||[]).forEach(function(op, oi){
+    h += '<button class="quiz-opt" onclick="quizAnswer('+stepIdx+','+oi+',this)"><span>'+escHtml(op.text||'')+'</span><span class="oi"></span></button>';
+  });
+  h += '</div><div class="quiz-feedback" id="quizFb"></div>';
+  box.innerHTML = h;
+  if(!arena.quizState) arena.quizState = {};
+  if(arena.quizState[stepIdx] != null) markQuizAns(stepIdx, arena.quizState[stepIdx]);
+}
+function quizAnswer(stepIdx, oi, el){
+  if(!arena || !arena.steps[stepIdx]) return;
+  var q = arena.steps[stepIdx].quiz;
+  if(!q || !q.options || !q.options[oi]) return;
+  arena.quizState = arena.quizState || {};
+  arena.quizState[stepIdx] = oi;
+  markQuizAns(stepIdx, oi);
+}
+function markQuizAns(stepIdx, oi){
+  var q = arena && arena.steps[stepIdx] && arena.steps[stepIdx].quiz;
+  if(!q) return;
+  var opt = (q.options||[])[oi];
+  var correct = !!(opt && opt.correct);
+  var fb = document.getElementById('quizFb');
+  var st = document.getElementById('quizState');
+  var opts = document.querySelectorAll('#quizBox .quiz-opt');
+  for(var i=0;i<opts.length;i++){
+    var isThis = (i === oi);
+    var isRightOption = !!((q.options||[])[i] && q.options[i].correct);
+    opts[i].style.borderColor = isRightOption ? 'rgba(16,185,129,.7)' : (isThis ? 'rgba(244,63,94,.6)' : '');
+    opts[i].style.background = isRightOption ? 'rgba(6,78,59,.4)' : (isThis ? 'rgba(136,19,55,.4)' : '');
+    var oiSpan = opts[i].querySelector('.oi');
+    if(oiSpan) oiSpan.textContent = isRightOption ? '✓' : (isThis ? '✗' : '');
+  }
+  if(st){ st.textContent = correct ? '回答正确' : '再想想'; st.className = 'quiz-state ' + (correct ? 'ok' : 'no'); }
+  if(fb){ fb.className = 'quiz-feedback ' + (correct ? 'ok' : 'no'); fb.textContent = (correct ? '✓ ' : '✗ ' ) + (q.explanation || (correct?'答对啦！':'提示：再看一眼这一步的图形。')); }
+}
+function stopArena(){
+  if(arena){
+    if(arena.timer) clearInterval(arena.timer);
+    if(arena.tipTimer) clearTimeout(arena.tipTimer);
+    if(arena.mxRaf) cancelAnimationFrame(arena.mxRaf);
+  }
+  arena = null;
+  var auto = document.getElementById('arenaAutoplay');
+  if(auto){ auto.classList.remove('on'); auto.textContent = '▶ 自动播放'; }
 }
 var EXPLAIN_DEMO = {
-say: '题目：一本书看了 1/3，还剩 40 页，全书多少页？我们用线段图来解，看 GeoGebra 动画一步步来。',
+say: '题目：一本书看了 1/3，还剩 40 页，全书多少页？我们用线段演练场一步步来看看。',
 kp: '分数应用题、线段图',
-ggb: {
+geo: {
   title: '线段图：看了1/3，还剩40页',
-  setup: ['ShowAxes(false)','ShowGrid(false)','SetCoordSystem(-0.5, 3.5, -2.2, 2.2)'],
+  items: [
+    {t:'pt', name:'A', x:0, y:0},
+    {t:'pt', name:'B', x:1, y:0},
+    {t:'pt', name:'C', x:2, y:0},
+    {t:'pt', name:'D', x:3, y:0},
+    {t:'seg', from:'A', to:'B', label:'看了 1/3'},
+    {t:'seg', from:'B', to:'C'},
+    {t:'seg', from:'C', to:'D', label:'还剩 40 页'}
+  ],
   steps: [
-    {say: '第一步：把整本书画成一条线段，平均分成 3 段。', cmds: [
-      's1=Segment((0,0),(1,0))','s2=Segment((1,0),(2,0))','s3=Segment((2,0),(3,0))',
-      'SetLineThickness(s1,5)','SetLineThickness(s2,5)','SetLineThickness(s3,5)'
-    ]},
-    {say: '第二步：第 1 段是看过的部分，占全书的 1/3，标红突出。', cmds: [
-      'SetColor(s1,255,60,60)','t1=Text("看了 1/3",(0.5,-0.6))','SetColor(t1,255,0,0)'
-    ]},
-    {say: '第三步：剩下 2 段共 40 页，标蓝突出。', cmds: [
-      'SetColor(s2,60,60,255)','SetColor(s3,60,60,255)','t2=Text("还剩 40 页",(2,-0.6))','SetColor(t2,0,0,255)'
-    ]},
-    {say: '🎉 总结：剩下 2 段对应 40 页，每段 40÷2=20 页；全书 3 段 = 20×3=60 页。', cmds: [
-      't3=Text("每段 40÷2=20 页",(1.5,0.9))','t4=Text("全书 20×3=60 页",(1.5,1.4))','SetColor(t3,0,128,0)','SetColor(t4,0,128,0)'
-    ]}
+    {title:'画线段图', badge:'准备', say:'第一步：把整本书画成一条线段，平均分成 3 段。', hl:['AB','BC','CD']},
+    {title:'标出看过部分', badge:'红色强调', say:'第二步：第 1 段是看过的部分，占全书的 1/3。', hl:['看了 1/3','AB']},
+    {title:'标出剩余', badge:'蓝色强调', say:'第三步：剩下 2 段共 40 页。', hl:['还剩 40 页','BC','CD']},
+    {title:'🎉 总结', badge:'完成', say:'剩下 2 段对应 40 页，每段 40÷2=20 页；全书 3 段 = 20×3=60 页。', hl:['看了 1/3','还剩 40 页'], why:'40 页对应 2 段，所以 1 段 = 40 ÷ 2 = 20 页；全书是 3 段，就是 20 × 3 = 60 页。', quiz:{question:'每小段代表多少页？', options:[{text:'20 页', correct:true},{text:'40 页', correct:false},{text:'60 页', correct:false}], explanation:'40 页 ÷ 2 段 = 20 页/段。'}}
   ]
 },
 done: true
 };
-function startExplainDemo(){ showExplain(); curProblem = '一本书看了 1/3，还剩 40 页，全书多少页？'; renderExplain(EXPLAIN_DEMO); }
+function startExplainDemo(){
+  showExplain(); curProblem = '一本书看了 1/3，还剩 40 页，全书多少页？';
+  geoDraft = JSON.parse(JSON.stringify(EXPLAIN_DEMO.geo));
+  geoDraft.say = EXPLAIN_DEMO.say; geoDraft.kp = EXPLAIN_DEMO.kp;
+  confirmGeo();
+}
 function restart(){ location.reload();}
 
 var recog = null, listening = false, voiceBtnEl = null;
@@ -2006,7 +2540,7 @@ function toggleVoice(targetId, btnId, autoSend){
   catch(e){ alert('语音启动失败，请重试。'); }
 }
 
-/* 拍照识别题目：优先走 Worker /simpletex（SimpleTex 公式引擎，接口已验证），失败降级 OCR.space
+/* 拍照识别题目：优先走 Worker /ocr（SimpleTex 公式引擎，接口已验证），失败降级 OCR.space
    图片预览供肉眼核对；几何图形信息由 AI 视觉读图，无需手动补充 */
 var lastPhoto = null;  // 最近一次拍照的压缩图（base64 data URL，开始引导/讲解时发给 AI 视觉识别）
 var lastOcrText = '';  // 最近一次 OCR 结果（用于重拍覆盖判断）
@@ -2017,7 +2551,7 @@ function ocrViaWorker(dataUrl){
       if(!base){ resolve(null); return; }
       var done = false;
       var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 20000);
-      fetch(base + '/simpletex', {method:'POST', headers:apiHeaders(),
+      fetch(base + '/ocr', {method:'POST', headers:apiHeaders(),
         body: JSON.stringify({image:dataUrl})})
       .then(function(r){ return r.json(); })
       .then(function(d){
