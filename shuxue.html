@@ -659,7 +659,7 @@ document.getElementById('explainBody').innerHTML = '<div class="prob-show"><b>�
 document.getElementById('loading').style.display='block';
 try{
 var res = await fetch(SITE_WORKER, {method:'POST', headers:apiHeaders(),
-body: JSON.stringify({model:'deepseek-v4-flash', max_tokens:4000,
+body: JSON.stringify({model:'deepseek-v4-flash', max_tokens:6500,
 messages:(function(){
   var sysC = EXPLAIN_SYSTEM+'\n学生是'+document.getElementById('grade').value+'学生。';
   if(lastPhoto) sysC += '题目附带了一张图片，这是解题的关键。请仔细看这张图，把图里的几何结构（中点/中线/垂线/垂足/交点/重心/圆/阴影/标注）准确读出，并据此在GeoGebra动画里画出与图一致的图形；文字只是辅助，图才是解题依据。若你看到图却无法确定几何结构，就在ggb动画里按你能确定的画，并在say里说明你对图的解读。';
