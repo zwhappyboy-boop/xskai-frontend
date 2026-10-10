@@ -189,7 +189,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <nav class="main">
 <a href="index.html">首页</a>
 <a href="shuxue.html" class="active">中小学数学</a>
-<a href="gaoshu.html">高数拍照答题</a>
+<a href="cuoti.html">错题本</a>
 <a href="javascript:void(0)" class="nav-code" onclick="openCodeModal()">卡密</a></nav>
 </div>
 </header>
@@ -244,6 +244,7 @@ ol.steps li.on .n{background:#10b981;color:#fff}
 <div class="chat-tools">
 <button class="btn-subtle" onclick="replayExplain()">重播动画</button>
 <button class="btn-subtle" onclick="backToSetup()">问下一题</button>
+<button class="btn-accent" id="addCtBtn" onclick="addToCuoti()">✚ 加入错题本</button>
 </div>
 <div class="codebar">
 <div class="code-label">卡密 <span>免费次数用完？填卡密继续</span><a href="pricing.html">买卡密 →</a></div>
@@ -651,6 +652,53 @@ function backToSetup(){
   var cw = document.querySelector('.math-card'); if(cw) cw.classList.remove('open-wide');
   document.getElementById('explainOut').style.display='none';
   document.getElementById('setup').style.display='block';
+}
+/* ===== 错题本：把当前讲解的题目收录到 localStorage（cuoti.html 读取展示） =====
+   数据结构：{ id, q(题目文字或'题目见图片'), photo(base64，可空), kp(知识点), grade(年级),
+              steps(步骤文字数组), ts(时间戳), mastered(是否已掌握) }
+   存储键：xskai_cuoti（数组）。照片较大时做容量保护：超出 try 存储失败则提示。 */
+function ctLoad(){
+  try{ return JSON.parse(localStorage.getItem('xskai_cuoti') || '[]'); }catch(e){ return []; }
+}
+function ctSave(list){
+  try{ localStorage.setItem('xskai_cuoti', JSON.stringify(list)); return true; }
+  catch(e){ alert('本机浏览器存储空间不足，错题保存失败。建议先到错题本导出或清理已掌握的题目。'); return false; }
+}
+function addToCuoti(){
+  var q = curProblem || '';
+  var kp = '', steps = [];
+  /* 知识点来源：取本轮讲解对象（geo 舞台的 lastGeoKp 或纯文字的 lastExplain.kp）；
+     拿不到就留空——错题本打开时会用内置规则库自动归纳，不依赖 AI */
+  var src = lastExplain || {};
+  if(src && src.kp) kp = src.kp;
+  if(typeof lastGeoKp === 'string' && lastGeoKp) kp = lastGeoKp;
+  if(src && src.steps){
+    steps = (src.steps || []).map(function(s){ return String(s.say || s.title || ''); }).filter(function(x){ return x; });
+  }else if(src && src.captions){
+    steps = (src.captions || []).map(function(c){ return String(c.text || ''); }).filter(function(x){ return x; });
+  }
+  if(!q && !lastPhoto){ alert('当前没有可收录的题目。'); return; }
+  var gradeEl = document.getElementById('grade');
+  var item = {
+    id: 'ct_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+    q: q || '题目见图片',
+    photo: lastPhoto || '',
+    kp: kp || '',
+    grade: gradeEl ? gradeEl.value : '',
+    steps: steps.slice(0, 12),
+    ts: Date.now(),
+    mastered: false
+  };
+  var list = ctLoad();
+  // 去重：同题同知识点不重复收录
+  var dup = list.some(function(x){ return x.q === item.q && x.kp === item.kp; });
+  if(dup){ alert('这道题已经在错题本里了。'); return; }
+  list.unshift(item);
+  if(ctSave(list)){
+    var b = document.getElementById('addCtBtn');
+    if(b){ b.textContent = '✓ 已收录'; b.disabled = true;
+      setTimeout(function(){ b.textContent = '✚ 加入错题本'; b.disabled = false; }, 2000); }
+  }
 }
 /* 原题展示：有照片时直接显示原题照片（学生看得懂），否则显示文字 */
 function probShowHtml(text){
@@ -1776,7 +1824,9 @@ function confirmGeo(){
   }
 }
 /* geo 渲染舞台（geoSVG 引擎）：say 开场白 + kp + 双栏演练场（左画布右面板） */
+var lastGeoKp = '';
 function renderGeoStage(say, compiled, kp){
+  lastGeoKp = kp || '';
   stopArena();
   document.getElementById('setup').style.display='none';
   var eo = document.getElementById('explainOut');
@@ -2421,10 +2471,14 @@ done: true
 };
 function startExplainDemo(){
   showExplain(); curProblem = '一本书看了 1/3，还剩 40 页，全书多少页？';
+  lastExplain = null; lastGeoKp = '';
   geoDraft = JSON.parse(JSON.stringify(EXPLAIN_DEMO.geo));
   geoDraft.say = EXPLAIN_DEMO.say; geoDraft.kp = EXPLAIN_DEMO.kp;
   confirmGeo();
 }
+
+/* ===== 错题本回跳：从 cuoti.html「再看 AI 讲解」过来，自动载入题目并开始讲解 ===== */
+
 
 var recog = null, listening = false, voiceBtnEl = null;
 function toggleVoice(targetId, btnId, autoSend){
@@ -2559,6 +2613,32 @@ function clearPhoto(){
   ta.style.display = '';
   ta.placeholder = '例如：小明有36块糖果，平均分给4位同学，每人分到几块？';
 }
+
+/* ===== 错题本回跳：从 cuoti.html「再看 AI 讲解」过来，自动载入题目并开始讲解 =====
+   放在脚本末尾：此时 lastPhoto/showPhotoPreview/startExplain 均已定义、DOM 已就绪 */
+(function ctReaskBoot(){
+  try{
+    var raw = sessionStorage.getItem('xskai_reask');
+    if(!raw) return;
+    sessionStorage.removeItem('xskai_reask');
+    var d = JSON.parse(raw);
+    if(d && (d.q || d.photo)){
+      if(d.photo){
+        lastPhoto = d.photo;
+        showPhotoPreview(d.photo, 0);
+        if(d.q && d.q !== '题目见图片'){
+          lastOcrText = d.q;   // 原题文字仅内部给 AI 看图核对
+        }
+      }else{
+        var ta = document.getElementById('problem');
+        ta.value = d.q || '';
+      }
+      if(confirm('已载入错题「' + ((d.q || '题目见图片').slice(0, 30)) + '」，是否立即开始 AI 动画讲解？')){
+        startExplain();
+      }
+    }
+  }catch(e){}
+})();
 </script>
 <!-- 导航栏卡密弹窗 -->
 <div class="code-modal" id="codeModal">

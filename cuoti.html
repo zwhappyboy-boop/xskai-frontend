@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题本 · XSKAI</title>
+<meta name="description" content="AI 讲过的题一键收录错题本：自动按知识点归纳分组，统计薄弱点，复习巩固一目了然。数据只存在本机浏览器。">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<style>
+/* ===== 错题本页（深色主题，对齐 shuxue 演练场视觉） ===== */
+.ct-wrap{max-width:960px;margin:0 auto;padding:0 20px}
+.ct-page-title{display:flex;align-items:center;gap:12px;font-size:26px;margin:34px 0 6px}
+.ct-page-title .sub{font-size:13px;color:var(--muted);font-weight:400}
+.ct-page-desc{color:var(--muted);font-size:14px;margin-bottom:22px}
+/* 统计指标条 */
+.ct-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 22px}
+.ct-stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow-card)}
+.ct-stat .num{font-size:30px;font-weight:800;line-height:1.2}
+.ct-stat .lb{font-size:12px;color:var(--muted);margin-top:2px}
+.ct-stat.n-blue .num{color:var(--accent)}
+.ct-stat.n-green .num{color:var(--accent2)}
+.ct-stat.n-orange .num{color:#f59e0b}
+.ct-stat.n-red .num{color:#f87171}
+/* 薄弱点排行 */
+.ct-weak{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:22px;box-shadow:var(--shadow-card)}
+.ct-weak h3{font-size:16px;margin-bottom:12px}
+.ct-weak h3 .hint{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px}
+.wk-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(42,53,80,.6);font-size:14px}
+.wk-row:last-child{border-bottom:none}
+.wk-row .rk{width:22px;height:22px;border-radius:6px;background:rgba(79,140,255,.15);color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wk-row:nth-child(2) .rk{background:rgba(248,113,113,.18);color:#f87171}
+.wk-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-row .cnt{color:#f87171;font-weight:700;font-size:13px;flex-shrink:0}
+.wk-row .bar{flex:0 0 120px;height:6px;border-radius:3px;background:rgba(42,53,80,.8);overflow:hidden;flex-shrink:0}
+.wk-row .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f87171,#f59e0b)}
+/* 筛选行 */
+.ct-filter{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.ct-filter .seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg-btn{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:7px 16px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit;transition:all var(--t)}
+.seg-btn:hover{border-color:#3a4a6e;color:var(--text)}
+.seg-btn.on{background:rgba(79,140,255,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.kp-pick{background:var(--bg2);border:1px solid var(--line);color:var(--text);padding:7px 12px;border-radius:var(--r-md);font-size:13px;font-family:inherit;cursor:pointer}
+.kp-pick:focus{outline:none;border-color:var(--accent)}
+/* 知识点分组卡片 */
+.ct-group{margin-bottom:26px}
+.ct-group-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ct-group-head .gtag{background:rgba(79,140,255,.12);border:1px solid rgba(79,140,255,.35);color:var(--accent);font-size:14px;font-weight:700;padding:5px 14px;border-radius:18px}
+.ct-group-head .gnum{font-size:12px;color:var(--muted)}
+.ct-group-head .gprog{font-size:12px;color:var(--accent2)}
+/* 错题条目 */
+.ct-item{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:12px;transition:border-color var(--t),opacity var(--t)}
+.ct-item:hover{border-color:#3a4a6e}
+.ct-item.mastered{opacity:.62}
+.ct-item-top{display:flex;align-items:flex-start;gap:10px}
+.ct-item-top .idx{width:24px;height:24px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ct-item-top .qbox{flex:1;min-width:0}
+.ct-q{font-size:15px;line-height:1.7;word-break:break-all}
+.ct-q img{display:block;max-width:100%;max-height:280px;border-radius:10px;border:1px solid var(--line);margin-top:8px}
+.ct-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.ct-meta .m{background:var(--bg2);border:1px solid var(--line);padding:2px 10px;border-radius:12px}
+.ct-meta .m.kp-tag{background:rgba(34,211,165,.1);border-color:rgba(34,211,165,.35);color:var(--accent2)}
+.ct-meta .m.mastered-tag{background:rgba(34,211,165,.15);border-color:rgba(34,211,165,.4);color:var(--accent2);font-weight:600}
+.ct-steps{margin-top:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r-md);font-size:13px;color:var(--muted);line-height:1.8}
+.ct-steps b{color:var(--text)}
+.ct-item-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.act-btn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 14px;border-radius:var(--r-md);font-size:13px;cursor:pointer;font-family:inherit;transition:all var(--t)}
+.act-btn:hover{border-color:#3a4a6e;color:var(--text)}
+.act-btn.ok-on{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.5);color:var(--accent2)}
+.act-btn.danger:hover{border-color:rgba(248,113,113,.6);color:#f87171}
+.act-btn.re-explain{border-color:rgba(79,140,255,.5);color:var(--accent)}
+.act-btn.re-explain:hover{background:rgba(79,140,255,.1)}
+/* 空状态 */
+.ct-empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--r-lg);padding:56px 24px;text-align:center;color:var(--muted);font-size:14px}
+.ct-empty .big{font-size:44px;margin-bottom:14px}
+.ct-empty .btn{margin-top:18px}
+/* 归纳提示条 */
+.ct-auto-tip{border-left:4px solid var(--accent2);background:#14261f;border-radius:0 var(--r-md) var(--r-md) 0;padding:12px 16px;font-size:13px;margin:14px 0;color:#bfe8d8}
+@media(max-width:640px){
+  .ct-stats{grid-template-columns:repeat(2,1fr)}
+  .wk-row .bar{flex-basis:70px}
+  .ct-page-title{font-size:22px}
+}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="index.html">XSK<b>AI</b></a>
+    <nav class="main">
+<a href="index.html">首页</a>
+      <a href="shuxue.html">中小学数学</a>
+      <a href="cuoti.html" class="active">错题本</a>
+    </nav>
+  </div>
+</header>
+
+<div class="ct-wrap">
+  <div class="ct-page-title">📚 错题本 <span class="sub">自动归纳知识点 · 只存本机</span></div>
+  <div class="ct-page-desc">AI 讲过的错题都在这里：按知识点自动分组，薄弱点一目了然。每道题标记「已掌握」后算过关。</div>
+
+  <!-- 统计指标条 -->
+  <div class="ct-stats" id="ctStats" style="display:none"></div>
+  <!-- 自动归纳提示 -->
+  <div id="ctAutoTip"></div>
+  <!-- 薄弱知识点排行 -->
+  <div class="ct-weak" id="ctWeak" style="display:none">
+    <h3>🎯 薄弱知识点排行 <span class="hint">按未掌握题量排序 · 前三名标红</span></h3>
+    <div id="ctWeakRows"></div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="ct-filter" id="ctFilter" style="display:none">
+    <div class="seg" id="ctSeg">
+      <button class="seg-btn on" data-f="all" onclick="ctSetFilter('all')">全部</button>
+      <button class="seg-btn" data-f="todo" onclick="ctSetFilter('todo')">待巩固</button>
+      <button class="seg-btn" data-f="done" onclick="ctSetFilter('done')">已掌握</button>
+    </div>
+    <select class="kp-pick" id="kpPick" onchange="ctSetKp(this.value)"></select>
+    <button class="act-btn" style="margin-left:auto" onclick="ctExport()">导出备份</button>
+    <button class="act-btn danger" onclick="ctClearAsk()">清空全部</button>
+  </div>
+
+  <!-- 列表 -->
+  <div id="ctList"></div>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span>© 2026 XSKAI · xskai.com</span>
+    <nav class="foot">
+      <a href="about.html">关于我们</a>
+      <a href="help.html">使用帮助</a>
+      <a href="pricing.html">定价</a>
+      <a href="api-setup.html">API接入</a>
+      <a href="privacy.html">隐私政策</a>
+      <a href="disclaimer.html">免责声明</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script>
+/* ===== 错题本数据层（与 shuxue.html 共用 localStorage 键 xskai_cuoti） ===== */
+function ctLoad(){
+  try{ return JSON.parse(localStorage.getItem('xskai_cuoti') || '[]'); }catch(e){ return []; }
+}
+function ctSave(list){
+  try{ localStorage.setItem('xskai_cuoti', JSON.stringify(list)); return true; }
+  catch(e){ alert('存储空间不足，操作失败。建议导出备份后清理部分题目。'); return false; }
+}
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ctFmtTs(ts){
+  var d = new Date(ts || Date.now());
+  function p(n){ return (n < 10 ? '0' : '') + n; }
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function ctShow(id){ var e = document.getElementById(id); if(e) e.style.display = ''; }
+function ctHide(id){ var e = document.getElementById(id); if(e) e.style.display = 'none'; }
+</script>
+<script>
+/* ===== 知识点自动归纳引擎（本地规则库，零 AI 消耗） =====
+   规则按优先级排序：越靠前越先匹配（专项题型优先于通用运算）。
+   每条：k=知识点名，p=正则（对题目文字匹配）。
+   覆盖小学到初中常见题型；匹配不到归纳为「综合应用」。 */
+var CT_RULES = [
+  /* —— 几何（专项在前、通用在后：先命中专项特征词） —— */
+  { k:'长方体与正方体',  p:/长方体|正方体|棱长|顶点/ },
+  { k:'圆柱与圆锥',      p:/圆柱|圆锥|侧面积|展开图/ },
+  { k:'圆的切线与弦',    p:/切线|弦|切点|割线/ },
+  { k:'圆与扇形',        p:/扇形|圆心角|周率|半径|直径|⊙|圆$/ },
+  { k:'三角形与内角',    p:/三角形|内角|外角|等腰|等边|顶角|底角/ },
+  { k:'相似与全等',      p:/相似|全等|对应边|对应角|比例线段/ },
+  { k:'勾股定理',        p:/勾股|斜边|直角边/ },
+  { k:'四边形与多边形',  p:/平行四边形|梯形|菱形|长方形|矩形|正方形|多边形|对角线|内角和/ },
+  { k:'角度与度量',      p:/角平分线|锐角|钝角|量角|度数/ },
+  { k:'图形面积与周长',  p:/面积|周长|占地|容积|立方米|平方/ },
+  /* —— 方程与代数 —— */
+  { k:'一元一次方程',    p:/一元一次|设未知数|解方程|方程.*解|求x/ },
+  { k:'二元一次方程组',  p:/二元一次|方程组|两个未知数/ },
+  { k:'一元二次方程',    p:/一元二次|二次方程|根的判别|韦达/ },
+  { k:'不等式',          p:/不等式|至少|至多|不大于|不小于|最多.*最少/ },
+  { k:'函数与坐标',      p:/函数|坐标|抛物线|一次函数|二次函数|正比例|反比例|平面直角/ },
+  { k: '整式运算',       p:/合并同类项|去括号|多项式|单项式|幂|因式分解/ },
+  /* —— 应用题型（中小学经典，专项先于通用） —— */
+  { k:'分数应用题',      p:/看了.{0,6}还剩|读了.{0,6}还剩|吃了.{0,6}还剩|占.{0,8}几分之|正好.{0,6}几分之/ },
+  { k:'分数与百分数',    p:/几分之几|分数|百分|％|%|折扣|利率/ },
+  { k:'行程问题',        p:/速度|相遇|追及|同时出发|相对而行|相距|每小时.{0,4}千米|分钟.{0,6}米/ },
+  { k:'工程问题',        p:/工程|工作量|合作.{0,4}完成|单独做|轮流做|需要.*天完成/ },
+  { k:'鸡兔同笼',        p:/鸡兔|同笼/ },
+  { k:'植树问题',        p:/植树|栽树|两端.{0,3}栽|间隔/ },
+  { k:'利润与折扣',      p:/成本|售价|利润|盈利|亏损|打折/ },
+  { k:'浓度问题',        p:/浓度|盐水|含糖|稀释/ },
+  { k:'平均数问题',      p:/平均数|平均每|每人.{0,4}分到/ },
+  { k:'比例与按比分配',  p:/比例|按.{0,6}分配|比值/ },
+  { k:'归一归总问题',    p:/每小时.{0,4}件|每分钟.{0,4}个|照这样/ },
+  { k:'年龄问题',        p:/今年.{0,4}岁|年后.{0,6}倍|年龄/ },
+  { k:'数列与规律',      p:/找规律|第.{0,4}个数|等差|等比|按规律/ },
+  { k:'概率与统计',      p:/概率|掷|骰子|摸球|统计图|中位数|众数/ },
+  { k:'单位换算',        p:/换算|单位|千米.{0,4}米|千克.{0,4}克/ },
+  { k:'余数与周期',      p:/余数|循环|第.{0,4}个是什么/ },
+  { k:'时钟问题',        p:/时钟|分针|时针|几点.{0,3}分/ },
+  { k:'基础四则运算',    p:/加减乘除|口算|竖式|进位|退位|乘法|除法/ }
+];
+function ctInferKp(text){
+  text = String(text || '');
+  if(!text.trim()) return '待整理';
+  for(var i = 0; i < CT_RULES.length; i++){
+    if(CT_RULES[i].p.test(text)) return CT_RULES[i].k;
+  }
+  return '综合应用';
+}
+/* 打开页面时：对所有知识点为空/待整理的错题自动归纳并回存 */
+function ctAutoInfer(list){
+  var n = 0;
+  for(var i = 0; i < list.length; i++){
+    var it = list[i];
+    if(!it.kp || it.kp === '待整理'){
+      var txt = [it.q, (it.steps || []).join(' ')].join(' ');
+      it.kp = ctInferKp(txt);
+      n++;
+    }
+  }
+  if(n > 0){ ctSave(list); }
+  return n;
+}
+</script>
+<script>
+/* ===== 渲染层：统计看板 + 薄弱点排行 + 分组列表 ===== */
+var ctFilter = 'all';   // all | todo | done
+var ctKp = 'all';       // 知识点筛选
+function ctSetFilter(f){
+  ctFilter = f;
+  var bs = document.querySelectorAll('#ctSeg .seg-btn');
+  for(var i = 0; i < bs.length; i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-f') === f); }
+  ctRender();
+}
+function ctSetKp(v){ ctKp = v; ctRender(); }
+
+function ctGrouped(list){
+  /* 按知识点分组：未掌握多的组排前面，同数量按最新时间 */
+  var map = {};
+  list.forEach(function(it){
+    var k = it.kp || '待整理';
+    if(!map[k]) map[k] = [];
+    map[k].push(it);
+  });
+  var groups = [];
+  for(var k in map){
+    if(!Object.prototype.hasOwnProperty.call(map, k)) continue;
+    var arr = map[k];
+    var todo = arr.filter(function(x){ return !x.mastered; }).length;
+    groups.push({ kp: k, items: arr, todo: todo,
+      latest: Math.max.apply(null, arr.map(function(x){ return x.ts || 0; })) });
+  }
+  groups.sort(function(a, b){ return (b.todo - a.todo) || (b.latest - a.latest); });
+  groups.forEach(function(g){
+    g.items.sort(function(a, b){ return (b.ts || 0) - (a.ts || 0); });
+  });
+  return groups;
+}
+
+function ctRender(){
+  var list = ctLoad();
+  /* —— 自动归纳（页面打开/每次渲染时对空 kp 兜底） —— */
+  var n = ctAutoInfer(list);
+  var tipEl = document.getElementById('ctAutoTip');
+  tipEl.innerHTML = (n > 0)
+    ? '<div class="ct-auto-tip">✦ 已自动归纳 ' + n + ' 道题的知识点（本地规则引擎，无需联网）。</div>'
+    : '';
+
+  /* —— 顶部统计 —— */
+  var total = list.length;
+  var done = list.filter(function(x){ return x.mastered; }).length;
+  var todo = total - done;
+  var rate = total ? Math.round(done * 100 / total) : 0;
+  var st = document.getElementById('ctStats');
+  st.style.display = total ? 'grid' : 'none';
+  st.innerHTML =
+      '<div class="ct-stat n-blue"><div class="num">' + total + '</div><div class="lb">累计错题</div></div>'
+    + '<div class="ct-stat n-red"><div class="num">' + todo + '</div><div class="lb">待巩固</div></div>'
+    + '<div class="ct-stat n-green"><div class="num">' + done + '</div><div class="lb">已掌握</div></div>'
+    + '<div class="ct-stat n-orange"><div class="num">' + rate + '%</div><div class="lb">掌握率</div></div>';
+
+  /* —— 薄弱知识点排行（未掌握数 ≥1 的知识点，前三名标红） —— */
+  var groups = ctGrouped(list);
+  var weak = groups.filter(function(g){ return g.todo > 0; });
+  var wk = document.getElementById('ctWeak');
+  wk.style.display = weak.length ? '' : 'none';
+  var maxTodo = weak.length ? weak[0].todo : 1;
+  document.getElementById('ctWeakRows').innerHTML = weak.map(function(g, i){
+    var rankCls = (i === 1) ? ' style="background:rgba(245,158,11,.15);color:#f59e0b"' : '';
+    return '<div class="wk-row">'
+      + '<span class="rk"' + rankCls + '>' + (i + 1) + '</span>'
+      + '<span class="nm">' + escHtml(g.kp) + '</span>'
+      + '<span class="cnt">' + g.todo + ' 题未掌握</span>'
+      + '<span class="bar"><i style="width:' + Math.round(g.todo * 100 / maxTodo) + '%"></i></span>'
+      + '</div>';
+  }).join('');
+
+  /* —— 知识点下拉 —— */
+  var pick = document.getElementById('kpPick');
+  var kps = groups.map(function(g){ return g.kp; });
+  pick.innerHTML = '<option value="all">全部知识点</option>'
+    + kps.map(function(k){ return '<option value="' + escHtml(k) + '"' + (k === ctKp ? ' selected' : '') + '>' + escHtml(k) + '</option>'; }).join('');
+  if(ctKp !== 'all' && kps.indexOf(ctKp) < 0) ctKp = 'all';
+
+  document.getElementById('ctFilter').style.display = total ? 'flex' : 'none';
+
+  /* —— 分组列表 —— */
+  var box = document.getElementById('ctList');
+  if(!total){
+    box.innerHTML = '<div class="ct-empty"><div class="big">📒</div>'
+      + '错题本还是空的。<br>去讲解页做一道题，讲完后点「✚ 加入错题本」，题目、知识点、解题步骤会自动收录进来。'
+      + '<br><a class="btn" href="shuxue.html" style="margin-top:18px">去做一道题 →</a></div>';
+    return;
+  }
+  var show = groups;
+  if(ctKp !== 'all') show = show.filter(function(g){ return g.kp === ctKp; });
+  var h = '';
+  show.forEach(function(g){
+    var items = g.items;
+    if(ctFilter !== 'all') items = items.filter(function(x){ return ctFilter === 'done' ? !!x.mastered : !x.mastered; });
+    if(!items.length) return;
+    var gDone = g.items.filter(function(x){ return x.mastered; }).length;
+    h += '<div class="ct-group">'
+      + '<div class="ct-group-head">'
+      + '<span class="gtag">📚 ' + escHtml(g.kp) + '</span>'
+      + '<span class="gnum">共 ' + g.items.length + ' 题</span>'
+      + '<span class="gprog">已掌握 ' + gDone + '/' + g.items.length + '</span>'
+      + '</div>';
+    items.forEach(function(it, i2){
+      var qHtml = it.photo
+        ? '<img src="' + it.photo + '" alt="原题照片" onclick="window.open(this.src)" style="cursor:zoom-in">'
+        : escHtml(it.q || '');
+      if(!it.photo && it.q) qHtml = '<span class="ct-q">' + qHtml + '</span>';
+      h += '<div class="ct-item' + (it.mastered ? ' mastered' : '') + '" id="' + it.id + '">'
+        + '<div class="ct-item-top"><span class="idx">' + (i2 + 1) + '</span><div class="qbox">'
+        + '<div class="ct-q">' + qHtml + '</div>'
+        + '<div class="ct-meta">'
+        + '<span class="m kp-tag">知识点：' + escHtml(it.kp || '待整理') + '</span>'
+        + (it.grade ? '<span class="m">' + escHtml(it.grade) + '</span>' : '')
+        + '<span class="m">' + ctFmtTs(it.ts) + '</span>'
+        + (it.mastered ? '<span class="m mastered-tag">✓ 已掌握</span>' : '')
+        + '</div>';
+      if(it.steps && it.steps.length){
+        h += '<div class="ct-steps"><b>解题思路：</b><br>' + it.steps.map(function(s, si){
+          return (si + 1) + '. ' + escHtml(s);
+        }).join('<br>') + '</div>';
+      }
+      h += '</div></div>'
+        + '<div class="ct-item-acts">'
+        + '<button class="act-btn' + (it.mastered ? ' ok-on' : '') + '" onclick="ctToggleMastered(\'' + it.id + '\')">' + (it.mastered ? '✓ 已掌握（点此撤销）' : '标记已掌握') + '</button>'
+        + '<button class="act-btn re-explain" onclick="ctReExplain(\'' + it.id + '\')">再看 AI 讲解</button>'
+        + '<button class="act-btn danger" onclick="ctDelAsk(\'' + it.id + '\')">删除</button>'
+        + '</div></div>';
+    });
+    h += '</div>';
+  });
+  box.innerHTML = h || '<div class="ct-empty">当前筛选条件下没有题目。</div>';
+}
+
+/* ===== 交互动作 ===== */
+function ctFind(id){ return ctLoad().filter(function(x){ return x.id === id; })[0] || null; }
+function ctToggleMastered(id){
+  var list = ctLoad();
+  for(var i = 0; i < list.length; i++){
+    if(list[i].id === id){ list[i].mastered = !list[i].mastered; break; }
+  }
+  ctSave(list); ctRender();
+}
+function ctDelAsk(id){
+  if(!confirm('确定删除这道错题吗？删除后无法恢复。')) return;
+  var list = ctLoad().filter(function(x){ return x.id !== id; });
+  ctSave(list); ctRender();
+}
+function ctClearAsk(){
+  if(!confirm('确定清空全部错题吗？建议先点「导出备份」。此操作无法恢复。')) return;
+  ctSave([]); ctRender();
+}
+function ctReExplain(id){
+  var it = ctFind(id);
+  if(!it) return;
+  /* 把题目传回讲解页重新生成动画讲解（带照片走照片，纯文字直接带题面） */
+  sessionStorage.setItem('xskai_reask', JSON.stringify({ q: it.q || '', photo: it.photo || '' }));
+  location.href = 'shuxue.html';
+}
+function ctExport(){
+  var list = ctLoad();
+  if(!list.length){ alert('错题本是空的，没有可导出的内容。'); return; }
+  var data = JSON.stringify({ v: 1, exportAt: Date.now(), items: list }, null, 2);
+  var blob = new Blob([data], { type: 'application/json' });
+  var a = document.createElement('a');
+  var d = new Date();
+  function p(n){ return (n < 10 ? '0' : '') + n; }
+  a.href = URL.createObjectURL(blob);
+  a.download = 'xskai-错题本-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '.json';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+}
+/* 导入入口：读取用户备份文件（合并去重） */
+function ctImport(input){
+  var f = input.files && input.files[0];
+  if(!f) return;
+  var fr = new FileReader();
+  fr.onload = function(){
+    try{
+      var d = JSON.parse(fr.result);
+      var items = (d && d.items) ? d.items : (Array.isArray(d) ? d : null);
+      if(!items) throw new Error('格式不对');
+      var list = ctLoad();
+      var add = 0;
+      items.forEach(function(it){
+        if(!it || !it.q) return;
+        var dup = list.some(function(x){ return x.q === it.q && (x.kp || '') === (it.kp || ''); });
+        if(!dup){ list.push(it); add++; }
+      });
+      ctSave(list);
+      alert('导入完成：新增 ' + add + ' 道题（重复跳过）。');
+      ctRender();
+    }catch(e){ alert('导入失败：' + e.message); }
+  };
+  fr.readAsText(f);
+  input.value = '';
+}
+ctRender();
+</script>
+</body>
+</html>
