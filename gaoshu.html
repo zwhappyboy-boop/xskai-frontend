@@ -470,13 +470,16 @@ function renderFnSvg(compiled, opts){
       }
       if(yLo == null){ yLo = kyLo - kSpan; yHi = kyHi + kSpan; }
       // —— x 方向：关键点 x 范围远小于默认 [-5,5] 时收紧 x 窗口（面积/交点场景）——
+      // 关键点近重合（单切点）时 kxSpan 是 0.5 下限填充而非真实跨度，收紧过狠会裁掉曲线主体，
+      // 此时放宽到中心±3 保留曲线形态。
       var kxLo = Infinity, kxHi = -Infinity;
       kpts.forEach(function(p){ if(p[0]<kxLo) kxLo=p[0]; if(p[0]>kxHi) kxHi=p[0]; });
       if(isFinite(kxLo) && isFinite(kxHi)){
-        var kxSpan = Math.max(kxHi - kxLo, 0.5);
+        var kxReal = kxHi - kxLo;
+        var kxSpan = Math.max(kxReal, 0.5);
         if((win.xmax - win.xmin) > kxSpan * 4){
           var kxc = (kxLo + kxHi)/2;
-          var half = kxSpan * 2.2;
+          var half = (kxReal < kxSpan * 0.75) ? 3 : kxSpan * 2.2;
           win.xmin = kxc - half; win.xmax = kxc + half;
         }
       }
