@@ -3,36 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>高等数学拍照答题 · 详细解答 · XSKAI</title>
-<meta name="description" content="AI 高数/线代详细解答：思路分析、分步推导、易错点、总结，LaTeX 公式漂亮渲染，每步标注知识点。免费。">
+<title>高数 · 线代 · 演练场 · XSKAI</title>
+<meta name="description" content="AI 高数/线代交互演练场：思路分析 → 分步推导（可配函数图象动画）→ 易错点 → 总结 → 验算。LaTeX 公式漂亮渲染。">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="libs/katex/katex.min.css">
 <style>
-.toolbox{background:var(--card,#1b2338);border:1px solid #24304a;border-radius:var(--r-lg,14px);padding:24px;margin:20px 0;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-.toolbox label{display:block;font-size:14px;color:#9fb0cc;margin:14px 0 6px}
-.toolbox textarea{width:100%;min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit;resize:none}
-#problemWrap{position:relative}
-#problem{display:block}
-#problem.editing{display:block}
-#problemRender{min-height:90px;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:12px;font-size:15px;line-height:1.8;font-family:inherit;cursor:text;display:none}
-#problemRender .katex{font-size:1.12em}
-#problemRender .edit-hint{font-size:12px;color:#9fb0cc;margin-top:6px;border-top:1px dashed #2a3650;padding-top:4px}
-.toolbox select{background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:8px 12px;font-size:14px;margin-right:10px}
-.btn-row{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
-.btn.big{padding:12px 28px;font-size:16px}
-.btn.ghost{background:transparent;border:1px solid #2a3650;color:#dbe4f5;padding:12px 20px;border-radius:var(--r-sm,8px);font-size:15px;cursor:pointer;transition:all .2s ease}
-.btn.ghost:hover{background:rgba(255,255,255,.06);border-color:#3d4a6c}
-#chat{display:none;margin-top:18px}
-.msg{margin:10px 0;padding:12px 16px;border-radius:10px;font-size:15px;line-height:2;max-width:94%}
-.msg.tutor{background:#0f1420;border:1px solid #2a3650;color:#dbe4f5}
-.msg.student{background:#1e3a5f;border:1px solid #2d5a8f;color:#fff;margin-left:auto;text-align:right}
-.msg.who{font-size:12px;color:#9fb0cc;margin-bottom:4px}
-.kp{display:inline-block;background:#143d2b;color:#4ade80;font-size:12px;padding:2px 10px;border-radius:10px;margin:4px 4px 0 0}
-.katex{font-size:1.08em}
-#answerRow{display:flex;gap:10px;margin-top:12px}
-#answerRow input{flex:1;background:#0f1420;border:1px solid #2a3650;border-radius:8px;color:#e8ecf5;padding:10px;font-size:14px}
+/* ===== 高数演练场 · 对齐 shuxue arena 视觉体系 ===== */
+.math-card{background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.8);border-radius:18px;padding:30px;margin:24px auto;max-width:720px;box-shadow:0 16px 48px rgba(0,0,0,.5);color:#e2e8f0;transition:max-width .3s ease}
+.math-card.open-wide{max-width:1240px;padding:18px}
+.math-title{font-size:22px;font-weight:700;margin:0 0 8px;color:#f1f5f9}
+.math-sub{font-size:14px;color:#94a3b8;margin:0 0 6px;line-height:1.8}
+.math-sub b{color:#38bdf8}
+.fld-label{display:block;font-size:13px;font-weight:600;color:#cbd5e1;margin:20px 0 8px;letter-spacing:.5px}
+.grade-select{background:#0f172a;border:1px solid #334155;border-radius:10px;color:#e2e8f0;padding:10px 14px;font-size:15px;min-width:150px}
+.grade-select:focus{outline:none;border-color:#0ea5e9}
+.input-wrap{position:relative;margin-bottom:20px}
+.input-wrap textarea{width:100%;min-height:96px;background:#0f172a;border:1px solid #334155;border-radius:12px;color:#e2e8f0;padding:14px;font-size:16px;line-height:1.8;font-family:inherit;resize:vertical;box-sizing:border-box}
+.input-wrap textarea:focus{outline:none;border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.15)}
+.input-wrap textarea[readonly]{color:#cbd5e1;cursor:pointer}
+.photo-preview{display:none;margin-top:10px;position:relative}
+.photo-preview.show{display:block}
+.photo-preview img{max-width:100%;max-height:200px;border-radius:10px;border:1px solid #334155;display:block}
+.photo-preview .pv-bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:#64748b}
+.photo-preview .pv-remove{background:none;border:none;color:#f87171;font-size:12px;cursor:pointer;padding:2px 6px;font-family:inherit}
+.photo-preview .pv-remove:hover{text-decoration:underline}
+.input-tools{position:absolute;right:10px;bottom:calc(50% - 22px);display:flex;gap:8px}
+.tool-btn{background:#1e293b;border:1px solid #334155;border-radius:8px;color:#cbd5e1;font-size:13px;padding:7px 12px;cursor:pointer}
+.tool-btn:hover{border-color:#0ea5e9;color:#38bdf8}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{background:#0284c7;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px 28px;cursor:pointer;transition:background .2s;font-family:inherit}
+.btn-primary:hover{background:#0ea5e9}
+.demo-row{text-align:center;margin-top:12px}
+.link-demo{background:none;border:none;color:#38bdf8;font-size:14px;cursor:pointer;font-family:inherit;padding:4px}
+.link-demo:hover{text-decoration:underline}
+.hint{font-size:13px;color:#64748b;margin-top:12px;line-height:1.7}
+.codebar{margin-top:18px;border-top:1px dashed #334155;padding-top:14px}
+.code-label{font-size:13px;font-weight:600;color:#cbd5e1}
+.code-label span{font-weight:400;font-size:12px;color:#64748b}
+.code-label a{font-size:12px;color:#38bdf8;margin-left:8px}
+nav.main .nav-code{background:#0284c7;color:#fff!important;border-radius:8px;padding:6px 14px;font-weight:600}
+nav.main .nav-code:hover{background:#0ea5e9}
+.code-modal{position:fixed;inset:0;background:rgba(2,6,23,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:999;padding:20px}
+.code-modal.open{display:flex}
+.code-modal .box{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);color:#e2e8f0}
+.code-modal h3{margin:0 0 6px;font-size:17px;color:#f1f5f9}
+.code-modal p{font-size:13px;color:#94a3b8;margin:0 0 6px;line-height:1.7}
+.code-modal .row{display:flex;gap:8px;margin-top:12px}
+.code-modal input{flex:1;min-width:0;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:11px;font-size:15px}
+.code-modal .actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.code-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.code-row input{flex:1;min-width:140px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:10px;font-size:14px}
+.code-row button{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 14px;font-size:14px;color:#cbd5e1;cursor:pointer}
+.code-row a{font-size:14px;color:#38bdf8;white-space:nowrap}
+/* ===== 演练场主体 ===== */
+.arena{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:18px;align-items:start;margin-top:14px}
+.arena-left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.arena-canvas{background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.8);border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.arena-head{background:#1e293b;padding:10px 14px;border-bottom:1px solid rgba(51,65,85,.6);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#94a3b8}
+.arena-head .live{display:flex;align-items:center;gap:8px;font-weight:500;color:#cbd5e1}
+.arena-head .dot{width:10px;height:10px;border-radius:50%;background:#10b981;animation:pulseDot 1.6s infinite}
+@keyframes pulseDot{50%{opacity:.4}}
+.badge-step{background:rgba(14,165,233,.15);color:#7dd3fc;font-weight:600;padding:3px 10px;border-radius:6px;border:1px solid rgba(14,165,233,.3)}
+.arena-surface{position:relative;width:100%;aspect-ratio:500/380;background:#020617;display:flex;align-items:center;justify-content:center;overflow:hidden;user-select:none}
+.arena-surface .gridbg{position:absolute;inset:0;background-image:radial-gradient(#334155 1px,transparent 1px);background-size:16px 16px;opacity:.4;pointer-events:none}
+.arena-surface svg{width:100%;height:100%;max-height:520px;position:relative;z-index:1;overflow:visible}
+.arena-tooltip{position:absolute;bottom:10px;left:10px;background:rgba(15,23,42,.92);border:1px solid #334155;color:#e2e8f0;font-size:12px;padding:6px 12px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .3s;z-index:2;display:flex;align-items:center;gap:6px}
+.arena-tooltip.show{opacity:1}
+.arena-ctrl{background:#1e293b;padding:12px 14px;border-top:1px solid rgba(51,65,85,.8);display:flex;flex-direction:column;gap:10px}
+.timeline-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.timeline-row .lb{font-size:12px;font-weight:600;color:#94a3b8}
+.timeline{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.tl-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;background:rgba(51,65,85,.6);color:#cbd5e1;border:1px solid #475569;cursor:pointer;font-family:inherit;transition:all .15s}
+.tl-btn:hover{background:#334155}
+.tl-btn.on{background:#0284c7;color:#fff;border-color:#0ea5e9;transform:scale(1.06);box-shadow:0 2px 10px rgba(14,165,233,.4)}
+.arena-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.arena-nav{display:flex;gap:8px}
+.btn-step{padding:8px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s}
+.btn-step.prev{background:#334155;border:1px solid #475569;color:#e2e8f0}
+.btn-step.prev:hover:not(:disabled){background:#475569}
+.btn-step.next{background:#0284c7;color:#fff;border:none;box-shadow:0 4px 14px rgba(14,165,233,.35)}
+.btn-step.next:hover:not(:disabled){background:#0ea5e9}
+.btn-step:disabled{opacity:.4;cursor:not-allowed}
+.btn-autoplay{padding:8px 14px;background:rgba(51,65,85,.6);border:1px solid #475569;color:#cbd5e1;border-radius:12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px}
+.btn-autoplay:hover{background:#334155}
+.btn-autoplay.on{border-color:#10b981}
+.arena-panel{background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.8);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;min-height:480px;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(51,65,85,.6);padding-bottom:10px;gap:8px}
+.panel-head .tl2{display:flex;align-items:center;gap:10px;min-width:0}
+.step-num{width:28px;height:28px;border-radius:8px;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,.4)}
+.step-title{font-weight:700;font-size:15px;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step-badge{font-size:11px;background:#334155;color:#cbd5e1;padding:3px 8px;border-radius:6px;border:1px solid #475569;white-space:nowrap}
+.step-desc{color:#cbd5e1;font-size:14px;line-height:1.9;flex:1;min-height:120px}
+.step-desc ul,.step-desc ol{padding-left:20px;margin:6px 0}
+.step-desc li{margin:4px 0}
+.step-desc .katex-display{margin:8px 0}
+.why-box{border:1px solid #334155;border-radius:12px;background:rgba(2,6,23,.6);overflow:hidden}
+.why-btn{width:100%;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:#7dd3fc;background:none;border:none;cursor:pointer;font-family:inherit}
+.why-btn:hover{background:rgba(30,41,59,.6)}
+.why-btn .ar{transition:transform .3s}
+.why-btn.open .ar{transform:rotate(180deg)}
+.why-body{display:none;padding:10px 14px;border-top:1px solid rgba(51,65,85,.5);font-size:12px;color:#cbd5e1;line-height:1.8;background:rgba(2,6,23,.4)}
+.why-body.open{display:block}
+.quiz-box{background:rgba(49,46,129,.25);border:1px solid rgba(99,102,241,.35);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.quiz-head{display:flex;justify-content:space-between;align-items:center}
+.quiz-tt{font-size:12px;font-weight:700;color:#a5b4fc}
+.quiz-state{font-size:10px;color:#818cf8;background:rgba(67,56,202,.5);padding:2px 8px;border-radius:6px}
+.quiz-state.ok{color:#6ee7b7;background:rgba(6,78,59,.6)}
+.quiz-state.no{color:#fda4af;background:rgba(136,19,55,.55)}
+.quiz-q{font-size:13px;font-weight:500;color:#e2e8f0}
+.quiz-opts{display:grid;gap:8px}
+.quiz-opt{width:100%;text-align:left;padding:10px 12px;font-size:12px;background:rgba(2,6,23,.7);border:1px solid rgba(51,65,85,.8);border-radius:10px;color:#e2e8f0;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;gap:8px;transition:all .15s}
+.quiz-opt:hover{background:rgba(30,41,59,.9);border-color:#64748b}
+.quiz-opt .oi{color:#64748b;font-style:normal}
+.quiz-feedback{font-size:12px;padding:10px;border-radius:8px;display:none;line-height:1.7}
+.quiz-feedback.ok{display:block;background:rgba(6,78,59,.5);color:#6ee7b7;border:1px solid rgba(16,185,129,.4)}
+.quiz-feedback.no{display:block;background:rgba(136,19,55,.35);color:#fda4af;border:1px solid rgba(244,63,94,.4)}
+/* fx 解析树卡片（AI 输出表达式 → 卡片确认 → 引擎精确画图） */
+.fx-chips{display:flex;flex-wrap:wrap;gap:8px;padding:14px 14px 8px}
+.fx-chips .chip{display:inline-flex;align-items:center;gap:6px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.3);color:#7dd3fc;font-size:13px;border-radius:20px;padding:6px 12px;line-height:1.4}
+.fx-chips .chip code{font-family:Consolas,Menlo,monospace;color:#f1f5f9}
+.fx-chips .chip b{cursor:pointer;color:#f87171;font-weight:700;padding:0 3px;font-size:12px}
+.fx-actions{padding:8px 14px 14px}
+.fx-err{display:none;padding:10px 14px;color:#fca5a5;font-size:13px;background:rgba(136,19,55,.3);border-top:1px solid rgba(244,63,94,.3);line-height:1.6}
+.explain-stage{margin-top:12px;border:1px solid #334155;border-radius:14px;overflow:hidden;background:rgba(15,23,42,.4)}
+.explain-stage .stage-title{padding:10px 14px;font-size:14px;color:#34d399;background:rgba(16,185,129,.08);font-weight:600;border-bottom:1px solid rgba(51,65,85,.6)}
+/* 文字解解答卡（配合 arena 可视化） */
+.sol-box{background:rgba(15,23,42,.6);border:1px solid #334155;border-radius:14px;padding:16px 18px;margin:12px 0;font-size:15px;line-height:2;color:#e2e8f0}
+.sol-box h4{margin:14px 0 6px;font-size:15px;color:#7dd3fc}
+.sol-box h4:first-child{margin-top:0}
+.sol-box p{margin:6px 0}
+.sol-box .katex{font-size:1.12em}
+.sol-box ul,.sol-box ol{padding-left:22px;margin:6px 0}
+.kp{display:inline-block;background:rgba(16,185,129,.15);color:#34d399;font-size:12px;font-weight:600;padding:3px 12px;border-radius:20px;margin:4px 4px 0 0;border:1px solid rgba(16,185,129,.3)}
 .loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
+.prob-show{margin:0 0 14px;padding:12px 16px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:12px;font-size:15px;line-height:1.8;color:#e2e8f0}
+.prob-show b{color:#7dd3fc}
+.btn-subtle{background:rgba(15,23,42,.6);border:1px solid #334155;color:#cbd5e1;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+.btn-subtle:hover{border-color:#0ea5e9;color:#7dd3fc}
+.btn-accent{background:#0284c7;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-accent:hover{background:#0ea5e9}
+.chat-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.who{font-size:13px;color:#94a3b8;font-weight:600}
+#svgOverlay{position:absolute;top:10px;right:10px;font-size:12px;color:#334155;pointer-events:none;opacity:0;transition:opacity .5s;z-index:2;font-family:Consolas,monospace}
+#svgOverlay.show{opacity:1;color:#cbd5e1}
+.flowline{stroke-dasharray:8;animation:dashflow 1.5s linear infinite}
+@keyframes dashflow{to{stroke-dashoffset:-16}}
+.nodepulse{animation:nodeGlow 1.6s infinite alternate}
+@keyframes nodeGlow{0%{filter:drop-shadow(0 0 2px rgba(236,72,153,.5));}100%{filter:drop-shadow(0 0 8px rgba(236,72,153,.95));}}
+.geo-elem{transition:opacity .4s}
+.parent-note{max-width:720px;margin:0 auto 30px;font-size:13px;color:#64748b;line-height:1.8;padding:0 6px}
+@media(max-width:960px){
+  .arena{grid-template-columns:1fr}
+  .arena-panel{min-height:0}
+}
+@media(max-width:640px){
+  .math-card{padding:22px 16px;margin:14px auto;border-radius:14px}
+  .math-title{font-size:20px}
+}
 </style>
 </head>
 <body>
@@ -42,55 +170,70 @@
 <nav class="main">
 <a href="index.html">首页</a>
 <a href="shuxue.html">中小学数学</a>
-<a href="gaoshu.html" class="active">高数拍照答题</a></nav>
+<a href="gaoshu.html" class="active">高数 · 线代</a>
+<a href="javascript:void(0)" class="nav-code" onclick="openCodeModal()">卡密</a></nav>
 </div>
 </header>
 
 <div class="wrap">
-<section class="block">
-<h2>📐 高数 · 线代详细解答</h2>
-<p class="sub">拍下题目照片，直接出详细解答：思路分析 → 分步推导 → 易错点 → 总结。公式 LaTeX 漂亮渲染，每步标注知识点。免费。</p>
+<section class="math-card" id="setup">
+<h2 class="math-title">📐 高数/线代 · 解题演练场</h2>
+<p class="math-sub">拍题或输入 → AI 分步推导（每步可视化函数图象/几何图形）→ 易错点 → 总结 → <b>真实验算</b>。</p>
 
-<div class="toolbox" id="setup">
-<label>科目</label>
-<select id="subject">
+<label class="fld-label" for="subject">科目</label>
+<select id="subject" class="grade-select">
 <option>高等数学</option>
 <option>线性代数</option>
+<option>概率统计</option>
 </select>
-<label>拍下题目（推荐）或手动输入</label>
-<div id="problemWrap">
-  <textarea id="problem" placeholder="例如：求极限 lim(x→0) sin3x / x"></textarea>
-  <div id="problemRender" style="display:none"></div>
-</div>
-<div class="btn-row">
-<button class="btn big" onclick="document.getElementById('photoInput').click()">📷 拍照答题</button>
+
+<label class="fld-label" for="problem" style="margin-top:16px">题目</label>
+<div class="input-wrap">
+<textarea id="problem" placeholder="例如：求极限 lim(x→0) sin3x / x"></textarea>
+<div class="input-tools">
+<button class="tool-btn" onclick="document.getElementById('photoInput').click()">📷 拍照识别</button>
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="ocrPhoto(this)">
-<button class="btn ghost" onclick="solve()">📝 生成详细解答</button>
-<button class="btn ghost" onclick="startDemo()">👀 看演示</button>
+</div>
+</div>
+<div class="photo-preview" id="photoPreview">
+<img id="pvImg" alt="题目照片预览">
+<div class="pv-bar"><span id="pvNote">已识别 · 图片已自动发给 AI</span><button class="pv-remove" onclick="clearPhoto()">✕ 删除图片</button></div>
+</div>
+<div id="ocrStatus" class="hint" style="display:none"></div>
+
+<div class="btn-row" style="margin-top:8px">
+<button class="btn-primary" id="startBtn" onclick="solve()">生成解答练习场</button>
+</div>
+<div class="demo-row"><button class="link-demo" onclick="startDemo()">先看演示：sin3x/x 极限 →</button></div>
+
+<div class="codebar">
+<div class="code-label">卡密 <span>每天免费 5 次 · 有卡密在这里填</span><a href="pricing.html">买卡密 →</a></div>
+<div class="code-row">
+<input id="accessCode" placeholder="输入卡密后点保存">
+<button onclick="saveCode()">保存</button>
+<span id="codeOk" style="color:#34d399;font-size:13px"></span>
+</div>
+</div>
+<p class="hint">涉及函数图象的题（极限/导数/积分/级数），AI 会自动生成<b>分步动画图象</b>：切线趋近、区域填充面积、级数逐项叠加——直观看到推导过程。</p>
+</section>
+
+<section class="math-card" id="result" style="display:none">
+<div id="resultBody"></div>
+<div class="loading" id="loading">正在生成详细解答…</div>
+<div class="chat-tools" id="resultBtns" style="display:none">
+<button class="btn-subtle" onclick="altSolve()">🔄 换种解法</button>
+<button class="btn-subtle" onclick="restart()">↩️ 换一道题</button>
 </div>
 <div class="codebar">
-<span>🔑</span>
-<input id="accessCode" placeholder="卡密（每天免费5次，可不填）">
-<button class="btn ghost sm" onclick="saveCode()">保存</button>
-<a href="pricing.html">买卡密</a>
-<span id="codeOk" style="color:#4ade80"></span>
+<div class="code-label">卡密 <span>免费次数用完？填卡密继续</span><a href="pricing.html">买卡密 →</a></div>
+<div class="code-row">
+<input id="accessCodeChat" placeholder="输入卡密后点保存">
+<button onclick="saveCodeChat()">保存</button>
+<span id="codeOkChat" style="color:#34d399;font-size:13px"></span>
 </div>
-<div id="ocrStatus" style="font-size:13px;color:#fbbf24;margin-top:6px;display:none"></div>
-</div>
-
-<div class="toolbox" id="result" style="display:none">
-<div id="solution"></div>
-<div class="loading" id="loading">正在生成详细解答…</div>
-<div class="btn-row" id="resultBtns" style="display:none">
-<button class="btn ghost" onclick="altSolve()">🔄 换种解法</button>
-<button class="btn ghost" onclick="restart()">↩️ 换一道题</button>
-</div>
-</div>
-
-<div class="tip good">
-<b>使用建议：</b>先自己想 5 分钟再开始，引导过程不要跳步——自己推出来的步骤，考试时才写得出来。卡住超过两次，说明前置知识点有缺口，回头补。
 </div>
 </section>
+<p class="parent-note" style="display:none" id="noteBar">建议：先自己推 5 分钟再看解答；每步都问自己"为什么成立"，验算环节认真核对——AI 也会算错，验算是你的安全网。</p>
 </div>
 
 <footer class="site">
@@ -111,85 +254,495 @@
 <script src="libs/katex/katex.min.js"></script>
 <script src="libs/katex/auto-render.min.js"></script>
 <script>
-var SYSTEM = "你是一名大学数学老师（高等数学/线性代数）。只返回JSON（不要其他文字、不要markdown代码块），格式：{\"problem_latex\":\"题目LaTeX\",\"analysis\":\"思路分析：考查什么、用什么方法、为什么\",\"steps\":[{\"t\":\"步骤标题\",\"c\":\"推导内容\",\"kp\":\"知识点\"}],\"pitfalls\":[\"易错点\"],\"summary\":\"总结\",\"verify\":{\"method\":\"验算方法\",\"result\":\"验算过程与结论\"}}。要求：1. LaTeX行内用\\(...\\)，独立行用\\[...\\]；2. verify必须用真实方法验算（代入具体数值、求导还原积分、特殊值检验等），给出过程和✓/✗结论，不许只写经检验正确；3. 题目有歧义时按最常见理解解答并注明。";
+/* ===== fncore.js 内联：函数图渲染引擎（AI 出表达式，引擎精确采样画图） ===== */
+(function(global){
+"use strict";
+/* ---------- 数学表达式求值（x 为变量） ---------- */
+function fnEval(expr, x){
+  var s = String(expr).replace(/\s+/g, "");
+  var i = 0;
+  function err(m){ throw new Error(m + " @" + i + " in `" + s + "`"); }
+  function eat(ch){ if(s[i]===ch){ i++; return true; } return false; }
+  function parseE(){ var v=parseT(); while(i<s.length&&(s[i]==="+"||s[i]==="-")){var o=s[i++];var r=parseT();v=o==="+"?v+r:v-r;} return v; }
+  function parseT(){ var v=parseU(); while(i<s.length&&(s[i]==="*"||s[i]==="/"||s[i]==="%")){var o=s[i++];var r=parseU();v=o==="*"?v*r:(o==="/"?v/r:v%r);} return v; }
+  function parseU(){ var neg=false; while(s[i]==="+"||s[i]==="-"){if(s[i]==="-")neg=!neg;i++;} var v=parseP(); if(s[i]==="^"){i++;v=Math.pow(v,parseU());} return neg?-v:v; }
+  function parseP(){
+    if(eat("(")){ var v=parseE(); if(!eat(")")) err("括号不匹配"); return v; }
+    var m=/^[0-9]*\.?[0-9]+/.exec(s.slice(i));
+    if(m){ i+=m[0].length; return parseFloat(m[0]); }
+    var m2=/^[a-zA-Z_]+/.exec(s.slice(i));
+    if(m2){
+      var name=m2[0]; i+=name.length;
+      if(name==="x") return x;
+      if(name==="pi") return Math.PI;
+      if(name==="e") return Math.E;
+      if(!eat("(")) err("未知标识 "+name);
+      var a=parseE(); if(!eat(")")) err("括号不匹配");
+      if(name==="sin") return Math.sin(a);
+      if(name==="cos") return Math.cos(a);
+      if(name==="tan") return Math.tan(a);
+      if(name==="asin") return Math.asin(a);
+      if(name==="acos") return Math.acos(a);
+      if(name==="atan") return Math.atan(a);
+      if(name==="ln") return Math.log(a);
+      if(name==="log") return Math.log10(a);
+      if(name==="exp") return Math.exp(a);
+      if(name==="sqrt") return Math.sqrt(a);
+      if(name==="abs") return Math.abs(a);
+      if(name==="sinh") return Math.sinh(a);
+      if(name==="cosh") return Math.cosh(a);
+      if(name==="tanh") return Math.tanh(a);
+      err("未知函数 "+name);
+    }
+    err("无法解析");
+  }
+  var v = parseE();
+  if(i!==s.length) err("多余字符");
+  if(!isFinite(v)) throw new Error("表达式结果非有限数");
+  return v;
+}
 
-var lastProblem = '', lastSubject = '';
+/* ---------- fn 协议编译：AI 语义 → 命令流 ----------
+ * vfield:"steps" 步骤模式（默认）：
+ *   curves:[{expr:"x^3-x", label:"f(x)", color:"amber", domain:"[-3,3]"}]
+ *   area:{from:"0", to:"1", under:"fn1"}            积分区域填充
+ *   tangent:{at:"1", to:"fn1"}                      切线
+ *   steps:[{title,badge,say,desc,why,hl:["fn1"],quiz:{...}}]
+ * 另兼容单曲线简写 {curve:"y=x^3"} / {expr:...} / {implicit:...}
+ */
+function fnNum(v){ var n = parseFloat(v); return isFinite(n) ? n : null; }
+function fnRange(dom){
+  var d = {x0:null, x1:null};
+  if(!dom) return d;
+  var m = /\[\s*(-?[\d.]+(?:\s*\*\s*pi)?)\s*,\s*(-?[\d.]+(?:\s*\*\s*pi)?)\s*\]/.exec(String(dom));
+  if(m){
+    d.x0 = m[1].indexOf("pi")>=0 ? Math.PI*parseFloat(m[1]) : parseFloat(m[1]);
+    d.x1 = m[2].indexOf("pi")>=0 ? Math.PI*parseFloat(m[2]) : parseFloat(m[2]);
+  }
+  return d;
+}
+function fnCompile(data){
+  if(typeof data === "string"){
+    var sm = /^y\s*=\s*(.+)$/.exec(data.trim());
+    data = sm ? { expr: sm[1] } : { expr: data.trim() };
+  }
+  if(!data || typeof data !== "object") return {setup:[],build:[],steps:[],warnings:["空数据"],curves:[],title:"函数图象"};
+  var build = [], setup = [], warnings = [];
+  var curves = (data.curves || []).slice();
+  if(data.curve){
+    var m = /^y\s*=\s*(.+)$/.exec(String(data.curve).trim());
+    curves.push({ expr: m ? m[1] : String(data.curve).trim(), label: data.label || null, domain: data.domain || null });
+  }
+  if(data.expr) curves.push({ expr: String(data.expr).trim(), label: data.label || data.fnLabel || null, domain: data.domain || null });
+  if(data.implicit) curves.push({ implicit: String(data.implicit).trim(), label: data.label || "隐函数" });
+  if(data.family && data.templ){
+    var fm = /a\s*=\s*\[([^\]]+)\]/.exec(String(data.family));
+    if(fm) fm[1].split(",").forEach(function(av){
+      curves.push({ expr: String(data.templ).replace(/\ba\b/g, "(" + av.trim() + ")"), label: "a=" + av.trim() });
+    });
+  }
+  if(!curves.length) warnings.push("没有可画的函数（需 curves/curve/expr/implicit/family 之一）");
+  // 曲线校验：表达式必须可求值（提前暴露 AI 错误）
+  curves.forEach(function(c, ci){
+    if(c.expr){
+      try{ fnEval(c.expr, 0.7311); }catch(e){ warnings.push("曲线"+(ci+1)+"表达式无法计算：" + e.message + "（" + c.expr + "），已跳过"); }
+    }
+  });
+  curves = curves.filter(function(c, ci){
+    if(!c.expr) return true;
+    try{ fnEval(c.expr, 0.7311); return true; }catch(e){ return false; }
+  });
+  curves.forEach(function(c, ci){
+    c.id = "fn" + (ci+1);
+    var dom = c.domain ? ("," + c.domain) : "";
+    var lbl = c.label ? (',"'+String(c.label).replace(/"/g,"")+'"') : "";
+    if(c.implicit) build.push(c.id + '=ImplicitPlot("' + String(c.implicit).replace(/"/g,"") + '"' + lbl + ')');
+    else build.push(c.id + '=PathPlot("' + c.expr + '"' + dom + lbl + ')');
+  });
+  // 附加标记
+  if(data.area && data.area.under){
+    var a0 = fnNum(data.area.from), a1 = fnNum(data.area.to);
+    if(a0 != null && a1 != null) build.push("ar1=AreaFill(fn_ref_" + data.area.under + "," + a0 + "," + a1 + ")");
+    else warnings.push("积分区间无法解析（from/to 需为数字）");
+  }
+  if(data.tangent && data.tangent.to){
+    var ta = fnNum(data.tangent.at);
+    if(ta != null) build.push("tg1=TangentLine(fn_ref_" + data.tangent.to + "," + ta + ")");
+    else warnings.push("切点横坐标需为数字");
+  }
+  if(data.points && data.points.length){
+    data.points.forEach(function(p, pi){
+      var px = fnNum(p[0]), py = fnNum(p[1]);
+      if(px != null && py != null) build.push("pt" + (pi+1) + "=Mark(" + px + "," + py + (p[2] ? (',"'+String(p[2]).replace(/"/g,"")+'"') : "") + ")");
+    });
+  }
+  if(data.vline){
+    (Array.isArray(data.vline) ? data.vline : [data.vline]).forEach(function(v, vi){
+      var vx = fnNum(v);
+      if(vx != null) build.push("vl" + (vi+1) + "=VLine(" + vx + ")");
+    });
+  }
+  // 坐标轴（渲染器自适应窗口）
+  setup.push("axis xauto" + (data.window ? " " + data.window : ""));
+  var steps = (data.steps && data.steps.length) ? data.steps
+    : [{title:"观察图象", say:"如图，观察函数图象。", hl:curves.map(function(c){return c.id;})}];
+  return { setup:setup, build:build, steps:steps, warnings:warnings, curves:curves, title:(data.title)||"函数图象", window:data.window||null };
+}
 
-var DEMO_LINES = [
-"【思路分析】",
-"这是一道 $\\frac{0}{0}$ 型未定式极限题。看到三角函数 $\\sin$，第一反应是重要极限 $\\lim_{u \\to 0}\\frac{\\sin u}{u} = 1$。但分子是 $\\sin 3x$ 而分母是 $x$，需要通过“配凑”把分母也变成 $3x$。",
-"",
-"【分步解答】",
-"步骤 1：判定未定式类型",
-"当 $x \\to 0$ 时，$\\sin 3x \\to 0$，$x \\to 0$，故为 $\\frac{0}{0}$ 型未定式。【知识点：未定式判定】",
-"",
-"步骤 2：配凑重要极限的形式",
-"$$\\lim_{x \\to 0}\\frac{\\sin 3x}{x} = \\lim_{x \\to 0}\\frac{\\sin 3x}{3x} \\cdot 3$$",
-"【知识点：配凑法】",
-"",
-"步骤 3：应用重要极限",
-"令 $u = 3x$，当 $x \\to 0$ 时 $u \\to 0$，由 $\\lim_{u \\to 0}\\frac{\\sin u}{u} = 1$ 得",
-"$$\\lim_{x \\to 0}\\frac{\\sin 3x}{3x} = 1$$",
-"【知识点：重要极限、换元法】",
-"",
-"步骤 4：得出结果",
-"$$原式 = 1 \\cdot 3 = 3$$",
-"",
-"【易错点】",
-"1. 不要直接把 $\\sin 3x$ 约掉——$\\sin 3x$ 不是乘积，不能约分；",
-"2. 配凑时分子分母要同乘，漏乘一边是常见错误；",
-"3. 本题也可用等价无穷小：$x \\to 0$ 时 $\\sin 3x \\sim 3x$，直接得 3。",
-"",
-"【总结】",
-"$$\\lim_{x \\to 0}\\frac{\\sin 3x}{x} = 3$$",
-"本题核心：【知识点：重要极限】+【知识点：配凑法】。“凑”出标准形式是极限题的通用思想。",
-"",
-"【自验算】",
-"方法：代入具体数值检验。取 x=0.001，sin0.003/0.001≈2.9999955≈3，✓ 与答案 3 一致。"
-];
+/* ---------- fnSVG 渲染引擎（浏览器 DOM） ---------- */
+function renderFnSvg(compiled, opts){
+  opts = opts || {};
+  var svg = opts.svg || document.getElementById("arenaSvg");
+  if(!svg) return { fatal:"没有 SVG 容器", layers:null, objs:null, win:null };
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var VW = 500, VH = 380;
+  var layers = {};
+  ["grid","area","curve","mark","node","text"].forEach(function(k){
+    var g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("data-layer", k); svg.appendChild(g); layers[k] = g;
+  });
+  var objs = {};   // 对象名(命令名) -> {els,kind,baseColor}
+  function el(tag, attrs, layer){
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for(var k in attrs){ if(attrs[k]!=null) e.setAttribute(k, attrs[k]); }
+    (layers[layer||"curve"]).appendChild(e);
+    return e;
+  }
+  // 1) 自适应窗口：粗采样所有曲线找 y 范围
+  var cmds = (compiled.setup||[]).concat(compiled.build||[]);
+  var winSpec = null;
+  cmds.forEach(function(c){
+    var m = /^axis\s+xauto(?:\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+))?$/.exec(String(c).trim());
+    if(m && m[1]) winSpec = {xmin:+m[1], xmax:+m[2], ymin:+m[3], ymax:+m[4]};
+  });
+  var win = {xmin:-5, xmax:5, ymin:-3.8, ymax:3.8};
+  if(winSpec){ win = winSpec; }
+  else {
+    // —— 阶段1：扫描命令收集关键点（Mark / AreaFill 区间 / TangentLine 切点）——
+    var kpts = [];
+    cmds.forEach(function(c){
+      var cm = String(c||"").trim(), km;
+      if((km = /^pt\d+\s*=\s*Mark\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/.exec(cm))) kpts.push([+km[1], +km[2]]);
+      if((km = /^ar\d+\s*=\s*AreaFill\(\s*fn_ref_fn\d+\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/.exec(cm))){ kpts.push([+km[1], 0]); kpts.push([+km[2], 0]); }
+      if((km = /^tg\d+\s*=\s*TangentLine\(\s*fn_ref_(fn\d+)\s*,\s*(-?[\d.]+)/.exec(cm))){
+        var tx = +km[2];
+        // 从 compiled.curves 按 id 反查表达式求切点 y
+        // （旧实现对 cmds.join("\n") 用 ^ 锚点正则且无 m 标志，^ 只匹配串首，恒收集失败）
+        var cv = null;
+        (compiled.curves||[]).forEach(function(cc){ if(cc.id === km[1]) cv = cc; });
+        if(cv && cv.expr){ try{ kpts.push([tx, fnEval(cv.expr, tx)]); }catch(e){} }
+      }
+    });
+    // —— 阶段2：曲线 y 分位裁剪 ——
+    var ySamp = [];
+    (compiled.curves||[]).forEach(function(c){
+      if(!c.expr) return;
+      for(var xi=win.xmin; xi<=win.xmax+1e-9; xi+=0.25){
+        try{
+          var yv = fnEval(c.expr, xi);
+          if(isFinite(yv) && Math.abs(yv) < 1e6) ySamp.push(yv);
+        }catch(e){}
+      }
+    });
+    var yLo, yHi;
+    if(ySamp.length){
+      ySamp.sort(function(a,b){ return a-b; });
+      yLo = ySamp[Math.floor(ySamp.length*0.04)];
+      yHi = ySamp[Math.ceil(ySamp.length*0.96)-1];
+      if(!(yHi > yLo)){ yLo = ySamp[0]; yHi = ySamp[ySamp.length-1]; }
+    }
+    // —— 阶段3：关键点感知决定窗口（x 与 y 双向）——
+    // 曲线全域分位容易被远端拉飞（如 x² 全域 [-5,5] 分位 y 达 17），但积分区间/交点只占 [0,1]。
+    // 有关键点且分位范围远大于关键范围时，以关键点为主体。
+    if(kpts.length){
+      var kyLo = Infinity, kyHi = -Infinity;
+      kpts.forEach(function(p){ if(p[1]<kyLo) kyLo=p[1]; if(p[1]>kyHi) kyHi=p[1]; });
+      var kSpan = Math.max(kyHi - kyLo, 0.5);
+      if(yLo != null && (yHi - yLo) > kSpan * 4){
+        // 分位范围远大于关键范围：以关键点为中心开窗
+        var kc = (kyLo + kyHi)/2;
+        yLo = kc - kSpan * 2.2; yHi = kc + kSpan * 2.2;
+      }else{
+        // 融合：并集但贴近关键点
+        kyLo -= kSpan*0.6; kyHi += kSpan*0.6;
+        yLo = Math.min(yLo==null?kyLo:yLo, kyLo);
+        yHi = Math.max(yHi==null?kyHi:yHi, kyHi);
+      }
+      if(yLo == null){ yLo = kyLo - kSpan; yHi = kyHi + kSpan; }
+      // —— x 方向：关键点 x 范围远小于默认 [-5,5] 时收紧 x 窗口（面积/交点场景）——
+      var kxLo = Infinity, kxHi = -Infinity;
+      kpts.forEach(function(p){ if(p[0]<kxLo) kxLo=p[0]; if(p[0]>kxHi) kxHi=p[0]; });
+      if(isFinite(kxLo) && isFinite(kxHi)){
+        var kxSpan = Math.max(kxHi - kxLo, 0.5);
+        if((win.xmax - win.xmin) > kxSpan * 4){
+          var kxc = (kxLo + kxHi)/2;
+          var half = kxSpan * 2.2;
+          win.xmin = kxc - half; win.xmax = kxc + half;
+        }
+      }
+    }else if(yLo != null){
+      // 无关键点：纯分位
+    }else{
+      yLo = -3.8; yHi = 3.8;
+    }
+    // y 跨度观感限制 ≤ xSpan×1.5（500×380 画幅）
+    var xSpan0 = win.xmax - win.xmin;
+    var ySpan0 = yHi - yLo;
+    if(ySpan0 > xSpan0 * 1.5 && ySpan0 > 0){
+      var yc = (yLo + yHi)/2;
+      yLo = yc - xSpan0*0.75; yHi = yc + xSpan0*0.75;
+    }
+    var pad0 = (yHi - yLo)*0.12;
+    win.ymin = yLo - pad0; win.ymax = yHi + pad0;
+    // xy 等比：以 x 范围为基准缩放 y（画布 500x380）
+    var spanX = win.xmax - win.xmin, spanY = win.ymax - win.ymin;
+    var needY = spanX * (VH/VW);
+    if(spanY < needY){ var cy2=(win.ymin+win.ymax)/2; win.ymin=cy2-needY/2; win.ymax=cy2+needY/2; }
+  }
+  function mx(x){ return (x - win.xmin)/(win.xmax-win.xmin)*VW; }
+  function my(y){ return VH - (y - win.ymin)/(win.ymax-win.ymin)*VH; }
+  // 2) 网格 + 坐标轴
+  var gridDash = "2 4";
+  function niceStep(span, target){
+    var raw = span/target, mag = Math.pow(10, Math.floor(Math.log(raw)/Math.LN10));
+    var nrm = raw/mag;
+    return (nrm<1.5?1:nrm<3?2:nrm<7?5:10)*mag;
+  }
+  var stepX = niceStep(win.xmax-win.xmin, 10), stepY = niceStep(win.ymax-win.ymin, 8);
+  var gx = Math.ceil(win.xmin/stepX)*stepX;
+  var gridEls = [];
+  for(; gx <= win.xmax+1e-9; gx += stepX){
+    var gl = el("line",{x1:mx(gx),y1:0,x2:mx(gx),y2:VH,stroke:"#1e293b","stroke-width":1,"stroke-dasharray":gridDash},"grid");
+    gridEls.push(gl);
+    if(Math.abs(gx) > stepX*0.01){
+      var gt = el("text",{x:mx(gx),y:VH-6,"font-size":10,fill:"#475569","text-anchor":"middle"},"grid");
+      gt.textContent = String(Math.round(gx*100)/100);
+    }
+  }
+  var gy = Math.ceil(win.ymin/stepY)*stepY;
+  for(; gy <= win.ymax+1e-9; gy += stepY){
+    var gl2 = el("line",{x1:0,y1:my(gy),x2:VW,y2:my(gy),stroke:"#1e293b","stroke-width":1,"stroke-dasharray":gridDash},"grid");
+    gridEls.push(gl2);
+    if(Math.abs(gy) > stepY*0.01){
+      var gt2 = el("text",{x:5,y:my(gy)-4,"font-size":10,fill:"#475569"},"grid");
+      gt2.textContent = String(Math.round(gy*100)/100);
+    }
+  }
+  var axisEls = [];
+  if(win.ymin < 0 && win.ymax > 0){
+    axisEls.push(el("line",{x1:0,y1:my(0),x2:VW,y2:my(0),stroke:"#475569","stroke-width":1.6},"grid"));
+    var xt = el("text",{x:VW-10,y:my(0)-6,"font-size":12,fill:"#94a3b8","font-weight":600},"grid");
+    xt.textContent = "x";
+  }
+  if(win.xmin < 0 && win.xmax > 0){
+    axisEls.push(el("line",{x1:mx(0),y1:0,x2:mx(0),y2:VH,stroke:"#475569","stroke-width":1.6},"grid"));
+    var yt = el("text",{x:mx(0)+6,y:12,"font-size":12,fill:"#94a3b8","font-weight":600},"grid");
+    yt.textContent = "y";
+  }
+  // 3) 执行曲线/标记命令
+  var CURVE_COLORS = ["#38bdf8","#34d399","#f472b6","#fbbf24","#a78bfa","#fb7185"];
+  var curveObjs = {};   // fn1 → {expr, els:[path], label, color, dots:[点]}
+  var cmds2 = cmds.concat([]);
+  var ai = 0, ti = 0;
+  cmds2.forEach(function(raw){
+    var c = String(raw||"").trim();
+    var m;
+    // PathPlot
+    m = /^fn(\d+)\s*=\s*PathPlot\(\s*"((?:[^"\\]|\\.)*)"\s*(?:,\s*(\[[^\]]*\]))?\s*(?:,\s*"((?:[^"\\]|\\.)*)")?\s*\)$/.exec(c);
+    if(m){
+      var id = "fn"+m[1], expr = m[2], dom = m[3]||null, lbl = m[4]||null;
+      var rng = fnRange(dom);
+      var x0 = rng.x0!=null ? rng.x0 : win.xmin, x1 = rng.x1!=null ? rng.x1 : win.xmax;
+      var color = CURVE_COLORS[(+m[1]-1) % CURVE_COLORS.length];
+      // 采样 ~400 点，断点处理（|y| 突跳或 NaN 判为不连续）
+      var N = 400, px0 = x0, py0 = null, segs = [], cur = [];
+      var ySamp = [];
+      for(var k=0;k<=N;k++){
+        var xv = x0 + (x1-x0)*k/N;
+        var yv = null;
+        try{ yv = fnEval(expr, xv); }catch(e){}
+        ySamp.push([xv,yv]);
+      }
+      for(var k2=0;k2<ySamp.length;k2++){
+        var xv2=ySamp[k2][0], yv2=ySamp[k2][1];
+        if(yv2!=null && isFinite(yv2) && yv2>win.ymin-50 && yv2<win.ymax+50){
+          if(py0!=null){
+            var jump = Math.abs(yv2-py0);
+            var dx = Math.abs(xv2-px0);
+            if(jump > 40*Math.max(dx,1e-4)*(VH/(win.ymax-win.ymin)) && jump > 3){ cur = []; }  // 断点：tan 类垂直渐近线
+          }
+          cur.push(mx(xv2).toFixed(2)+","+my(yv2).toFixed(2));
+          px0=xv2; py0=yv2;
+        } else { if(cur.length>1) segs.push(cur); cur=[]; py0=null; px0=xv2; }
+      }
+      if(cur.length>1) segs.push(cur);
+      var els = [];
+      segs.forEach(function(seg){
+        if(seg.length < 2) return;
+        var p = el("polyline",{points:seg.join(" "),fill:"none",stroke:color,"stroke-width":3,"stroke-linecap":"round","stroke-linejoin":"round",class:"geo-elem"});
+        els.push(p);
+      });
+      objs[id] = {els:els, kind:"curve", baseColor:color};
+      curveObjs[id] = {expr:expr, els:els, label:lbl, color:color};
+      if(lbl){
+        // 标签放曲线右端（取最后有效点）
+        var lastPt = (ySamp.filter(function(p2){return p2[1]!=null && isFinite(p2[1]);}).pop());
+        if(lastPt){
+          var lt = el("text",{x:mx(Math.min(lastPt[0], win.xmax-0.4))+6,y:my(lastPt[1])-6,"font-size":13,"font-weight":600,fill:color},"text");
+          lt.textContent = lbl;
+          objs[id+"_lbl"] = {els:[lt], kind:"text", baseColor:color};
+        }
+      }
+      return;
+    }
+    // ImplicitPlot：x^2+y^2=4 → marching squares 简化版（网格符号变化画短线）
+    m = /^fn(\d+)\s*=\s*ImplicitPlot\(\s*"((?:[^"\\]|\\.)*)"\s*(?:,\s*"((?:[^"\\]|\\.)*)")?\s*\)$/.exec(c);
+    if(m){
+      var id2 = "fn"+m[1], ieq = m[2];
+      var em = /^(.*?)=(.*)$/.exec(ieq);
+      if(em){
+        // F(x,y) = 左-右，采样符号变化
+        function Fev(xv, yv){
+          try{
+            var lv = fnEval(em[1].replace(/\by\b/g, "("+yv+")").replace(/\bx\b/g, "("+xv+")"), 0);
+            var rv = fnEval(em[2].replace(/\by\b/g, "("+yv+")").replace(/\bx\b/g, "("+xv+")"), 0);
+            return lv - rv;
+          }catch(e){ return NaN; }
+        }
+        // marching squares：网格符号变化处连线（60×46 网格）
+        var NG=60, MG=46, segPts=[], Fv=[];
+        for(var iy=0; iy<=MG; iy++){
+          Fv[iy]=[];
+          for(var ix=0; ix<=NG; ix++){
+            var fx = win.xmin + (win.xmax-win.xmin)*ix/NG;
+            var fy = win.ymin + (win.ymax-win.ymin)*iy/MG;
+            Fv[iy][ix] = Fev(fx, fy);
+          }
+        }
+        function fAt(ix,iy){ return Fv[iy][ix]; }
+        for(var cy=0; cy<MG; cy++){
+          for(var cx=0; cx<NG; cx++){
+            var c00=fAt(cx,cy), c10=fAt(cx+1,cy), c01=fAt(cx,cy+1), c11=fAt(cx+1,cy+1);
+            if(isNaN(c00)||isNaN(c10)||isNaN(c01)||isNaN(c11)) continue;
+            var signs = (c00>0?1:0)+(c10>0?2:0)+(c01>0?4:0)+(c11>0?8:0);
+            if(signs===0 || signs===15) continue;
+            // 逐边收集零点（线性插值）
+            var zeros=[];
+            if((c00>0)!==(c10>0)){ var t1=c00/(c00-c10); zeros.push([win.xmin+(win.xmax-win.xmin)*(cx+t1)/NG, win.ymin+(win.ymax-win.ymin)*cy/MG]); }
+            if((c10>0)!==(c11>0)){ var t2=c10/(c10-c11); zeros.push([win.xmin+(win.xmax-win.xmin)*(cx+1)/NG, win.ymin+(win.ymax-win.ymin)*(cy+t2)/MG]); }
+            if((c01>0)!==(c11>0)){ var t3=c01/(c01-c11); zeros.push([win.xmin+(win.xmax-win.xmin)*(cx+1)/NG, win.ymin+(win.ymax-win.ymin)*(cy+t3)/MG]); }
+            if((c00>0)!==(c01>0)){ var t4=c00/(c00-c01); zeros.push([win.xmin+(win.xmax-win.xmin)*cx/NG, win.ymin+(win.ymax-win.ymin)*(cy+t4)/MG]); }
+            if(zeros.length===2){ segPts.push([zeros[0],zeros[1]]); }
+            else if(zeros.length===4){ segPts.push([zeros[0],zeros[1]]); segPts.push([zeros[2],zeros[3]]); }
+          }
+        }
+        var icolor = CURVE_COLORS[(+m[1]-1) % CURVE_COLORS.length];
+        var iels = [];
+        segPts.forEach(function(sp){
+          var il = el("line",{x1:mx(sp[0][0]).toFixed(1),y1:my(sp[0][1]).toFixed(1),x2:mx(sp[1][0]).toFixed(1),y2:my(sp[1][1]).toFixed(1),stroke:icolor,"stroke-width":3,"stroke-linecap":"round",class:"geo-elem"});
+          iels.push(il);
+        });
+        objs[id2] = {els:iels, kind:"curve", baseColor:icolor};
+        curveObjs[id2] = {implicit:ieq, els:iels, label:(m[3]||null), color:icolor};
+      }
+      return;
+    }
+    // AreaFill(fn1,a,b)
+    m = /^ar(\d+)\s*=\s*AreaFill\(\s*fn_ref_(fn\d+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)$/.exec(c);
+    if(m){
+      var a = +m[3], b = +m[4];
+      // 用表达式重采样区域（比解析 polyline 更稳）
+      var cO = curveObjs[m[2]];
+      var expr2 = cO ? cO.expr : null;
+      if(expr2){
+        var fillPts = [];
+        var N2 = 200;
+        // 基线 y=clamp(0, win.ymin, win.ymax)，避免窗口不含 0 时路径越出画布
+        var yBase = Math.max(win.ymin, Math.min(win.ymax, 0));
+        for(var k3=0;k3<=N2;k3++){
+          var xv3 = a + (b-a)*k3/N2;
+          try{ fillPts.push([xv3, fnEval(expr2, xv3)]); }catch(e){}
+        }
+        var dStr = "M "+mx(a).toFixed(2)+" "+my(yBase).toFixed(2);
+        fillPts.forEach(function(p3){ dStr += " L "+mx(p3[0]).toFixed(2)+" "+my(Math.max(win.ymin, Math.min(win.ymax, p3[1]))).toFixed(2); });
+        dStr += " L "+mx(b).toFixed(2)+" "+my(yBase).toFixed(2)+" Z";
+        var ael = el("path",{d:dStr,fill:"rgba(245,158,11,.32)",stroke:"none",class:"geo-elem"},"area");
+        objs["ar"+m[1]] = {els:[ael], kind:"area", baseColor:"rgba(245,158,11,.5)"};
+      }
+      return;
+    }
+    // TangentLine(fn1,a)
+    m = /^tg(\d+)\s*=\s*TangentLine\(\s*fn_ref_(fn\d+)\s*,\s*(-?[\d.]+)\s*\)$/.exec(c);
+    if(m){
+      var cO2 = curveObjs[m[2]];
+      if(cO2){
+        var xa = +m[3];
+        var h = 1e-5;
+        try{
+          var ya = fnEval(cO2.expr, xa);
+          var slope = (fnEval(cO2.expr, xa+h) - fnEval(cO2.expr, xa-h)) / (2*h);
+          var dx = (win.xmax-win.xmin)*0.35;
+          var tel = el("line",{x1:mx(xa-dx),y1:my(ya-slope*dx),x2:mx(xa+dx),y2:my(ya+slope*dx),stroke:"#fbbf24","stroke-width":2,"stroke-dasharray":"6 4",class:"geo-elem"},"mark");
+          objs["tg"+m[1]] = {els:[tel], kind:"line", baseColor:"#fbbf24"};
+        }catch(e){}
+      }
+      return;
+    }
+    // Mark(x,y[,label])
+    m = /^pt(\d+)\s*=\s*Mark\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*(?:,\s*"((?:[^"\\]|\\.)*)")?\s*\)$/.exec(c);
+    if(m){
+      var mc = el("circle",{cx:mx(+m[2]),cy:my(+m[3]),r:5,fill:"#ec4899",class:"geo-elem"},"node");
+      var mels = [mc];
+      if(m[4]){
+        var mt = el("text",{x:mx(+m[2])+8,y:my(+m[3])-8,"font-size":12,"font-weight":600,fill:"#f9a8d4"},"text");
+        mt.textContent = m[4];
+        mels.push(mt);
+      }
+      objs["pt"+m[1]] = {els:mels, kind:"pt", baseColor:"#ec4899"};
+      return;
+    }
+    // VLine(x)
+    m = /^vl(\d+)\s*=\s*VLine\(\s*(-?[\d.]+)\s*\)$/.exec(c);
+    if(m){
+      var vl = el("line",{x1:mx(+m[2]),y1:0,x2:mx(+m[2]),y2:VH,stroke:"#64748b","stroke-width":1.5,"stroke-dasharray":"4 4",class:"geo-elem"},"mark");
+      objs["vl"+m[1]] = {els:[vl], kind:"line", baseColor:"#64748b"};
+      return;
+    }
+  });
+  return { objs:objs, curveObjs:curveObjs, win:win, layers:layers, mx:mx, my:my };
+}
 
+global.fnCompile = fnCompile;
+global.fnEval = fnEval;
+global.renderFnSvg = renderFnSvg;
+if (typeof module !== "undefined" && module.exports) module.exports = { fnCompile: fnCompile, fnEval: fnEval, renderFnSvg: renderFnSvg };
+})(typeof window!=="undefined" ? window : globalThis);
+</script>
+
+<script>
+/* ===== 第 3 段：主逻辑（AI 交互 / 解析 / arena 驱动 / OCR / DEMO） ===== */
+"use strict";
+/* ---------- 状态 ---------- */
+var lastProblem = '', lastSubject = '', lastPhoto = null, lastOcrText = '';
+var arena = null;   // {compiled, objs, render(res from renderFnSvg), steps, idx, timer, quizState}
+
+/* ---------- 工具 ---------- */
+function escHtml(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function fixLatex(s){
   if(!s) return s;
-  // AI 偶发返回双重转义（JSON 字符串中 \\frac、\\lim 等），还原为单反斜杠供 KaTeX 使用
-  return s.replace(/\\\\/g, '\\');
+  // AI 偶发双重转义（JSON 字符串中 \\frac、\\lim），还原为单反斜杠供 KaTeX 使用
+  return String(s).replace(/\\\\/g, '\\');
 }
 function delimField(s){
-  // 兜底：若整段是裸 LaTeX（无定界符），自动包上 \(...\)，避免 KaTeX 无法渲染
+  // 兜底：若整段是裸 LaTeX（无定界符），自动包上 \(...\)
   if(!s) return s;
   var t = String(s).trim();
   if(!t) return s;
-  if(/\\\(|\\\[|^\s*\$|\$\$/.test(t)) return s; // 已有定界符
-  if(/\\[a-zA-Z]/.test(t)) return '\\(' + t + '\\)'; // 含 LaTeX 命令则包裹
+  if(/\\\(|\\\[|^\s*\$|\$\$/.test(t)) return s;
+  if(/\\[a-zA-Z]/.test(t)) return '\\(' + t + '\\)';
   return s;
-}
-function renderJSON(t){
-  var o;
-  try{
-    // 去除可能的 markdown 代码块围栏后提取 JSON
-    var clean = String(t).replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
-    var m = clean.match(/\{[\s\S]*\}/);
-    o = JSON.parse(m ? m[0] : clean);
-    if(!o.steps || !o.steps.length) throw 0;
-  }catch(e){
-    // 解析失败时也尝试渲染其中的 LaTeX 公式
-    return '<div class="raw">'+fmt(fixLatex(String(t)))+'</div>';
-  }
-  var h = '';
-  if(o.problem_latex) h += '<h4>📝 \u9898\u76EE</h4><div>'+delimField(fixLatex(o.problem_latex))+'</div>';
-  if(o.analysis) h += '<h4>💡 \u601D\u8DEF\u5206\u6790</h4><p>'+delimField(fixLatex(o.analysis))+'</p>';
-  h += '<h4>📋 \u5206\u6B65\u63A8\u5BFC</h4>';
-  o.steps.forEach(function(st,i){
-    h += '<p><b>\u6B65\u9AA4'+(i+1)+'\uFF1A'+delimField(fixLatex(st.t))+'</b><br>'+delimField(fixLatex(st.c))+'</p>';
-    if(st.kp) h += '<span class="kp">📚 '+fixLatex(st.kp)+'</span>';
-  });
-  if(o.pitfalls && o.pitfalls.length) h += '<h4>\u26A0\uFE0F \u6613\u9519\u70B9</h4><ul>'+o.pitfalls.map(function(p){return '<li>'+delimField(fixLatex(p))+'</li>';}).join('')+'</ul>';
-  if(o.summary) h += '<h4>\u2705 \u603B\u7ED3</h4><p>'+delimField(fixLatex(o.summary))+'</p>';
-  if(o.verify) h += '<h4>🔍 \u81EA\u9A8C\u7B97</h4><p><b>\u65B9\u6CD5\uFF1A</b>'+delimField(fixLatex(o.verify.method))+'<br><b>\u7ED3\u679C\uFF1A</b>'+delimField(fixLatex(o.verify.result))+'</p>';
-  return h;
-}
-function fmt(t){
-  return t.replace(/\u3010\u77e5\u8bc6\u70b9\uff1a(.*?)\u3011/g, '<span class="kp">📚 $1</span>')
-          .replace(/\n/g, '<br>');
 }
 function renderLatex(el){
   if(window.renderMathInElement){
@@ -201,243 +754,560 @@ function renderLatex(el){
     ], throwOnError:false});
   }
 }
-function showResult(){
-  document.getElementById('setup').style.display='none';
-  document.getElementById('result').style.display='block';
-}
-function saveCode(){
-  var v = document.getElementById('accessCode').value.trim();
+function setCode(v){
   localStorage.setItem('xskai_code', v);
-  document.getElementById('codeOk').textContent = v ? '已保存' : '已清除';
+  [['accessCode','codeOk'],['accessCodeChat','codeOkChat'],['accessCodeNav','codeOkNav']].forEach(function(p){
+    var i = document.getElementById(p[0]), o = document.getElementById(p[1]);
+    if(i) i.value = v;
+    if(o) o.textContent = v ? '已保存' : '已清除';
+  });
 }
-(function(){ document.getElementById('accessCode').value = localStorage.getItem('xskai_code')||''; })();
+function saveCode(){ setCode(document.getElementById('accessCode').value.trim()); }
+function saveCodeChat(){ setCode(document.getElementById('accessCodeChat').value.trim()); }
+function saveCodeNav(){ setCode(document.getElementById('accessCodeNav').value.trim()); }
+function openCodeModal(){
+  var v = localStorage.getItem('xskai_code')||'';
+  document.getElementById('accessCodeNav').value = v;
+  document.getElementById('codeOkNav').textContent = v ? '已保存' : '';
+  document.getElementById('codeModal').classList.add('open');
+}
+function closeCodeModal(){ document.getElementById('codeModal').classList.remove('open'); }
+(function(){
+  var v = localStorage.getItem('xskai_code')||'';
+  ['accessCode','accessCodeChat','accessCodeNav'].forEach(function(id){ var i = document.getElementById(id); if(i) i.value = v; });
+})();
 function apiHeaders(){
   var h = {'Content-Type':'application/json'};
   var c = localStorage.getItem('xskai_code');
   if(c) h['X-Access-Code'] = c;
   return h;
 }
-
-function startDemo(){
-  showResult();
-  var sol = document.getElementById('solution');
-  sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">📝 示例：求极限 $\\lim_{x \\to 0}\\frac{\\sin 3x}{x}$ 的详细解答</div><div>'+fmt(DEMO_LINES.join('\n'))+'</div></div>';
-  renderLatex(sol);
-  document.getElementById('resultBtns').style.display='flex';
-  sol.scrollIntoView({behavior:'smooth'});
+function showResult(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('result').style.display='block';
+  document.getElementById('noteBar').style.display='block';
 }
+function restart(){ location.reload(); }
+
+/* ---------- SYSTEM 提示词（fn 协议版） ----------
+ * AI 输出 JSON：题目 LaTeX + 思路 + 分步推导 + 图象协议（曲线/填充/切线/点/渐近线）
+ * fn 协议由前端 fnCompile 编译为命令流，renderFnSvg 精确采样绘制 */
+var SYSTEM = "你是大学数学老师（高等数学/线性代数/概率统计）。只返回JSON（不要其他文字、不要markdown代码块），格式："
++ '{"problem_latex":"题目LaTeX","analysis":"思路分析：考查什么、用什么方法、为什么",'
++ '"fx":{"title":"图象标题","curves":[{"expr":"sin(3*x)/x","label":"f(x)","domain":"[-2,2]"}],"area":{"from":"-1","to":"1","under":"fn1"},"tangent":{"at":"1","to":"fn1"},"points":[[0,1,"A"]],"vline":[2],"window":"[-5,5,-2,4]","steps":[{"title":"步骤名","badge":"短语","say":"一句话","desc":"<p>详细说明，可含 \\(...\\) LaTeX</p>","why":"为什么这一步成立","hl":["fn1"],"quiz":{"question":"...","options":[{"text":"...","correct":true},{"text":"...","correct":false}],"explanation":"..."}}]},'
++ '"steps":[{"t":"步骤标题","c":"推导内容","kp":"知识点"}],"pitfalls":["易错点"],"summary":"总结","verify":{"method":"验算方法","result":"验算过程与✓/✗结论"}}。'
++ "要求：1. LaTeX行内用\\(...\\)，独立行用\\[...\\]；2. verify 必须用真实方法验算（代入具体数值、求导还原积分、特殊值检验等），给出过程和 ✓/✗ 结论，不许只写'经检验正确'；"
++ "3. 题目涉及函数图象（极限/导数/切线/积分面积/级数/方程组解的几何意义等）时必须给 fx 字段，否则 fx 为 null；"
++ "4. fx.curves 的 expr 只用这些函数与写法：x、pi、e、数字、+ - * / ^ ( )、sin cos tan asin acos atan sinh cosh tanh ln log exp sqrt abs；乘法必须写 *（如 sin(3*x)/x、x^2-2*x）；幂用 ^；"
++ "5. fx.steps 的 hl 用对象名：fn1/fn2（曲线）、ar1（面积）、tg1（切线）、pt1（点）、vl1（渐近线），每步高亮与讲解对应；"
++ "6. 每道题 fx.steps 给 3-6 步，第 1 步画基本曲线，最后一步是总结（如填色显示面积时放 area 对象）；"
++ "7. 题目有歧义时按最常见理解解答并注明。";
+
+/* ---------- AI 调用 ---------- */
 async function callAI(messages){
-  var endpoint = SITE_WORKER;
-  var headers = apiHeaders();
-  var res = await fetch(endpoint, {method:'POST', headers:headers,
-    body: JSON.stringify({model:'deepseek-v4-flash', messages:messages, temperature:0.3})});
+  var res = await fetch(SITE_WORKER, {method:'POST', headers:apiHeaders(),
+    body: JSON.stringify({model:'deepseek-v4-flash', messages:messages, temperature:0.3, max_tokens:6000})});
   var data = await res.json();
   if(data.error) throw new Error(data.error);
   return data.choices[0].message.content;
 }
+/* 从 AI 回复中提取 JSON（去围栏/取大括号段）；截断时尝试修复 */
+function parseTutor(t){
+  var clean = String(t).replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
+  var m = clean.match(/\{[\s\S]*\}/);
+  var s = m ? m[0] : clean;
+  try{ return JSON.parse(s); }catch(e){}
+  // 截断兜底：逐层修复未闭合结构（尾逗号/未闭合字符串/未闭合括号）
+  var repaired = repairJSON(s);
+  return JSON.parse(repaired);
+}
+/* 修复被 max_tokens 截断的 JSON：补齐字符串引号、数组与对象括号、去掉尾逗号 */
+function repairJSON(s){
+  // 1) 找到最后一个完整的值结尾（",},]，true/false/null/数字），之后的部分视为残缺
+  var i = s.length - 1;
+  // 去掉尾部不完整 token（比如 true 被截为 tru）
+  var m = /"(?:[^"\\]|\\.)*"\s*[,\]}]|\d+\s*[,\]}]|(?:true|false|null)\s*[,\]}]|\}\s*[,}]|\]\s*[,}]$/g;
+  // 手工扫描字符串状态
+  var inStr = false, lastSafe = -1;
+  for(var k = 0; k < s.length; k++){
+    var ch = s[k];
+    if(inStr){
+      if(ch === '\\'){ k++; continue; }
+      if(ch === '"'){ inStr = false; lastSafe = k; }  // 字符串完整闭合处
+    }else{
+      if(ch === '"') inStr = true;
+      else if(ch === ',' || ch === '}' || ch === ']' || ch === ':') lastSafe = k;  // 结构字符处
+      else if(/[0-9a-z]/i.test(ch)){
+        // 关键字/数字中间截断：若下一个字符后没有结构字符，这里就是安全点
+        var rest = s.slice(k);
+        var mm = /^(?:\d+(?:\.\d+)?|true|false|null)/.exec(rest);
+        if(mm && (k + mm[0].length >= s.length || /[\s,}\]]/.test(s[k+mm[0].length]))) lastSafe = k + mm[0].length - 1;
+      }
+    }
+  }
+  var cut = (lastSafe >= 0 && lastSafe < s.length - 1) ? lastSafe + 1 : s.length;
+  var body = s.slice(0, cut).replace(/,\s*$/, '');
+  // 2) 若仍停在字符串中（inStr），说明没法安全截，尝试补引号
+  if(inStr) body += '"';
+  // 3) 补未闭合括号：扫描 body 统计栈（字符串感知）
+  var stk = [], inStr2 = false;
+  for(var j = 0; j < body.length; j++){
+    var c = body[j];
+    if(inStr2){ if(c === '\\'){ j++; continue; } if(c === '"') inStr2 = false; }
+    else{
+      if(c === '"') inStr2 = true;
+      else if(c === '{' || c === '[') stk.push(c);
+      else if(c === '}' && stk[stk.length-1] === '{') stk.pop();
+      else if(c === ']' && stk[stk.length-1] === '[') stk.pop();
+    }
+  }
+  // 字符串没闭合 → 补引号（放在补括号之前结果一致）
+  if(inStr2) body += '"';
+  while(stk.length){ body += (stk.pop() === '{' ? '}' : ']'); }
+  return body;
+}
+
+/* ---------- 渲染结果：题面 + 文字解答卡 + fn arena ---------- */
+function solSection(o){
+  var h = '';
+  if(o.problem_latex) h += '<div class="prob-show"><b>📝 原题：</b>'+delimField(fixLatex(o.problem_latex))+'</div>';
+  var sb = '<div class="sol-box">';
+  if(o.analysis) sb += '<h4>💡 思路分析</h4><p>'+delimField(fixLatex(o.analysis))+'</p>';
+  if(o.steps && o.steps.length){
+    sb += '<h4>📋 分步推导</h4>';
+    o.steps.forEach(function(st, i){
+      sb += '<p><b>步骤'+(i+1)+'：'+delimField(fixLatex(st.t))+'</b><br>'+delimField(fixLatex(st.c))+'</p>';
+      if(st.kp) sb += '<span class="kp">📚 '+fixLatex(st.kp)+'</span>';
+    });
+  }
+  if(o.pitfalls && o.pitfalls.length) sb += '<h4>⚠️ 易错点</h4><ul>'+o.pitfalls.map(function(p){return '<li>'+delimField(fixLatex(p))+'</li>';}).join('')+'</ul>';
+  if(o.summary) sb += '<h4>✅ 总结</h4><p>'+delimField(fixLatex(o.summary))+'</p>';
+  if(o.verify) sb += '<h4>🔍 自验算</h4><p><b>方法：</b>'+delimField(fixLatex(o.verify.method))+'<br><b>结果：</b>'+delimField(fixLatex(o.verify.result))+'</p>';
+  return h + sb + '</div>';
+}
+function fnArenaHTML(compiled){
+  var h = '<div class="explain-stage"><div class="stage-title">📊 交互图象 · 分步动画</div>'
+  + '<div class="arena">'
+  +  '<div class="arena-left">'
+  +   '<div class="arena-canvas">'
+  +    '<div class="arena-head"><span class="live"><span class="dot"></span>'+escHtml(compiled.title||'函数图象')+'</span><span class="badge-step" id="arenaBadge">第 0 步</span></div>'
+  +    '<div class="arena-surface" id="arenaSurface"><div class="gridbg"></div><svg id="arenaSvg" viewBox="0 0 500 380" preserveAspectRatio="xMidYMid meet"></svg><div class="arena-tooltip" id="arenaTip"></div></div>'
+  +    '<div class="arena-ctrl">'
+  +     '<div class="timeline-row"><span class="lb">时间轴</span><div class="timeline" id="arenaTl"></div></div>'
+  +     '<div class="arena-actions">'
+  +      '<div class="arena-nav"><button class="btn-step prev" id="arenaPrev" onclick="arenaPrev()">← 上一步</button><button class="btn-step next" id="arenaNext" onclick="arenaNext()">开始 ▶</button></div>'
+  +      '<button class="btn-autoplay" id="arenaAutoplay" onclick="arenaAutoplayToggle()">▶ 自动播放</button>'
+  +     '</div>'
+  +    '</div>'
+  +   '</div>'
+  +  '</div>'
+  +  '<div class="arena-panel">'
+  +   '<div class="panel-head"><div class="tl2"><div class="step-num" id="panelNum">0</div><div class="step-title" id="panelTitle"></div></div><span class="step-badge" id="panelBadge"></span></div>'
+  +   '<div class="step-desc" id="panelDesc"></div>'
+  +   '<div class="why-box" id="whyBox" style="display:none"><button class="why-btn" id="whyBtn" onclick="arenaWhyToggle()">💡 为什么？<span class="ar">▾</span></button><div class="why-body" id="whyBody"></div></div>'
+  +   '<div class="quiz-box" id="quizBox" style="display:none"></div>'
+  +  '</div>'
+  + '</div></div>';
+  if(compiled.warnings && compiled.warnings.length){
+    h += '<div style="padding:10px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fcd34d;font-size:13px;line-height:1.7;border-radius:10px;margin:10px 0">⚠ 作图提示：'+compiled.warnings.map(escHtml).join('；')+'</div>';
+  }
+  return h;
+}
+function renderResult(o, heading){
+  showResult();
+  var body = document.getElementById('resultBody');
+  var html = '<div class="who">'+escHtml(heading||'📝 详细解答')+'</div>' + solSection(o);
+  body.innerHTML = html;
+  if(o.fx){
+    var compiled = null;
+    try{ compiled = fnCompile(o.fx); }catch(e){}
+    if(compiled && (compiled.build||[]).length){
+      var stage = document.createElement('div');
+      stage.innerHTML = fnArenaHTML(compiled);
+      body.appendChild(stage);
+      initFnArena(compiled);
+    }
+  }
+  renderLatex(body);
+  var cw = document.querySelector('.math-card');
+  if(cw) cw.classList.add('open-wide');
+  body.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ---------- fn arena 状态机（对齐 shuxue arena 交互） ---------- */
+function initFnArena(compiled){
+  stopArena();
+  var res = renderFnSvg(compiled, {svg:document.getElementById('arenaSvg')});
+  if(!res || res.fatal){ arena = null; return; }
+  arena = {
+    compiled: compiled,
+    render: res,
+    objs: res.objs,
+    steps: (compiled.steps && compiled.steps.length) ? compiled.steps : [{say:'观察图象', hl:[]}],
+    idx: -1,
+    timer: null,
+    quizState: {}
+  };
+  buildTimeline();
+  applyStep(0);
+  var nb = document.getElementById('arenaNext');
+  if(nb) nb.textContent = (arena.steps.length > 1) ? '下一步 ▶' : '重播 ↻';
+}
+function buildTimeline(){
+  var tl = document.getElementById('arenaTl');
+  if(!tl || !arena) return;
+  tl.innerHTML = '';
+  arena.steps.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'tl-btn'; b.textContent = (s.title || ('步骤'+(i+1)));
+    b.title = (s.title||'') + ' ' + (s.say||'');
+    b.onclick = function(){ applyStep(i); if(arena && arena.timer){ stopAutoplay(); } };
+    tl.appendChild(b);
+  });
+}
+/* 应用步状态：高亮 hl 对象（fn1/ar1/tg1/pt1/vl1/…），其余淡化 */
+function applyStep(i){
+  if(!arena) return;
+  arena.idx = i;
+  var st = arena.steps[i] || {};
+  var hlSet = {};
+  ((st.hl)||[]).forEach(function(nm){ hlSet[String(nm).trim()] = true; });
+  var hlColor = '#f59e0b', hlNode = '#ec4899';
+  for(var name in arena.objs){
+    var ob = arena.objs[name];
+    var isHl = !!hlSet[name];
+    ob.els.forEach(function(el){
+      el.style.opacity = isHl ? 1 : 0.55;
+      el.classList.remove('flowline','nodepulse');
+      if(isHl){
+        if(ob.kind === 'pt'){ el.setAttribute('r', 7); el.setAttribute('fill', hlNode); el.classList.add('nodepulse'); }
+        else if(ob.kind === 'area'){ el.setAttribute('fill', 'rgba(245,158,11,.55)'); }
+        else if(ob.kind === 'curve' || ob.kind === 'line'){ el.setAttribute('stroke', hlColor); el.setAttribute('stroke-width', 4); el.classList.add('flowline'); }
+        else if(ob.kind === 'text'){ el.setAttribute('fill', hlNode); }
+      }else{
+        if(ob.kind === 'pt'){ el.setAttribute('r', 5); el.setAttribute('fill', ob.baseColor || '#ec4899'); }
+        else if(ob.kind === 'area'){ el.setAttribute('fill', 'rgba(245,158,11,.32)'); }
+        else if(ob.kind === 'curve' || ob.kind === 'line'){ el.setAttribute('stroke', ob.baseColor || '#38bdf8'); el.setAttribute('stroke-width', ob.kind==='curve'?3:2); }
+        else if(ob.kind === 'text'){ el.setAttribute('fill', ob.baseColor || '#cbd5e1'); }
+      }
+    });
+  }
+  // 面板同步
+  var num = document.getElementById('panelNum'); if(num) num.textContent = (i+1);
+  var title = document.getElementById('panelTitle'); if(title) title.textContent = st.title || ('第 '+(i+1)+' 步');
+  var badge = document.getElementById('panelBadge'); if(badge) badge.textContent = st.badge || '';
+  var desc = document.getElementById('panelDesc');
+  if(desc) desc.innerHTML = st.desc ? String(st.desc) : escHtml(st.say||'');
+  if(desc && st.desc){ /* desc 可能含 LaTeX，稍后统一 renderLatex */ }
+  var wb = document.getElementById('whyBox');
+  if(wb){ wb.style.display = st.why ? 'block' : 'none';
+    var wbB = document.getElementById('whyBody');
+    if(wbB){ wbB.innerHTML = st.why ? String(st.why) : ''; wbB.classList.remove('open'); }
+    var wbT = document.getElementById('whyBtn');
+    if(wbT) wbT.classList.remove('open');
+  }
+  renderQuiz(st.quiz, i);
+  // LaTeX 渲染面板区域（desc/why 内可能含 \( \)）
+  var panel = document.getElementById('panelDesc');
+  if(panel && panel.innerHTML) renderLatex(panel);
+  var wbody = document.getElementById('whyBody');
+  if(wbody && wbody.innerHTML) renderLatex(wbody);
+  // tooltip + 徽标 + 时间轴态
+  var tp = document.getElementById('arenaTip');
+  if(tp){ tp.innerHTML = '<b>'+escHtml(st.title||('步骤'+(i+1)))+'</b>&nbsp;' + escHtml(String(st.say||'').replace(/<[^>]+>/g,'').slice(0,40)); tp.classList.add('show');
+    clearTimeout(arena.tipTimer);
+    arena.tipTimer = setTimeout(function(){ tp.classList.remove('show'); }, 3000);
+  }
+  var bd2 = document.getElementById('arenaBadge');
+  if(bd2) bd2.textContent = '第 '+(i+1)+' / '+arena.steps.length+' 步';
+  var tlBtns = document.querySelectorAll('#arenaTl .tl-btn');
+  for(var tb=0; tb<tlBtns.length; tb++){ tlBtns[tb].classList.toggle('on', tb === i); }
+  var pb = document.getElementById('arenaPrev');
+  if(pb) pb.disabled = (i <= 0);
+  var nb2 = document.getElementById('arenaNext');
+  if(nb2) nb2.textContent = (i >= arena.steps.length-1) ? '重播 ↻' : '下一步 ▶';
+}
+function arenaPrev(){ if(arena && arena.idx > 0){ applyStep(arena.idx-1); } }
+function arenaNext(){
+  if(!arena) return;
+  if(arena.idx >= arena.steps.length-1){ applyStep(0); return; }
+  applyStep(arena.idx+1);
+}
+function arenaAutoplayToggle(){
+  var btn = document.getElementById('arenaAutoplay');
+  if(!arena) return;
+  if(arena.timer){ stopAutoplay(); return; }
+  if(btn){ btn.classList.add('on'); btn.textContent = '⏸ 暂停播放'; }
+  if(arena.idx >= arena.steps.length-1) applyStep(0);
+  arena.timer = setInterval(function(){
+    var nx = arena.idx + 1;
+    if(nx >= arena.steps.length) nx = 0;
+    applyStep(nx);
+  }, 4500);
+}
+function stopAutoplay(){
+  var btn = document.getElementById('arenaAutoplay');
+  if(arena && arena.timer){ clearInterval(arena.timer); arena.timer = null; }
+  if(btn){ btn.classList.remove('on'); btn.textContent = '▶ 自动播放'; }
+}
+function arenaWhyToggle(){
+  var b = document.getElementById('whyBtn'), bo = document.getElementById('whyBody');
+  if(b && bo){ b.classList.toggle('open'); bo.classList.toggle('open'); }
+}
+function renderQuiz(q, stepIdx){
+  var box = document.getElementById('quizBox');
+  if(!box) return;
+  box.innerHTML = '';
+  if(!q || !q.question || !q.options){ box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  var h = '<div class="quiz-head"><span class="quiz-tt">🎓 小测验</span><span class="quiz-state" id="quizState">未作答</span></div>'
+       + '<div class="quiz-q">'+escHtml(q.question)+'</div><div class="quiz-opts">';
+  (q.options||[]).forEach(function(op, oi){
+    h += '<button class="quiz-opt" onclick="quizAnswer('+stepIdx+','+oi+',this)"><span>'+escHtml(op.text||'')+'</span><span class="oi"></span></button>';
+  });
+  h += '</div><div class="quiz-feedback" id="quizFb"></div>';
+  box.innerHTML = h;
+  if(!arena.quizState) arena.quizState = {};
+  if(arena.quizState[stepIdx] != null) markQuizAns(stepIdx, arena.quizState[stepIdx]);
+}
+function quizAnswer(stepIdx, oi, el){
+  if(!arena || !arena.steps[stepIdx]) return;
+  var q = arena.steps[stepIdx].quiz;
+  if(!q || !q.options || !q.options[oi]) return;
+  arena.quizState = arena.quizState || {};
+  arena.quizState[stepIdx] = oi;
+  markQuizAns(stepIdx, oi);
+}
+function markQuizAns(stepIdx, oi){
+  var q = arena && arena.steps[stepIdx] && arena.steps[stepIdx].quiz;
+  if(!q) return;
+  var opt = (q.options||[])[oi];
+  var correct = !!(opt && opt.correct);
+  var fb = document.getElementById('quizFb');
+  var st = document.getElementById('quizState');
+  var opts = document.querySelectorAll('#quizBox .quiz-opt');
+  for(var i=0;i<opts.length;i++){
+    var isThis = (i === oi);
+    var isRightOption = !!((q.options||[])[i] && q.options[i].correct);
+    opts[i].style.borderColor = isRightOption ? 'rgba(16,185,129,.7)' : (isThis ? 'rgba(244,63,94,.6)' : '');
+    opts[i].style.background = isRightOption ? 'rgba(6,78,59,.4)' : (isThis ? 'rgba(136,19,55,.4)' : '');
+    var oiSpan = opts[i].querySelector('.oi');
+    if(oiSpan) oiSpan.textContent = isRightOption ? '✓' : (isThis ? '✗' : '');
+  }
+  if(st){ st.textContent = correct ? '回答正确' : '再想想'; st.className = 'quiz-state ' + (correct ? 'ok' : 'no'); }
+  if(fb){ fb.className = 'quiz-feedback ' + (correct ? 'ok' : 'no'); fb.textContent = (correct ? '✓ ' : '✗ ' ) + (q.explanation || (correct?'答对啦！':'提示：再看一眼这一步的图象。')); }
+}
+function stopArena(){
+  if(arena){
+    if(arena.timer) clearInterval(arena.timer);
+    if(arena.tipTimer) clearTimeout(arena.tipTimer);
+  }
+  arena = null;
+  var auto = document.getElementById('arenaAutoplay');
+  if(auto){ auto.classList.remove('on'); auto.textContent = '▶ 自动播放'; }
+}
+
+/* ---------- solve / altSolve / startDemo ---------- */
 async function solve(){
   var p = document.getElementById('problem').value.trim();
   if(p.length < 3){ alert('请先输入一道题目。'); return; }
   lastProblem = p; lastSubject = document.getElementById('subject').value;
-  showResult();
-  var sol = document.getElementById('solution');
-  sol.innerHTML = '';
+  var body = document.getElementById('resultBody');
   document.getElementById('loading').style.display='block';
   document.getElementById('resultBtns').style.display='none';
+  stopArena();
+  showResult();
+  body.innerHTML = '';
   try{
     var t = await callAI([
       {role:'system', content: SYSTEM},
-      {role:'user', content: '科目：'+lastSubject+'\n题目：'+p+'\n请给出详细解答。'}
+      {role:'user', content: '科目：'+lastSubject+'\n题目：'+p+'\n请给出详细解答（涉及函数图象/几何意义时附带 fx）。'}
     ]);
-    sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">📝 详细解答</div><div>'+renderJSON(t)+'</div></div>';
-    renderLatex(sol);
-    sol.scrollIntoView({behavior:'smooth'});
+    var o = parseTutor(t);
+    renderResult(o, '📝 详细解答');
   }catch(e){
-    sol.innerHTML = '<div class="msg tutor" style="max-width:100%">出错了：'+e.message+'。检查 API 配置是否正确。</div>';
+    body.innerHTML = '<div class="sol-box" style="color:#fca5a5">出错了：'+escHtml(e.message)+'。请检查网络或卡密后重试。</div>';
   }
   document.getElementById('loading').style.display='none';
   document.getElementById('resultBtns').style.display='flex';
 }
 async function altSolve(){
   if(!lastProblem){ alert('请先生成一次解答。'); return; }
-  var sol = document.getElementById('solution');
+  var body = document.getElementById('resultBody');
   document.getElementById('loading').style.display='block';
+  document.getElementById('resultBtns').style.display='none';
+  stopArena();
   try{
     var t = await callAI([
       {role:'system', content: SYSTEM},
-      {role:'user', content: '科目：'+lastSubject+'\n题目：'+lastProblem+'\n请换一种解法或思路，重新给出详细解答。'}
+      {role:'user', content: '科目：'+lastSubject+'\n题目：'+lastProblem+'\n请换一种解法或思路，重新给出详细解答（fx 也要按新解法更新）。'}
     ]);
-    sol.innerHTML = '<div class="msg tutor" style="max-width:100%"><div class="who">🔄 另一种解法</div><div>'+renderJSON(t)+'</div></div>';
-    renderLatex(sol);
-    sol.scrollIntoView({behavior:'smooth'});
+    var o = parseTutor(t);
+    renderResult(o, '🔄 另一种解法');
   }catch(e){ alert('出错了：'+e.message); }
   document.getElementById('loading').style.display='none';
+  document.getElementById('resultBtns').style.display='flex';
 }
-function restart(){ location.reload();}
 
-function ocrPhoto(input){
-var file = input.files && input.files[0];
-if(!file) return;
-var status = document.getElementById('ocrStatus');
-status.style.display = 'block';
-status.textContent = '📷 \u6B63\u5728\u8BC6\u522B\u9898\u76EE\u2026';
-status.style.color = '#fbbf24';
-var img = new Image();
-img.onload = function(){
-var maxSide = 1600, w = img.width, h = img.height;
-if(Math.max(w,h) > maxSide){ var r = maxSide/Math.max(w,h); w = Math.round(w*r); h = Math.round(h*r);}
-var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-cv.getContext('2d').drawImage(img, 0, 0, w, h);
-var dataUrl = cv.toDataURL('image/jpeg', 0.85);
-URL.revokeObjectURL(img.src);
-input.value = '';
-// 先走本站 Worker（Mathpix 公式识别），失败再降级 OCR.space
-ocrViaWorker(dataUrl).then(function(txt){
-  if(txt){ onOcrText(txt, true); }
-  else{ ocrViaSpace(dataUrl); }
-});
+/* ---------- DEMO：sin3x/x 极限（fn 协议全流程演示） ---------- */
+var DEMO_FX = {
+  title: 'y = sin(3x)/x 在 x→0 附近的行为',
+  curves: [{expr:'sin(3*x)/x', label:'f(x)', domain:'[-6,6]'}],
+  window: '[-6.5,6.5,-4,5]',
+  vline: [0],
+  steps: [
+    {title:'画出函数', badge:'观察', say:'画出 f(x)=sin(3x)/x，注意到 x=0 处无定义——先看图再说。',
+     desc:'<p>蓝色曲线就是 \\(f(x)=\\frac{\\sin 3x}{x}\\)。灰色虚线是 \\(x=0\\)：函数在这一点<b>没有定义</b>（分母为零），但这不妨碍我们研究 \\(x\\to 0\\) 时它"想变成谁"。</p>',
+     why:'极限关心的是趋近过程中的趋势，不在乎那一点本身有没有定义。',
+     hl:['fn1','vl1']},
+    {title:'往 0 逼近', badge:'极限思想', say:'x 从左右两侧逼近 0，看曲线汇到哪里。',
+     desc:'<p>从图上看：\\(x\\) 无论从左边还是右边逼近 0，曲线都汇聚到 \\(y=3\\) 附近。这就是极限的几何直观——双侧都收敛到同一个值。</p>',
+     why:'左极限 = 右极限 = 同一个数，极限才存在。',
+     hl:['fn1','vl1'],
+     quiz:{question:'从图象看，x→0 时 f(x) 趋于多少？', options:[{text:'0', correct:false},{text:'3', correct:true},{text:'∞', correct:false}], explanation:'曲线双侧都汇聚到 y=3，这是重要极限配凑后的结果。'}},
+    {title:'配凑标准形', badge:'核心技巧', say:'把 sin3x/x 凑成 sin(3x)/(3x)·3，套重要极限。',
+     desc:'<p>\\[\\lim_{x\\to 0}\\frac{\\sin 3x}{x}=\\lim_{x\\to 0}\\frac{\\sin 3x}{3x}\\cdot 3=1\\times 3=3\\]</p><p>令 \\(u=3x\\)，当 \\(x\\to 0\\) 时 \\(u\\to 0\\)，重要极限 \\(\\lim_{u\\to 0}\\frac{\\sin u}{u}=1\\) 直接套用。</p>',
+     why:'重要极限是"模板"，配凑就是把题目变成模板的样子；同乘同除 3x 不改变值。',
+     hl:['fn1']},
+    {title:'✅ 结论与验算', badge:'完成', say:'极限值 = 3；代入 x=0.001 验算 sin(0.003)/0.001≈2.9999955 ✓',
+     desc:'<p>\\[\\lim_{x\\to 0}\\frac{\\sin 3x}{x}=3\\]</p><p><b>真实验算</b>：取 \\(x=0.001\\)，\\(\\frac{\\sin(0.003)}{0.001}\\approx 2.9999955\\approx 3\\) ✓。也可用等价无穷小 \\(\\sin 3x\\sim 3x\\) 秒杀。</p>',
+     why:'代入充分小的数值是检验极限答案最直接的方法，AI 也会算错，验算是你的安全网。',
+     hl:['fn1','vl1']}
+  ]
 };
-img.onerror = function(){ status.textContent = '\u2718 \u56FE\u7247\u8BFB\u53D6\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002'; status.style.color = '#f87171';};
-img.src = URL.createObjectURL(file);
+function startDemo(){
+  lastProblem = '求极限 lim(x→0) sin3x/x';
+  lastSubject = '高等数学';
+  var o = {
+    problem_latex: '\\[\\lim_{x \\to 0}\\frac{\\sin 3x}{x}\\]',
+    analysis: '这是 \\(\\frac{0}{0}\\) 型未定式极限题。看到三角函数 \\(\\sin\\)，第一反应是重要极限 \\(\\lim_{u \\to 0}\\frac{\\sin u}{u}=1\\)。分子是 \\(\\sin 3x\\) 而分母是 \\(x\\)，需要"配凑"把分母也变成 \\(3x\\)。',
+    fx: DEMO_FX,
+    steps: [
+      {t:'判定未定式类型', c:'当 \\(x \\to 0\\) 时 \\(\\sin 3x \\to 0\\)、\\(x \\to 0\\)，为 \\(\\frac{0}{0}\\) 型未定式。', kp:'未定式判定'},
+      {t:'配凑重要极限形式', c:'\\(\\lim_{x \\to 0}\\frac{\\sin 3x}{x}=\\lim_{x \\to 0}\\frac{\\sin 3x}{3x}\\cdot 3\\)', kp:'配凑法'},
+      {t:'应用重要极限', c:'令 \\(u=3x\\)，由 \\(\\lim_{u \\to 0}\\frac{\\sin u}{u}=1\\) 得极限为 \\(1\\times 3=3\\)。', kp:'重要极限 + 换元'}
+    ],
+    pitfalls: [
+      '不要把 \\(\\sin 3x\\) 与 \\(x\\) 约分——\\(\\sin 3x\\) 不是乘积，不能约。',
+      '配凑时分子分母要同时乘除，漏一边是常见错误。',
+      '也可用等价无穷小：\\(x\\to 0\\) 时 \\(\\sin 3x\\sim 3x\\)，直接得 3。'
+    ],
+    summary: '\\(\\lim_{x \\to 0}\\frac{\\sin 3x}{x}=3\\)。核心是重要极限 + 配凑——"凑"出标准形式是极限题的通用思想。',
+    verify: {method:'代入具体数值检验', result:'取 \\(x=0.001\\)：\\(\\frac{\\sin(0.003)}{0.001}\\approx 2.9999955\\approx 3\\)，✓ 与答案一致。'}
+  };
+  renderResult(o, '👀 演示：sin3x/x 极限');
+  document.getElementById('resultBtns').style.display='flex';
+}
+
+/* ---------- 拍照 OCR 链（Worker /ocr 主 + OCR.space 备） ---------- */
+function ocrPhoto(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var status = document.getElementById('ocrStatus');
+  status.style.display = 'block';
+  status.style.color = '#b45309';
+  status.textContent = '📷 正在识别题目文字…';
+  var img = new Image();
+  img.onload = function(){
+    var maxSide = 1600, w = img.width, h = img.height;
+    if(Math.max(w,h) > maxSide){ var r = maxSide/Math.max(w,h); w = Math.round(w*r); h = Math.round(h*r); }
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var dataUrl = cv.toDataURL('image/jpeg', 0.85);
+    URL.revokeObjectURL(img.src);
+    input.value = '';
+    showPhotoPreview(dataUrl, w*h);
+    ocrViaWorker(dataUrl).then(function(txt){
+      if(txt){ onOcrText(txt); return; }
+      ocrViaSpace(dataUrl);
+    });
+  };
+  img.onerror = function(){ status.textContent = '✘ 图片读取失败，请重试。'; status.style.color = '#f87171'; };
+  img.src = URL.createObjectURL(file);
 }
 function ocrViaWorker(dataUrl){
-return new Promise(function(resolve){
-  try{
-    var base = (typeof SITE_WORKER==='undefined' ? '' : SITE_WORKER).replace(/\/$/,'');
-    if(!base){ resolve(null); return; }
-    var done = false;
-    var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 20000);
-    fetch(base + '/ocr', {method:'POST', headers:apiHeaders(),
-      body: JSON.stringify({image:dataUrl})})
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(done) return; done = true; clearTimeout(timer);
-      var txt = ((d && (d.latex || d.text)) || '').trim();
-      resolve(txt || null);
-    })
-    .catch(function(){ if(!done){ done = true; clearTimeout(timer); resolve(null); } });
-  }catch(e){ resolve(null); }
-});
+  return new Promise(function(resolve){
+    try{
+      var base = (typeof SITE_WORKER==='undefined' ? '' : SITE_WORKER).replace(/\/$/,'');
+      if(!base){ resolve(null); return; }
+      var done = false;
+      var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 20000);
+      fetch(base + '/ocr', {method:'POST', headers:apiHeaders(),
+        body: JSON.stringify({image:dataUrl})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(done) return; done = true; clearTimeout(timer);
+        var txt = ((d && (d.latex || d.text)) || '').trim();
+        resolve(txt || null);
+      })
+      .catch(function(){ if(!done){ done = true; clearTimeout(timer); resolve(null); } });
+    }catch(e){ resolve(null); }
+  });
 }
 function ocrViaSpace(dataUrl){
-var status = document.getElementById('ocrStatus');
-status.textContent = '📷 \u5907\u7528\u8BC6\u522B\u4E2D\u2026';
-var fd = new FormData();
-fd.append('apikey', 'helloworld');
-fd.append('base64Image', dataUrl);
-fd.append('language', 'chs');
-fd.append('OCREngine', '2');
-fetch('https://api.ocr.space/parse/image', {method:'POST', body:fd})
-.then(function(r){ return r.json();})
-.then(function(data){
-var txt = data && data.ParsedResults && data.ParsedResults[0] && data.ParsedResults[0].ParsedText;
-onOcrText((txt||'').trim().replace(/\s+/g,''), false);
-})
-.catch(function(){
-status.textContent = '\u2718 \u8BC6\u522B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u624B\u52A8\u8F93\u5165\u9898\u76EE\u3002';
-status.style.color = '#f87171';
-});
+  var status = document.getElementById('ocrStatus');
+  status.textContent = '📷 备用识别中…';
+  var fd = new FormData();
+  fd.append('apikey', 'helloworld');
+  fd.append('base64Image', dataUrl);
+  fd.append('language', 'chs');
+  fd.append('OCREngine', '2');
+  fetch('https://api.ocr.space/parse/image', {method:'POST', body:fd})
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var txt = data && data.ParsedResults && data.ParsedResults[0] && data.ParsedResults[0].ParsedText;
+    onOcrText((txt||'').trim().replace(/\s+/g,''));
+  })
+  .catch(function(){
+    status.textContent = '✘ 识别服务暂时不可用，请手动输入题目。';
+    status.style.color = '#f87171';
+  });
 }
-var pvTimer = null;
-var isEditing = false;
-function looksLikeLatex(s){
-  if(!s) return false;
-  return /\\[a-zA-Z]+/.test(s)
-    || /\\\(/.test(s)
-    || /\\\[/.test(s)
-    || /\$\$/.test(s)
-    || /\\(?:lim|frac|sqrt|sum|int|arctan|arcsin|arccos|sin|cos|tan|log|ln|pi|cdot|times|infty|alpha|beta|theta|pm|mp|le|ge|ne|approx|to\s|left|right)/.test(s)
-    || /\^\s*[0-9{]/.test(s)
-    || /_\s*[0-9{a-zA-Z]/.test(s);
-}
-function escHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function buildPreviewHtml(v){
-  var hasDelims = /\\\(|\\\[|\$\$|\$[^$]+\$/.test(v);
-  if(hasDelims){
-    return escHtml(v).replace(/\n/g,'<br>');
-  }else if(looksLikeLatex(v)){
-    return '\\[' + escHtml(v).replace(/\\\\(?=[a-zA-Z])/g,'\\').replace(/\\\\/g,' ').replace(/\n+/g,' ') + '\\]';
+function onOcrText(txt){
+  var status = document.getElementById('ocrStatus');
+  if(txt){
+    var ta = document.getElementById('problem');
+    // 重拍时覆盖上次识别结果（重拍=对上次不满意），手动输入的内容不覆盖
+    var prev = ta.value.replace(/\s+/g,'');
+    if(prev && prev === lastOcrText) ta.value = '';
+    lastOcrText = txt.replace(/\s+/g,'');
+    ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + '，' : '') + lastOcrText;
+    status.textContent = '✔ 文字已识别，请检查是否准确，修正后点「生成解答练习场」。';
+    status.style.color = '#4ade80';
   }else{
-    return escHtml(v).replace(/\n/g,'<br>');
+    status.textContent = '✘ 没识别出文字，换个角度重拍，或手动输入。';
+    status.style.color = '#f87171';
   }
 }
-function renderPreview(){
-  var ta = document.getElementById('problem');
-  var render = document.getElementById('problemRender');
-  if(!ta || !render) return;
-  var v = ta.value.trim();
-  if(!v || !window.renderMathInElement || isEditing){
-    return;
-  }
-  render.innerHTML = buildPreviewHtml(v);
-  if(!v){ render.style.display='none'; ta.style.display='block'; return; }
-  try{
-    renderMathInElement(render, {delimiters:[
-      {left:'\\[', right:'\\]', display:true},
-      {left:'\\(', right:'\\)', display:false},
-      {left:'$$', right:'$$', display:true},
-      {left:'$', right:'$', display:false}
-    ], throwOnError:false});
-    var rendered = render.querySelectorAll('.katex, .katex-error').length;
-    if(!rendered){
-      render.style.display='none';
-      ta.style.display='block';
-      return;
-    }
-    if(render.querySelectorAll('.katex-error').length){
-      render.innerHTML += '<div class="edit-hint">⚠ 部分内容无法渲染，点击可编辑修正</div>';
-    }
-  }catch(e){ render.style.display='none'; ta.style.display='block'; return; }
-  render.innerHTML += '<div class="edit-hint">点击可编辑修改</div>';
-  render.style.display='block';
-  ta.style.display='none';
+function showPhotoPreview(dataUrl, px){
+  lastPhoto = dataUrl;
+  var pv = document.getElementById('photoPreview');
+  document.getElementById('pvImg').src = dataUrl;
+  document.getElementById('pvNote').textContent = px > 400000
+    ? '已识别文字 · 图片已压缩保存'
+    : '已识别文字 · 图片较小，建议重拍更清晰的照片';
+  pv.classList.add('show');
 }
-function showEditor(){
-  var ta = document.getElementById('problem');
-  var render = document.getElementById('problemRender');
-  isEditing = true;
-  render.style.display='none';
-  ta.style.display='block';
-  ta.focus();
-}
-function hideEditor(){
-  var ta = document.getElementById('problem');
-  var render = document.getElementById('problemRender');
-  isEditing = false;
-  renderPreview();
-}
-function schedulePreview(){
-  if(pvTimer) clearTimeout(pvTimer);
-  pvTimer = setTimeout(renderPreview, 400);
-}
-(function(){
-  var ta = document.getElementById('problem');
-  var render = document.getElementById('problemRender');
-  if(ta){
-    ta.addEventListener('input', schedulePreview);
-    ta.addEventListener('blur', function(){ setTimeout(hideEditor, 200); });
-  }
-  if(render){
-    render.addEventListener('click', showEditor);
-  }
-})();
-
-function onOcrText(txt, isLatex){
-var status = document.getElementById('ocrStatus');
-if(txt){
-var ta = document.getElementById('problem');
-ta.value = (ta.value? ta.value.replace(/\s+$/,'') + '\uFF0C': '') + txt;
-status.textContent = '\u2714 \u8BC6\u522B\u5B8C\u6210\uFF0C\u8BF7\u68C0\u67E5\u6587\u5B57\u662F\u5426\u51C6\u786E\uFF0C\u624B\u52A8\u4FEE\u6B63\u540E\u518D\u70B9\"\u751F\u6210\u8BE6\u7EC6\u89E3\u7B54\"\u3002';
-status.style.color = '#4ade80';
-isEditing = false;
-renderPreview();
-}else{
-status.textContent = '\u2718 \u6CA1\u8BC6\u522B\u51FA\u6587\u5B57\uFF0C\u6362\u4E2A\u89D2\u5EA6\u91CD\u62CD\uFF0C\u6216\u624B\u52A8\u8F93\u5165\u3002';
-status.style.color = '#f87171';
-}
+function clearPhoto(){
+  lastPhoto = null;
+  var pv = document.getElementById('photoPreview');
+  pv.classList.remove('show');
+  document.getElementById('pvImg').src = '';
 }
 </script>
+
+<!-- 导航栏卡密弹窗 -->
+<div class="code-modal" id="codeModal">
+  <div class="box">
+    <h3>输入卡密</h3>
+    <p>免费次数用完后，输入已购买的卡密可继续使用。卡密保存在本机浏览器中。<a href="pricing.html" style="color:#38bdf8">买卡密 →</a></p>
+    <div class="row">
+      <input id="accessCodeNav" placeholder="输入卡密">
+      <button class="btn-accent" onclick="saveCodeNav()">保存</button>
+    </div>
+    <div class="ok" id="codeOkNav" style="font-size:13px;margin-top:8px;color:#34d399"></div>
+    <div class="actions"><button class="btn-subtle" onclick="closeCodeModal()">关闭</button></div>
+  </div>
+</div>
 </body>
 </html>
