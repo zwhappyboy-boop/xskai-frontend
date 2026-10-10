@@ -70,6 +70,7 @@ nav.main .nav-code:hover{background:#0ea5e9}
 .loading{color:#fbbf24;font-size:14px;margin-top:12px;display:none}
 .prob-show{margin:0 0 14px;padding:12px 16px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.25);border-radius:12px;font-size:15px;line-height:1.8;color:#e2e8f0}
 .prob-show b{color:#7dd3fc}
+.prob-show.prob-photo img{display:block;max-width:100%;max-height:340px;margin-top:8px;border-radius:10px;border:1px solid #334155}
 .chat-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .btn-subtle{background:rgba(15,23,42,.6);border:1px solid #334155;color:#cbd5e1;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
 .btn-subtle:hover{border-color:#0ea5e9;color:#7dd3fc}
@@ -648,12 +649,19 @@ function backToSetup(){
   document.getElementById('explainOut').style.display='none';
   document.getElementById('setup').style.display='block';
 }
+/* 原题展示：有照片时直接显示原题照片（学生看得懂），否则显示文字 */
+function probShowHtml(text){
+  if(lastPhoto){
+    return '<div class="prob-show prob-photo"><b>📚 原题：</b><img src="'+lastPhoto+'" alt="原题照片"></div>';
+  }
+  return '<div class="prob-show"><b>📚 原题：</b>'+escHtml(text||'')+'</div>';
+}
 async function startExplain(){
 var p = document.getElementById('problem').value.trim() || (lastPhoto ? (lastOcrText || '题目见所附图片') : '') || curProblem;
 if(p.length < 5){ alert('请先输入一道数学题（至少5个字），或拍照识别题目。'); return; }
 curProblem = p;
 showExplain();
-document.getElementById('explainBody').innerHTML = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(p)+'</div>';
+document.getElementById('explainBody').innerHTML = probShowHtml(p);
 document.getElementById('loading').style.display='block';
 try{
 var res = await fetch(SITE_WORKER, {method:'POST', headers:apiHeaders(),
@@ -685,7 +693,7 @@ document.getElementById('loading').style.display='none';
 /* geo 草稿确认页：AI 开场白 + 几何条件 chips（可删/可补）+ 生成按钮 */
 function renderGeoDraft(o){
   stopArena();
-  var h = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(curProblem || '')+'</div>';
+  var h = probShowHtml(curProblem);
   h += '<div class="msg tutor"><div class="who">🤖 AI 老师 · 读图结果</div><div>'+fmt(o.say||'')+'</div>';
   if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
   h += '</div>';
@@ -696,7 +704,7 @@ function renderGeoDraft(o){
 function renderExplain(o){
 stopArena();
 lastExplain = o;
-var h = '<div class="prob-show"><b>📚 原题：</b>'+escHtml(curProblem || '')+'</div>';
+var h = probShowHtml(curProblem);
 h += '<div class="msg tutor"><div class="who">🤖 AI 老师 · 动画讲解</div><div>'+fmt(o.say||'')+'</div>';
 if(o.kp) h += '<div style="margin-top:6px"><span class="kp">📚 '+escHtml(o.kp)+'</span></div>';
   h += '</div>';
