@@ -23,7 +23,7 @@ document.head.appendChild(s2);
 document.head.appendChild(s1);
 })();
 function showAbout(k){var d=ABOUT_TXT[k];if(!d)return;document.getElementById('aboutTitle').textContent=d.t;document.getElementById('aboutBody').innerHTML=d.b;document.getElementById('aboutModal').style.display='flex';}
-var DEFAULT_WORKER = "https://xskai-api.workers.dev/";
+var DEFAULT_WORKER = "https://api.xskai.com/";
 var FREE_DAILY = 5;
 function curTrack(){ return parseInt(ls("xsk_track")||"1",10);}
 function sysSolve(){ return "你是考研数学（数"+TRACK_CN[curTrack()]+"）解题助手。"+TRACKS[curTrack()].scope+"请按以下四部分作答：一句话点出关键方法；分步写出完整过程，每步注明所用定理或公式；心算验算关键计算步骤，确认无误后再输出最终答案；指出最容易错的地方。所有数学公式必须用 LaTeX 表示（行内公式用 $...$，独立公式用 $$...$$），不要用纯文本近似。矩阵必须用 \\begin{pmatrix}...\\end{pmatrix} 环境（元素间用 & 分隔，行间用 \\\\ 换行），向量、行列式同理用 pmatrix/bmatrix/determinant 环境。控制在 500 字以内。";}
