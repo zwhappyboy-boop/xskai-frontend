@@ -213,6 +213,7 @@ function renderHome(){
 var grid=document.getElementById("svcGrid"); if(!grid) return; grid.innerHTML="";
 var cards=[
 {title:"高数学习",desc:"知识点 · 真题 · AI 解题",go:function(){ goStudy("kb");}},
+{title:"高数水平诊断",desc:"15 分钟测出你的高数薄弱点 · 专属提分报告",go:function(){ location.href="diagnose.html";}},
 {title:"招生政策",desc:"政策通知 · 关键时间",go:function(){ switchTab("policy");}},
 {title:"目标院校",desc:"一本及以上 · 按地区找学校",go:function(){ switchTab("schools"); }},
 {title:"备考规划",desc:"基础 → 强化 → 冲刺三阶段",go:function(){ switchTab("plan");}},

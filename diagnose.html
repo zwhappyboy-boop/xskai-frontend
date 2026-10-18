@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高数水平诊断 · 学士库</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;--ok:#059669;--warn:#d97706;--bad:#dc2626;--purple:#7c3aed;--orange:#ea580c;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+.sitehead{background:#fff;border-bottom:1px solid var(--line)}
+.sitehead .wrap{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:18px;font-weight:800}
+.brand a{color:var(--ink);text-decoration:none}
+.brand .en{color:var(--chsi)}
+.back{font-size:14px;color:var(--muted);text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.card{background:#fff;border-radius:12px;padding:28px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+h1{font-size:24px;margin-bottom:6px}
+h2{font-size:18px;margin-bottom:12px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+.hero-slogan{font-size:15px;color:var(--chsi);font-weight:600;background:#eef3fb;border:1px solid #d3e0f5;border-radius:8px;padding:10px 14px;display:inline-block;margin-bottom:18px}
+.track-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.track-opt{border:2px solid var(--line);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:.15s}
+.track-opt:hover{border-color:var(--chsi)}
+.track-opt.sel{border-color:var(--chsi);background:#eef3fb}
+.track-opt b{display:block;font-size:17px}
+.track-opt span{font-size:12px;color:var(--muted)}
+.btn{display:inline-block;background:var(--chsi);color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:16px;font-weight:600;cursor:pointer}
+.btn:disabled{background:#9ca3af;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--chsi);border:1px solid var(--chsi)}
+.btn.ai-btn{background:linear-gradient(135deg,#7c3aed,#4f46e5);width:100%;padding:13px}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:20px}
+.feat{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px}
+.feat b{color:var(--chsi)}
+/* 答题 */
+.progress{height:8px;background:var(--line);border-radius:4px;margin-bottom:16px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--chsi);border-radius:4px;transition:.3s}
+.quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:14px}
+.timer{font-weight:700;color:var(--chsi);background:#eef3fb;padding:3px 12px;border-radius:14px}
+.timer.warn{color:var(--bad);background:#fef2f2}
+.topic-tag{color:var(--muted);font-size:13px}
+.q-text{font-size:17px;margin-bottom:22px}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:10px;padding:13px 16px;font-size:15px;margin-bottom:12px;cursor:pointer;transition:.12s}
+.opt:hover{border-color:var(--chsi)}
+.opt.sel{border-color:var(--chsi);background:#eef3fb}
+.quiz-nav{display:flex;justify-content:space-between;margin-top:10px}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.dot{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
+.dot.done{background:#d3e0f5;color:var(--chsi);border-color:#d3e0f5}
+.dot.cur{outline:2px solid var(--chsi)}
+/* 报告 */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat{border-radius:10px;padding:14px;color:#fff;text-align:center}
+.stat.blue{background:var(--chsi)}.stat.orange{background:var(--orange)}.stat.green{background:var(--ok)}.stat.purple{background:var(--purple)}
+.stat .num{font-size:26px;font-weight:800}
+.stat .lbl{font-size:12px;opacity:.9}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-name{width:110px;font-size:13px;text-align:right;flex-shrink:0}
+.bar{flex:1;height:14px;background:var(--line);border-radius:7px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:7px}
+.bar i.g{background:var(--ok)}.bar i.y{background:#f59e0b}.bar i.r{background:var(--bad)}
+.bar-pct{width:42px;font-size:13px;font-weight:700}
+.cause-row{display:flex;gap:10px}
+.cause{flex:1;border-radius:8px;padding:12px;text-align:center;font-size:13px;border:1px solid}
+.cause b{display:block;font-size:20px}
+.cause.c1{border-color:#fde68a;background:#fffbeb;color:#92400e}
+.cause.c2{border-color:#bfdbfe;background:#eff6ff;color:#1e40af}
+.cause.c3{border-color:#fbcfe8;background:#fdf2f8;color:#9d174d}
+.topic-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.topic-table th,.topic-table td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left}
+.topic-table th{color:var(--muted);font-weight:600;font-size:12.5px}
+.badge{display:inline-block;padding:1px 10px;border-radius:10px;font-size:12px}
+.badge.good{background:#ecfdf5;color:var(--ok)}
+.badge.mid{background:#fffbeb;color:var(--warn)}
+.badge.weak{background:#fef2f2;color:var(--bad)}
+.advice{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;font-size:13.5px;margin-top:10px}
+.advice li{margin:6px 0 6px 18px}
+.ai-out{margin-top:14px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:18px;font-size:14px;display:none}
+.ai-out h3{font-size:15px;color:var(--purple);margin-bottom:8px}
+.foot-note{text-align:center;color:var(--muted);font-size:12px;padding:16px 0}
+@media (max-width:640px){
+.stat-grid{grid-template-columns:repeat(2,1fr)}
+.track-grid{grid-template-columns:1fr}
+.bar-name{width:84px;font-size:12px}
+.card{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+<header class="sitehead"><div class="wrap">
+<div class="brand"><a href="index.html">学士库<span class="en">xskAi</span></a></div>
+<a class="back" href="index.html">← 返回首页</a>
+</div></header>
+
+<div class="wrap">
+
+<!-- ============ 阶段一：开始 ============ -->
+<div id="stageStart" class="card">
+<h1>考研高数水平诊断</h1>
+<div class="hero-slogan">15 分钟测出你的高数薄弱点</div>
+<div class="sub">16 道精选诊断题（按考试范围自动过滤），覆盖 8 大专题。系统将分析你各专题的掌握程度，区分「概念不懂 / 方法不会 / 计算失误」三类问题，并生成专属提分报告。</div>
+<div class="sub" style="color:var(--warn)">选择你的考试科目（决定诊断范围）：</div>
+<div class="track-grid">
+<div class="track-opt" data-tr="1" onclick="pickTrack(1)"><b>数学一</b><span>含级数、空间几何</span></div>
+<div class="track-opt" data-tr="2" onclick="pickTrack(2)"><b>数学二</b><span>不考级数与空间几何</span></div>
+<div class="track-opt" data-tr="3" onclick="pickTrack(3)"><b>数学三</b><span>含级数、不考空间几何</span></div>
+</div>
+<div style="text-align:center"><button class="btn" id="startBtn" onclick="startQuiz()" disabled>开始诊断（约 15 分钟）</button></div>
+<div class="features">
+<div class="feat"><b>📋 8 大专题</b><br>极限 · 导数 · 中值定理 · 积分 · 多元微分 · 微分方程 · 级数 · 空间几何</div>
+<div class="feat"><b>🔍 三类错因</b><br>概念不懂 / 方法不会 / 计算失误，精确归因</div>
+<div class="feat"><b>🎯 按卷过滤</b><br>数一/数二/数三考试范围自动匹配</div>
+<div class="feat"><b>🤖 AI 提分报告</b><br>诊断完成可生成专属提分建议</div>
+</div>
+<div class="foot-note">诊断判分完全在本地完成，不消耗 AI 次数；生成 AI 专属报告时消耗 1 次。</div>
+</div>
+
+<!-- ============ 阶段二：答题 ============ -->
+<div id="stageQuiz" class="card" style="display:none">
+<div class="quiz-top">
+<span class="topic-tag" id="qTopic"></span>
+<span>第 <b id="qIdx">1</b>/<span id="qTotal">16</span> 题</span>
+<span class="timer" id="timer">15:00</span>
+</div>
+<div class="progress"><i id="progBar" style="width:0%"></i></div>
+<div class="q-text" id="qText"></div>
+<div id="optBox"></div>
+<div class="quiz-nav">
+<button class="btn ghost" id="prevBtn" onclick="goPrev()">上一题</button>
+<button class="btn" id="nextBtn" onclick="goNext()">下一题</button>
+</div>
+<div class="dots" id="dots"></div>
+</div>
+
+<!-- ============ 阶段三：报告 ============ -->
+<div id="stageReport" style="display:none">
+<div class="card">
+<h2>📊 诊断报告 · <span id="rTrack">数学一</span></h2>
+<div class="stat-grid">
+<div class="stat blue"><div class="num" id="rAcc">--</div><div class="lbl">总正确率</div></div>
+<div class="stat orange"><div class="num" id="rTime">--</div><div class="lbl">实际用时</div></div>
+<div class="stat green"><div class="num" id="rGood">--</div><div class="lbl">掌握专题数</div></div>
+<div class="stat purple"><div class="num" id="rWeak">--</div><div class="lbl">薄弱专题数</div></div>
+</div>
+<h2 style="font-size:15px">专题掌握度</h2>
+<div id="barBox"></div>
+<h2 style="font-size:15px;margin-top:20px">错因分析</h2>
+<div class="cause-row">
+<div class="cause c1"><b id="cConcept">0</b>概念不懂<br><span style="font-size:12px">定义、条件、适用范围不清</span></div>
+<div class="cause c2"><b id="cMethod">0</b>方法不会<br><span style="font-size:12px">该用哪个定理/技巧没思路</span></div>
+<div class="cause c3"><b id="cCalc">0</b>计算失误<br><span style="font-size:12px">思路对但算错、漏项</span></div>
+</div>
+<h2 style="font-size:15px;margin-top:20px">专题明细</h2>
+<table class="topic-table">
+<thead><tr><th>专题</th><th>题号</th><th>掌握度</th><th>诊断</th></tr></thead>
+<tbody id="topicRows"></tbody>
+</table>
+<div class="advice" id="adviceBox"></div>
+</div>
+<div class="card">
+<h2>🤖 AI 专属提分报告</h2>
+<div class="sub">基于你的错题分布，AI 将生成一份针对性的提分计划（学习顺序、重点、避坑提示）。消耗 1 次 AI 额度。</div>
+<button class="btn ai-btn" id="aiBtn" onclick="genAI()">生成专属提分报告 →</button>
+<div class="ai-out" id="aiOut"><h3>✍️ 你的专属提分报告</h3><div id="aiBody"></div></div>
+<div style="text-align:center;margin-top:18px">
+<button class="btn ghost" onclick="location.reload()">重新诊断</button>
+<a class="btn ghost" style="text-decoration:none;margin-left:8px" href="index.html">回首页学习</a>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+/* ================= 题库 =================
+type: concept=概念 method=方法 calc=计算
+why: 错误选项索引 -> 错因 */
+var BANK = [
+// 专题1 函数与极限
+{topic:"函数与极限", tracks:[1,2,3],
+ type:"concept",
+ q:"当 $x \\to 0$ 时，函数 $\\sin\\dfrac{1}{x}$ 是（　）",
+ opts:["无穷小量","无穷大量","有界变量，但极限不存在","极限为 $0$"], ans:2,
+ why:{0:"concept",1:"concept",3:"concept"},
+ tip:"$\\sin\\frac{1}{x}$ 在 $[-1,1]$ 间无限振荡，有界但无极限；无穷小要求极限为 0。"},
+{topic:"函数与极限", tracks:[1,2,3],
+ type:"calc",
+ q:"$\\lim\\limits_{x \\to 0} \\dfrac{\\tan x - \\sin x}{x^3} = $（　）",
+ opts:["$0$","$\\dfrac{1}{2}$","$1$","$\\dfrac{1}{3}$"], ans:1,
+ why:{0:"concept",2:"method",3:"calc"},
+ tip:"$\\tan x-\\sin x=\\tan x(1-\\cos x)\\sim x\\cdot\\dfrac{x^2}{2}=\\dfrac{x^3}{2}$；若把 $\\tan x$ 与 $\\sin x$ 都直接换成 $x$ 则得 0，这是等价替换条件（差不是无穷小）用错。"},
+// 专题2 导数与微分
+{topic:"导数与微分", tracks:[1,2,3],
+ type:"concept",
+ q:"$f(x)$ 在 $x_0$ 处可导，是 $f(x)$ 在 $x_0$ 处连续的（　）",
+ opts:["充分必要条件","充分而非必要条件","必要而非充分条件","既非充分也非必要条件"], ans:1,
+ why:{0:"concept",2:"concept",3:"concept"},
+ tip:"可导 $\\Rightarrow$ 连续；但连续不一定可导（反例 $y=|x|$ 在 0 处）。"},
+{topic:"导数与微分", tracks:[1,2,3],
+ type:"calc",
+ q:"设 $f(x) = x \\ln x$，则 $f'(1) = $（　）",
+ opts:["$1$","$\\dfrac{1}{x}$","$0$","$2$"], ans:0,
+ why:{1:"method",2:"calc",3:"calc"},
+ tip:"乘积法则：$f'(x)=\\ln x + x\\cdot\\frac{1}{x}=\\ln x+1$，故 $f'(1)=1$；只记得 $(\\ln x)'=\\frac1x$ 是漏了乘积法则。"},
+// 专题3 中值定理
+{topic:"中值定理", tracks:[1,2,3],
+ type:"method",
+ q:"设 $f(x)$ 在 $[a,b]$ 连续、$(a,b)$ 可导，且 $f(a)=f(b)$。要证明存在 $\\xi\\in(a,b)$ 使 $f'(\\xi)=0$，应使用（　）",
+ opts:["拉格朗日中值定理","罗尔定理","柯西中值定理","泰勒公式"], ans:1,
+ why:{0:"method",2:"method",3:"method"},
+ tip:"端点函数值相等是罗尔定理的标志性条件；拉格朗日结论是 $f'(\\xi)=\\frac{f(b)-f(a)}{b-a}$。"},
+{topic:"中值定理", tracks:[1,2,3],
+ type:"calc",
+ q:"$f(x)$ 在 $[1,3]$ 上满足拉格朗日中值定理条件，$f(1)=1$，$f(3)=5$，则存在 $\\xi\\in(1,3)$ 使 $f'(\\xi) = $（　）",
+ opts:["$2$","$4$","$5$","$3$"], ans:0,
+ why:{1:"calc",2:"concept",3:"calc"},
+ tip:"$f'(\\xi)=\\dfrac{f(3)-f(1)}{3-1}=\\dfrac{4}{2}=2$；除成 4 是漏除区间长，答 5 是没掌握结论形式。"},
+// 专题4 一元积分
+{topic:"一元积分", tracks:[1,2,3],
+ type:"concept",
+ q:"设 $f(x)$ 连续，$F(x)=\\displaystyle\\int_0^x f(t)\\,dt$，则 $F'(x) = $（　）",
+ opts:["$f(x)$","$f(x)-f(0)$","$x f(x)$","$\\displaystyle\\int_0^x f'(t)\\,dt$"], ans:0,
+ why:{1:"concept",2:"concept",3:"concept"},
+ tip:"变限积分求导基本定理：$\\left(\\int_0^x f(t)dt\\right)'=f(x)$，上限是什么就代什么，不需要减下限函数值。"},
+{topic:"一元积分", tracks:[1,2,3],
+ type:"calc",
+ q:"$\\displaystyle\\int_0^1 x e^x\\,dx = $（　）",
+ opts:["$e-1$","$1$","$e$","$\\dfrac{1}{e}$"], ans:1,
+ why:{0:"method",2:"calc",3:"calc"},
+ tip:"分部积分：$\\left[xe^x-e^x\\right]_0^1=(e-e)-(0-1)=1$；直接套 $\\int e^x$ 是没识别出需要分部。"},
+// 专题5 多元微分
+{topic:"多元微分", tracks:[1,2,3],
+ type:"concept",
+ q:"函数 $z=f(x,y)$ 在点 $(x_0,y_0)$ 处两个偏导数都存在，是在该点可微的（　）",
+ opts:["充分必要条件","必要而非充分条件","充分而非必要条件","既非充分也非必要条件"], ans:1,
+ why:{0:"concept",2:"concept",3:"concept"},
+ tip:"偏导存在推不出可微（可微是更强的条件，可微 $\\Rightarrow$ 偏导存在 $\\Rightarrow$ 连续皆单向成立）。"},
+{topic:"多元微分", tracks:[1,2,3],
+ type:"calc",
+ q:"设 $z = x^y$，则 $\\dfrac{\\partial z}{\\partial x}\\Big|_{(2,3)} = $（　）",
+ opts:["$12$","$8\\ln 2$","$8$","$9$"], ans:0,
+ why:{1:"method",2:"calc",3:"calc"},
+ tip:"对 $x$ 求导时 $y$ 视为常数：$\\frac{\\partial z}{\\partial x}=y\\,x^{y-1}=3\\times4=12$；$8\\ln2$ 是把对 $y$ 的公式（$x^y\\ln x$）用错方向。"},
+// 专题6 微分方程
+{topic:"微分方程", tracks:[1,2,3],
+ type:"method",
+ q:"方程 $y'' + y = 0$ 的通解是（　）",
+ opts:["$y = C_1 e^{x} + C_2 e^{-x}$","$y = C_1\\cos x + C_2\\sin x$","$y = C_1 + C_2 e^{x}$","$y = C_1\\cos x$"], ans:1,
+ why:{0:"calc",2:"concept",3:"method"},
+ tip:"特征方程 $r^2+1=0\\Rightarrow r=\\pm i$（不是 $\\pm1$！），共轭复根对应 $C_1\\cos x+C_2\\sin x$；只写一个 $\\cos$ 是丢了独立解。"},
+{topic:"微分方程", tracks:[1,2,3],
+ type:"calc",
+ q:"满足 $y' = 2x$ 且 $y(0) = 1$ 的特解是（　）",
+ opts:["$y = x^2 + C$","$y = x^2 + 1$","$y = 2x + 1$","$y = x^2$"], ans:1,
+ why:{0:"concept",2:"method",3:"calc"},
+ tip:"积分得 $y=x^2+C$，再代入 $y(0)=1$ 定出 $C=1$；停在 $+C$ 是忘了「特解」要定常数，写 $2x+1$ 是没做积分。"},
+// 专题7 无穷级数
+{topic:"无穷级数", tracks:[1,3],
+ type:"concept",
+ q:"级数 $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{1}{n^2}$ 收敛，下列理由正确的是（　）",
+ opts:["因为通项 $\\dfrac{1}{n^2} \\to 0$，所以收敛","因为它是 $p$ 级数，且 $p = 2 > 1$","因为 $\\dfrac{1}{n^2} < \\dfrac{1}{n}$，而 $\\sum \\dfrac{1}{n}$ 收敛","因为 $\\dfrac{1}{n^2}$ 单调递减趋于 $0$"], ans:1,
+ why:{0:"concept",2:"method",3:"concept"},
+ tip:"通项 $\\to0$ 只是收敛的<b>必要</b>条件（$\\sum\\frac1n$ 通项也趋于 0 却发散）；比较判别法里 $\\sum\\frac1n$ 是发散的，比较对象选错。"},
+{topic:"无穷级数", tracks:[1,3],
+ type:"calc",
+ q:"幂级数 $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{x^n}{n}$ 的收敛半径 $R = $（　）",
+ opts:["$0$","$1$","$\\infty$","$\\dfrac{1}{2}$"], ans:1,
+ why:{0:"calc",2:"concept",3:"calc"},
+ tip:"$\\rho=\\lim\\left|\\frac{a_{n+1}}{a_n}\\right|=\\lim\\frac{n}{n+1}=1$，$R=\\frac1\\rho=1$。"},
+// 专题8 空间解析几何（仅数一）
+{topic:"空间解析几何", tracks:[1],
+ type:"concept",
+ q:"直线 $\\dfrac{x-1}{2} = \\dfrac{y}{-1} = \\dfrac{z+3}{1}$ 的方向向量是（　）",
+ opts:["$(2,-1,1)$","$(1,0,-3)$","$(2,-1,0)$","$(2,1,1)$"], ans:0,
+ why:{1:"concept",2:"calc",3:"calc"},
+ tip:"对称式（点向式）方程的分母就是方向向量 $(2,-1,1)$；$(1,0,-3)$ 是直线经过的点，别把点和方向混了。"},
+{topic:"空间解析几何", tracks:[1],
+ type:"calc",
+ q:"设 $\\boldsymbol{a}=(1,0,2)$，$\\boldsymbol{b}=(0,1,1)$，则 $\\boldsymbol{a}\\times\\boldsymbol{b} = $（　）",
+ opts:["$(-2,-1,1)$","$(2,1,-1)$","$(1,1,3)$","$(-2,-1,-1)$"], ans:0,
+ why:{1:"method",2:"concept",3:"calc"},
+ tip:"叉积行列式展开：$(0\\cdot1-2\\cdot1,\\ 2\\cdot0-1\\cdot1,\\ 1\\cdot1-0\\cdot0)=(-2,-1,1)$；结果差一个负号是把 $\\boldsymbol{a}\\times\\boldsymbol{b}$ 与 $\\boldsymbol{b}\\times\\boldsymbol{a}$ 弄反，加起来 $(1,1,3)$ 是根本没用叉积。"}
+];
+
+/* ================= 状态 ================= */
+var track = 0, quiz = [], answers = [], cur = 0;
+var startTime = 0, timerId = null, remain = 15*60;
+var TYPE_CN = {concept:"概念不懂", method:"方法不会", calc:"计算失误"};
+
+function pickTrack(t){
+  track = t;
+  document.querySelectorAll(".track-opt").forEach(function(el){
+    el.classList.toggle("sel", +el.dataset.tr === t);
+  });
+  document.getElementById("startBtn").disabled = false;
+  quiz = BANK.filter(function(q){ return q.tracks.indexOf(track) >= 0; });
+  document.getElementById("startBtn").textContent = "开始诊断（" + quiz.length + " 题 · 约 15 分钟）";
+}
+function startQuiz(){
+  answers = new Array(quiz.length).fill(-1);
+  cur = 0; startTime = Date.now();
+  document.getElementById("stageStart").style.display = "none";
+  document.getElementById("stageQuiz").style.display = "";
+  document.getElementById("qTotal").textContent = quiz.length;
+  renderDots(); renderQ();
+  timerId = setInterval(tick, 1000);
+}
+function tick(){
+  remain--;
+  var m = Math.floor(remain/60), s = remain%60;
+  var el = document.getElementById("timer");
+  el.textContent = m + ":" + (s<10?"0":"") + s;
+  if(remain <= 60) el.classList.add("warn");
+  if(remain <= 0){ clearInterval(timerId); finish(); }
+}
+function renderDots(){
+  var box = document.getElementById("dots"); box.innerHTML = "";
+  quiz.forEach(function(_,i){
+    var d = document.createElement("div");
+    d.className = "dot" + (answers[i]>=0?" done":"") + (i===cur?" cur":"");
+    d.textContent = i+1; d.onclick = function(){ cur=i; renderQ(); };
+    box.appendChild(d);
+  });
+}
+function renderQ(){
+  var q = quiz[cur];
+  document.getElementById("qTopic").textContent = "专题：" + q.topic + " · " + (q.type==="concept"?"概念题":q.type==="method"?"方法题":"计算题");
+  document.getElementById("qIdx").textContent = cur+1;
+  document.getElementById("progBar").style.width = ((cur+1)/quiz.length*100) + "%";
+  var qt = document.getElementById("qText"); qt.innerHTML = q.q;
+  var box = document.getElementById("optBox"); box.innerHTML = "";
+  q.opts.forEach(function(o,i){
+    var b = document.createElement("button");
+    b.className = "opt" + (answers[cur]===i?" sel":"");
+    b.innerHTML = "<b>" + "ABCD"[i] + ".</b>　" + o;
+    b.onclick = function(){ answers[cur] = i; renderQ(); };
+    box.appendChild(b);
+  });
+  document.getElementById("prevBtn").style.visibility = cur===0 ? "hidden":"";
+  document.getElementById("nextBtn").textContent = cur===quiz.length-1 ? "交卷出报告" : "下一题";
+  renderDots();
+  if(window.renderMathInElement) renderMathInElement(document.getElementById("stageQuiz"), katexOpts());
+  renderDots();
+}
+function goPrev(){ if(cur>0){ cur--; renderQ(); } }
+function goNext(){
+  if(answers[cur] < 0 && cur < quiz.length-1){ if(!confirm("本题未作答，确定跳过？")) return; }
+  if(cur < quiz.length-1){ cur++; renderQ(); return; }
+  var blank = answers.filter(function(a){return a<0;}).length;
+  if(blank && !confirm("还有 " + blank + " 题未作答，确定交卷？")) return;
+  finish();
+}
+function katexOpts(){ return {delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false},{left:"\\(",right:"\\)",display:false}],throwOnError:false}; }
+
+/* ================= 判分与报告 ================= */
+function finish(){
+  clearInterval(timerId);
+  var topics = {};
+  var causes = {concept:0, method:0, calc:0};
+  var correct = 0, answered = 0;
+  var wrongList = [];
+  quiz.forEach(function(q,i){
+    var t = topics[q.topic] = topics[q.topic] || {ok:0, total:0, wrongs:[]};
+    t.total++;
+    if(answers[i] >= 0) answered++;
+    if(answers[i] === q.ans){ t.ok++; correct++; }
+    else if(answers[i] >= 0){
+      var cause = (q.why && q.why[answers[i]]) || "calc";
+      causes[cause]++;
+      t.wrongs.push({no:i+1, cause:cause});
+      wrongList.push({topic:q.topic, cause:cause, tip:q.tip});
+    } else {
+      causes[q.type==="method"?"method":q.type==="calc"?"calc":"concept"] += 0; // 未答不计
+    }
+  });
+  var acc = answered ? Math.round(correct/quiz.length*100) : 0;
+  var usedSec = Math.round((Date.now()-startTime)/1000);
+  document.getElementById("rAcc").textContent = acc + "%";
+  document.getElementById("rTime").textContent = Math.floor(usedSec/60) + "分" + (usedSec%60) + "秒";
+  document.getElementById("rTrack").textContent = "数学" + (track===1?"一":track===2?"二":"三");
+  var good=0, weak=0;
+  var barBox = document.getElementById("barBox"); barBox.innerHTML = "";
+  var rows = document.getElementById("topicRows"); rows.innerHTML = "";
+  var adviceMap = {};
+  var ADVICE = {
+    "函数与极限":"重看无穷小比较与等价替换的条件（替换只能用于乘除因子）；每天 5 道求极限小题，重点练「先化简、再洛必达」的顺序。",
+    "导数与微分":"用定义重推一遍可导/连续的关系；复合与乘积求导各找 10 题限时练，错误选项要写出错在哪一步。",
+    "中值定理":"整理罗尔/拉格朗日/柯西的「条件-结论」对照表；看到 f(a)=f(b) 就想罗尔，构造辅助函数是数一大题高频，先从答案抄辅助函数、再自己构造。",
+    "一元积分":"变限积分求导只代上限，别多算；分部积分记住「反对幂三指」顺序，∫xe^x 类先练 10 道。",
+    "多元微分":"可微、偏导、连续的单向蕴含关系画成箭头图背下来；幂指函数求导分清对谁求导。",
+    "微分方程":"二阶常系数齐次方程先算特征根，共轭复根对应 cos/sin；特解最后一定代初始条件定 C。",
+    "无穷级数":"牢记「通项趋 0 只是必要条件」；p 级数、几何级数、比较/比值判别法各配 5 题练熟。",
+    "空间解析几何":"对称式方程分母=方向向量、分子含的点=直线上点；叉积用行列式展开，注意 $\\boldsymbol{a}\\times\\boldsymbol{b}=-\\boldsymbol{b}\\times\\boldsymbol{a}$。"
+  };
+  Object.keys(topics).forEach(function(name){
+    var t = topics[name];
+    var pct = Math.round(t.ok/t.total*100);
+    var cls = pct>=75 ? "g" : pct>=50 ? "y" : "r";
+    barBox.innerHTML += '<div class="bar-row"><div class="bar-name">'+name+'</div><div class="bar"><i class="'+cls+'" style="width:'+Math.max(pct,4)+'%"></i></div><div class="bar-pct">'+t.ok+'/'+t.total+'</div></div>';
+    var badge = pct>=75 ? '<span class="badge good">扎实</span>' : pct>=50 ? '<span class="badge mid">基本</span>' : '<span class="badge weak">薄弱</span>';
+    var diag = t.wrongs.length ? "错因：" + t.wrongs.map(function(w){return TYPE_CN[w.cause];}).join("、") : "全部正确";
+    rows.innerHTML += '<tr><td>'+name+'</td><td>'+t.ok+'/'+t.total+'</td><td>'+badge+'</td><td>'+diag+'</td></tr>';
+    if(pct>=75) good++; else if(pct<50){ weak++; adviceMap[name]=true; }
+  });
+  document.getElementById("rGood").textContent = good;
+  document.getElementById("rWeak").textContent = weak;
+  document.getElementById("cConcept").textContent = causes.concept;
+  document.getElementById("cMethod").textContent = causes.method;
+  document.getElementById("cCalc").textContent = causes.calc;
+  var adv = "<b>📌 提分建议</b><ul>";
+  if(weak===0 && causes.concept+causes.method+causes.calc===0){
+    adv += "<li>各专题全部正确，基础扎实！建议直接进入真题实战，把目标放在中难题与综合题上。</li>";
+  } else {
+    Object.keys(ADVICE).forEach(function(name){
+      if(adviceMap[name]) adv += "<li><b>"+name+"</b>："+ADVICE[name]+"</li>";
+    });
+    if(causes.concept >= 2) adv += "<li><b>概念类错误较多</b>：先回归定义，把每个定理的「条件-结论」列成卡片，做题前先问自己「这题考哪个定义的哪个坑」。</li>";
+    if(causes.method >= 2) adv += "<li><b>方法类错误较多</b>：按题型归纳「见到什么条件→用什么方法」的套路表，从真题解答题里逆推方法选择的原因。</li>";
+    if(causes.calc >= 2) adv += "<li><b>计算类错误较多</b>：每天 10 分钟限时计算训练（求导/积分各 5 题），做完逐题核对，把错处归档到「粗心本」。</li>";
+  }
+  adv += "</ul>";
+  document.getElementById("adviceBox").innerHTML = adv;
+  window.__diag = {track:track, acc:acc, topics:topics, causes:causes, wrongList:wrongList};
+  document.getElementById("stageQuiz").style.display = "none";
+  document.getElementById("stageReport").style.display = "";
+  if(window.renderMathInElement) renderMathInElement(document.getElementById("stageReport"), katexOpts());
+  location.hash = "";
+}
+
+/* ================= AI 专属报告（走后端，消耗 1 次） ================= */
+var DEFAULT_WORKER = "https://api.xskai.com/";
+function apiBase(){ return localStorage.getItem("xsk_worker") || DEFAULT_WORKER; }
+function genAI(){
+  var d = window.__diag; if(!d) return;
+  var btn = document.getElementById("aiBtn");
+  btn.disabled = true; btn.textContent = "AI 正在为你定制提分报告…";
+  var trackCN = "数学" + (d.track===1?"一":d.track===2?"二":"三");
+  var weakTxt = Object.keys(d.topics).filter(function(n){return d.topics[n].ok < d.topics[n].total;}).join("、") || "无明显薄弱专题";
+  var causeTxt = "概念不懂"+d.causes.concept+"处、方法不会"+d.causes.method+"处、计算失误"+d.causes.calc+"处";
+  var detail = d.wrongList.map(function(w){return w.topic+"("+TYPE_CN[w.cause]+")";}).join("、") || "无";
+  var sys = "你是考研数学辅导老师。学生刚完成一次高数水平诊断（"+trackCN+"范围）。请根据诊断数据输出一份个性化提分报告，要求：1)开头两句话总评他的水平；2)给出未来4周的提分计划（按周列出，聚焦薄弱专题）；3)针对每类错因给一条针对性学习建议；4)结尾一句鼓励。全文600字以内，条理清晰，用序号和小标题排版，语气务实亲切，不要客套话。";
+  var user = "诊断数据：正确率"+d.acc+"%；薄弱/未全对专题："+weakTxt+"；错因分布："+causeTxt+"；错题明细："+detail+"。";
+  var headers = {"Content-Type":"application/json"};
+  var code = localStorage.getItem("xsk_code");
+  if(code) headers["X-Access-Code"] = code;
+  fetchWorker(apiBase(), {
+    method:"POST", headers:headers,
+    body: JSON.stringify({messages:[{role:"system",content:sys},{role:"user",content:user}], max_tokens:1200})
+  }).then(function(r){
+    if(r.status===402) throw {msg:"今日免费次数已用完，输入卡密可继续使用"};
+    if(r.status===403) throw {msg:"卡密无效或已用完，请回首页重新输入"};
+    if(!r.ok) throw {msg:"生成失败（"+r.status+"），请稍后再试"};
+    return r.json().then(function(j){
+      var txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "没有拿到有效回复";
+      var out = document.getElementById("aiOut");
+      out.style.display = "block";
+      var body = document.getElementById("aiBody");
+      body.innerHTML = String(txt).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n{2,}/g,"</p><p>").replace(/\n/g,"<br>");
+      body.innerHTML = "<p>" + body.innerHTML + "</p>";
+      if(window.renderMathInElement) renderMathInElement(body, katexOpts());
+      btn.style.display = "none";
+    });
+  }).catch(function(e){
+    alert(e.msg || "网络异常，请重试");
+    btn.disabled = false; btn.textContent = "生成专属提分报告 →";
+  });
+}
+function fetchWorker(url, opts){
+  return fetch(url, opts).catch(function(e){
+    return new Promise(function(res, rej){ setTimeout(function(){ fetch(url, opts).then(res, rej); }, 1500); });
+  });
+}
+</script>
+</body>
+</html>
