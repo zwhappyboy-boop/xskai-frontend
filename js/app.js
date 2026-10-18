@@ -49,11 +49,22 @@ var nCh=0,nIt=0;
 KB.forEach(function(sec){ var c=0; sec.items.forEach(function(it){ var tt=it.t||sec.t||[1,2,3]; if(tt.indexOf(t)>=0) c++;}); if(c>0){ nCh++; nIt+=c;}});
 return {ch:nCh,it:nIt};
 }
+function updateTabLabel(){
+var t=curTrack(), tcn="数"+TRACK_CN[t];
+var kb=document.getElementById("tabKb"); if(kb) kb.textContent=tcn+"·知识点";
+var zt=document.getElementById("tabZt"); if(zt) zt.textContent=tcn+"·真题";
+var qt=document.getElementById("quizTrack"); if(qt) qt.textContent="（"+tcn+"）";
+}
 function setTrack(t){
 ls("xsk_track",String(t));
 var th=document.getElementById("trackHint"); if(th&&TRACK_HINT[t]) th.innerHTML="<b>"+TRACK_HINT[t][0]+"适用</b>："+TRACK_HINT[t][1];
 document.querySelectorAll(".track-btn").forEach(function(b){ b.classList.toggle("active",parseInt(b.dataset.tr,10)===t);});
-activeCh=0; switchSub("study","kb"); renderChNav(); renderKb(); renderFreq(); renderScope(); renderHome();
+activeCh=0; switchSub("study","kb");
+var tcn="数"+TRACK_CN[t];
+var kb=document.getElementById("tabKb"); if(kb) kb.textContent=tcn+"·知识点";
+var zt=document.getElementById("tabZt"); if(zt) zt.textContent=tcn+"·真题";
+var qt=document.getElementById("quizTrack"); if(qt) qt.textContent="（"+tcn+"）";
+renderChNav(); renderKb(); renderFreq(); renderScope(); renderHome();
 }
 function renderScope(){
 var nCh=0,nIt=0;
@@ -439,3 +450,4 @@ function solveImage(input){
   };
   reader.readAsDataURL(f);
 }
+updateTabLabel();
