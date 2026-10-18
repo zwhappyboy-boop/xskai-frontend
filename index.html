@@ -380,7 +380,7 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <button class="btn btn-primary" id="quizBtn" onclick="genPaper()">出一套题</button>
 <div class="quiz-q" id="quizQ">
 <div id="quizQText"></div>
-<div class="ans" id="quizAns"></div>
+<div id="ansLabel" style="display:none;margin:16px 0 8px;padding:10px 14px;background:#eff6ff;border-left:4px solid #1e4fa3;border-radius:0 6px 6px 0;font-weight:700;color:#1e4fa3">📝 参考答案（题号与上方题目对应）</div><div class="ans" id="quizAns"></div>
 <div style="margin-top:12px">
 <button class="btn btn-line" id="quizAnsBtn" onclick="genPaperAns()">看答案</button>
 </div>
@@ -393,9 +393,14 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <h3 class="sec">AI 解题</h3>
 <div class="sec-sub">按作答，公式自动渲染</div>
 <textarea id="prob" placeholder="粘贴题目，比如：求 lim(x→0) (e^x - 1 - x) / x²"></textarea>
-<div style="margin-top:12px;">
+<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
 <button class="btn btn-primary" id="solveBtn" onclick="solve()">解题</button>
+<label class="btn" style="background:#f3f4f6;color:var(--ink);cursor:pointer">
+📷 上传图片解题
+<input type="file" id="imgUp" accept="image/*" style="display:none" onchange="solveImage(this)">
+</label>
 </div>
+<div id="imgPrev" style="margin-top:10px"></div>
 <div id="chat"><div class="empty-tip">解题过程会显示在这里，支持追问</div></div>
 </div>
 </div>
