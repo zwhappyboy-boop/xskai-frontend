@@ -23,8 +23,7 @@ document.head.appendChild(s2);
 document.head.appendChild(s1);
 })();
 function showAbout(k){var d=ABOUT_TXT[k];if(!d)return;document.getElementById('aboutTitle').textContent=d.t;document.getElementById('aboutBody').innerHTML=d.b;document.getElementById('aboutModal').style.display='flex';}
-var DEFAULT_WORKER = "https://api.xskai.com/";
-var FREE_DAILY = 5;
+// DEFAULT_WORKER / FREE_DAILY 由 index.html 统一定义，这里不再重复声明（避免缓存新旧不一致时旧值覆盖新值）
 function curTrack(){ return parseInt(ls("xsk_track")||"1",10);}
 function sysSolve(){ return "你是考研数学（数"+TRACK_CN[curTrack()]+"）解题助手。"+TRACKS[curTrack()].scope+"请按以下四部分作答：一句话点出关键方法；分步写出完整过程，每步注明所用定理或公式；心算验算关键计算步骤，确认无误后再输出最终答案；指出最容易错的地方。所有数学公式必须用 LaTeX 表示（行内公式用 $...$，独立公式用 $$...$$），不要用纯文本近似。矩阵必须用 \\begin{pmatrix}...\\end{pmatrix} 环境（元素间用 & 分隔，行间用 \\\\ 换行），向量、行列式同理用 pmatrix/bmatrix/determinant 环境。控制在 500 字以内。";}
 function sysQuiz(){
@@ -132,7 +131,7 @@ var code=document.getElementById("codeInput").value.trim().toUpperCase();
 var msg=document.getElementById("codeMsg");
 if(!code){ msg.textContent="请输入卡密"; msg.style.color="#dc2626"; return; }
 msg.textContent="验证中…"; msg.style.color="#6b7280";
-fetch(apiBase()+"verify",{
+fetchWorker(apiBase()+"verify",{
 method:"POST", headers:{"Content-Type":"application/json"},
 body:JSON.stringify({code:code})
 }).then(function(r){ return r.json(); }).then(function(d){
@@ -152,11 +151,19 @@ function clearCode(){ ls("xsk_code",""); ls("xsk_code_left",""); renderQuota(); 
 
 /* ---------- 后端调用（Key 在 Worker 环境变量，前端无 Key） ---------- */
 function apiBase(){ return ls("xsk_worker")||DEFAULT_WORKER;}
+// 带自动重试的请求：网络层失败（连不上/断流）时隔 1.5 秒静默重试一次，应对间歇性网络抖动
+function fetchWorker(url, opts){
+  return fetch(url, opts).catch(function(e){
+    return new Promise(function(resolve, reject){
+      setTimeout(function(){ fetch(url, opts).then(resolve, reject); }, 1500);
+    });
+  });
+}
 function callWorker(messages,maxTokens){
 var headers={"Content-Type":"application/json"};
 var code=ls("xsk_code");
 if(code) headers["X-Access-Code"]=code;
-return fetch(apiBase(),{
+return fetchWorker(apiBase(),{
 method:"POST", headers:headers,
 body:JSON.stringify({messages:messages,max_tokens:maxTokens||1500})
 }).then(function(r){
@@ -421,7 +428,7 @@ function solveImage(input){
     var aiEl = document.getElementById("chat");
     aiEl.innerHTML = "<div class='loading'>正在识别图片并解题…</div>";
     var code = localStorage.getItem("xsk_code") || "";
-    fetch(apiBase()+"ocr-solve", {
+    fetchWorker(apiBase()+"ocr-solve", {
       method: "POST",
       headers: Object.assign({"Content-Type":"application/json"}, code?{"X-Access-Code":code}:{}),
       body: JSON.stringify({image: dataUrl, track: String(curTrack())})
