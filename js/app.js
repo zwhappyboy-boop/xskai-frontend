@@ -339,6 +339,67 @@ document.querySelectorAll(".zt-year").forEach(function(yr){
 var vis=yr.querySelector('span[data-t]:not([style*="none"])');
 yr.style.display = vis ? "" : "none";
 });
+renderZtAnalysis();
+}
+/* ---------- 真题考点分析 + 智能组卷 ---------- */
+function renderZtAnalysis(){
+var t=curTrack();
+var lbl=document.getElementById("ztTrackLabel"); if(lbl) lbl.textContent="数"+TRACK_CN[t];
+var box=document.getElementById("ztFreqBox"); if(!box) return;
+var rows=FREQ.filter(function(r){ return (r.t||[1,2,3]).indexOf(t)>=0; });
+var highs=rows.filter(function(r){return r.f==="high";}).length;
+var html=rows.map(function(r,i){
+var high=r.f==="high";
+var w=high?92:58;
+return '<div class="zt-freq"><div class="fname">'+esc(r.ch)+'</div><div class="fbar"><i style="width:'+w+'%"></i></div><div class="flv" style="color:'+(high?"#dc2626":"#d97706")+'">'+(high?"高频":"中频")+'</div></div>';
+}).join("");
+box.innerHTML=html+'<div style="font-size:12px;color:var(--muted);margin-top:10px">高频 '+highs+' 章（条形长度示意考频强度）· 高频章节覆盖历年约 70% 分值，优先吃透</div>';
+renderZpChapters();
+}
+var zpSel=[];
+function renderZpChapters(){
+var box=document.getElementById("zpChapters"); if(!box) return;
+var t=curTrack();
+var chapters=FREQ.filter(function(r){ return (r.t||[1,2,3]).indexOf(t)>=0; }).map(function(r){return r.ch;});
+box.innerHTML="";
+chapters.forEach(function(ch){
+var b=document.createElement("span");
+b.className="zpc"+(zpSel.indexOf(ch)>=0?" on":"");
+b.textContent=ch;
+b.onclick=function(){
+var i=zpSel.indexOf(ch);
+if(i>=0) zpSel.splice(i,1); else zpSel.push(ch);
+renderZpChapters();
+};
+box.appendChild(b);
+});
+}
+function genSmartPaper(){
+var out=document.getElementById("zpOut");
+var btn=document.getElementById("zpBtn");
+var chapters=zpSel.slice();
+var years=document.getElementById("zpYears").value;
+var diff=document.getElementById("zpDiff").value;
+if(quizAsking) return;
+if(!chapters.length){ alert("请至少选择一个章节（点上方章节标签选中）"); return; }
+quizAsking=true;
+btn.disabled=true; btn.textContent="AI 组卷中…（约 30 秒）";
+out.classList.add("show");
+out.innerHTML="<span style='color:#9ca3af'>AI 正在按你的要求定制试卷（章节："+chapters.join("、")+"），请稍候…</span>";
+var t=curTrack();
+var sys="你是考研数学（数"+TRACK_CN[t]+"）命题助手。请出一套定制练习卷，要求：\n1. 只考查以下章节："+chapters.join("、")+"\n2. 难度定位："+diff+"\n3. 参考近"+years+"年真题的命题风格与计算量\n4. 题量：8~12 题（难度低就多出，难度高就少出），每题标注分值\n5. 题末用一行「考点：xxx」标注每题考查的具体知识点\n6. 不给答案，末尾提示「做完后可把答案拍照发给本站 AI 解题批改」\n7. 公式用 LaTeX（$...$ / $$...$$）";
+callWorker([
+{role:"system",content:sys},
+{role:"user",content:"请出这套定制练习卷。"}
+],3000).then(function(res){
+renderAI(out,extractText(res.data));
+if(window.renderMathInElement) renderMathInElement(out,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+}).catch(function(e){
+out.textContent=e.msg||"组卷失败，请重试";
+if(e.code===402||e.code===403) setTimeout(openCodeModal,600);
+}).finally(function(){
+quizAsking=false; btn.disabled=false; btn.textContent="AI 组卷 →";
+});
 }
 function toggleDecade(btn){
 var dec=btn.parentNode;

@@ -425,6 +425,13 @@ function finish(){
   adv += "</ul>";
   document.getElementById("adviceBox").innerHTML = adv;
   window.__diag = {track:track, acc:acc, topics:topics, causes:causes, wrongList:wrongList};
+  try{
+    localStorage.setItem("xsk_diag", JSON.stringify({
+      date: new Date().toISOString().slice(0,10), track: track,
+      acc: acc, causes: causes,
+      weak: Object.keys(topics).filter(function(n){return topics[n].ok < topics[n].total;})
+    }));
+  }catch(e){}
   document.getElementById("stageQuiz").style.display = "none";
   document.getElementById("stageReport").style.display = "";
   if(window.renderMathInElement) renderMathInElement(document.getElementById("stageReport"), katexOpts());
