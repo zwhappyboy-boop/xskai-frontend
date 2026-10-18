@@ -191,7 +191,10 @@ function callAI(prompt, type){
       if(m) tasks.push(m[1].replace(/\*\*/g,""));
     });
     if(!tasks.length){ tasks = txt.split(/[。；;]/).filter(Boolean).map(function(s){return s.trim();}); }
-    savePlan({date:todayStr(), theme:theme, tasks:tasks.map(function(t){return {text:t,done:false};}), goal:document.getElementById("goal")?document.getElementById("goal").value:"120", hours:document.getElementById("hours")?document.getElementById("hours").value:"2"});
+    var pd = new Date();
+    if(type==="next") pd.setDate(pd.getDate()+1);
+    var pdStr = pd.getFullYear()+"-"+(pd.getMonth()+1)+"-"+pd.getDate();
+    savePlan({date:pdStr, theme:theme, tasks:tasks.map(function(t){return {text:t,done:false};}), goal:document.getElementById("goal")?document.getElementById("goal").value:"120", hours:document.getElementById("hours")?document.getElementById("hours").value:"2"});
     showPlan();
     if(btn){ btn.disabled=false; btn.textContent=btnTxt; }
   }).catch(function(e){
@@ -216,7 +219,13 @@ function saveHist(p){
 }
 function showPlan(){
   var p = loadPlan();
-  if(!p || p.date !== todayStr()){ return false; }
+  if(!p || p.date !== todayStr()){ 
+    var st = document.getElementById("stageSetup"); 
+    if(st && p && p.date > todayStr()){
+      st.insertAdjacentHTML("afterbegin", '<div class="diag-note" style="background:#f0fdf4;border-color:#bbf7d0;color:#065f46">✅ 明天的计划已备好（主题：'+esc(p.theme||'')+"），明天打开本页自动生效。今天可继续用其他功能。</div>");
+    }
+    return false; 
+  }
   document.getElementById("stageSetup").style.display="none";
   document.getElementById("stagePlan").style.display="";
   document.getElementById("planDate").textContent = p.date + (p.theme ? " · " + p.theme : "");
