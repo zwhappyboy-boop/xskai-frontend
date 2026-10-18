@@ -724,7 +724,21 @@ renderQuota();
 }
 function renderQuota(){
 var code=ls("xsk_code"), left=ls("xsk_code_left");
-document.getElementById("quota").textContent = code ? "卡密剩余 "+(left||"?")+" 次" : "今日免费 "+freeLeft()+" 次";
+var el=document.getElementById("quota");
+if(!el) return;
+if(!code){ el.textContent="今日免费 "+freeLeft()+" 次"; return; }
+if(left){ el.textContent="卡密剩余 "+left+" 次"; return; }
+// 有卡密但本地无剩余数：实时查后端
+el.textContent="卡密剩余 … 次";
+fetch(apiBase()+"verify",{
+method:"POST", headers:{"Content-Type":"application/json"},
+body:JSON.stringify({code:code})
+}).then(function(r){ return r.json(); }).then(function(d){
+if(d.valid && ls("xsk_code")===code){
+ls("xsk_code_left",String(d.left));
+el.textContent="卡密剩余 "+d.left+" 次";
+}else if(d && d.reason){ el.textContent="卡密失效"; }
+}).catch(function(){ el.textContent="卡密剩余 ? 次"; });
 }
 // 验证卡密（调用后端 /verify，不扣次数）
 function saveCode(){

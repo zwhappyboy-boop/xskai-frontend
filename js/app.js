@@ -121,9 +121,31 @@ var k=todayKey();
 localStorage.setItem(k,String(parseInt(localStorage.getItem(k)||"0",10)+1));
 renderQuota();
 }
+// 卡密调用成功后：本地剩余减一并刷新显示（后端为准，此处仅用于显示）
+function bumpCode(){
+var l=parseInt(ls("xsk_code_left")||"0",10);
+if(l>0) ls("xsk_code_left",String(l-1));
+renderQuota();
+}
 function renderQuota(){
 var code=ls("xsk_code"), left=ls("xsk_code_left");
-document.getElementById("quota").textContent = code ? "卡密剩余 "+(left||"?")+" 次" : "今日免费 "+freeLeft()+" 次";
+var el=document.getElementById("quota");
+if(!el) return;
+if(!code){ el.textContent="今日免费 "+freeLeft()+" 次"; return; }
+if(left){ el.textContent="卡密剩余 "+left+" 次"; return; }
+// 有卡密但本地没存剩余数（旧版输入/验证失败）：实时向后端查一次
+el.textContent="卡密剩余 … 次";
+fetchWorker(apiBase()+"verify",{
+method:"POST", headers:{"Content-Type":"application/json"},
+body:JSON.stringify({code:code})
+}).then(function(r){ return r.json(); }).then(function(d){
+if(d.valid && ls("xsk_code")===code){
+ls("xsk_code_left",String(d.left));
+el.textContent="卡密剩余 "+d.left+" 次";
+}else if(d && d.reason){
+el.textContent="卡密失效";
+}
+}).catch(function(){ el.textContent="卡密剩余 ? 次"; });
 }
 // 验证卡密（调用后端 /verify，不扣次数）
 function saveCode(){
@@ -436,7 +458,9 @@ function solveImage(input){
       if(r.status===402) throw {code:402,msg:"今日免费次数已用完，输入卡密可继续使用"};
       if(r.status===403) throw {code:403,msg:"卡密无效或已用完，请重新输入"};
       if(r.status===413) throw {code:413,msg:"图片过大，请压缩后重试"};
-      if(!r.ok) throw {code:r.status,msg:"解题失败（"+r.status+"），请重试"};
+      if(!r.ok) return r.json().then(function(d){
+        throw {code:r.status,msg:(d && d.detail) ? ("解题失败（"+r.status+"）："+d.detail).substring(0,180) : ("解题失败（"+r.status+"），请重试")};
+      });
       return r.json();
     }).then(function(d){
       var text = extractText(d);
