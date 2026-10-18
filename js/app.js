@@ -417,9 +417,7 @@ box.appendChild(li);
 }
 
 /* ---------- 弹窗 ---------- */
-function openCodeModal(){ document.getElementById("codeInput").value=ls("xsk_code"); document.getElementById("codeMask").classList.add("show");}
-function closeCodeModal(){ document.getElementById("codeMask").classList.remove("show");}
-function saveCode(){ ls("xsk_code",document.getElementById("codeInput").value.trim()); closeCodeModal(); renderQuota();}
+// openCodeModal / closeCodeModal / saveCode 由 index.html 统一定义（saveCode 为带 /verify 验证的版本），此处不再重复声明
 function changeApi(){
 var v=prompt("后端接口地址：",apiBase());
 if(v&&v.trim()){ ls("xsk_worker",v.trim().replace(/\/*$/,"/")); alert("已更新，刷新页面生效。");}

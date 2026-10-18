@@ -58,6 +58,8 @@ nav.mainnav .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; display:
 nav.mainnav button { border: none; background: none; color: var(--ink); font-size: 15px; font-weight: 600; padding: 13px 18px; cursor: pointer; white-space: nowrap;}
 nav.mainnav button:hover { color: var(--chsi);}
 nav.mainnav button.active { color: var(--chsi); box-shadow: inset 0 -3px 0 var(--chsi);}
+nav.mainnav .code-btn { padding: 4px 12px; font-size: 12.5px; font-weight: 400; margin-left: 8px;}
+nav.mainnav .quota-pill { flex-shrink: 0;}
 .quota-pill { margin-left: auto; font-size: 12.5px; color: var(--chsi); background: #eef3fb; border: 1px solid #d3e0f5; padding: 4px 12px; border-radius: 20px; white-space: nowrap;}
 .code-btn { border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 12.5px; padding: 4px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap;}
 .code-btn:hover { color: var(--chsi); border-color: var(--chsi);}
@@ -233,6 +235,8 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <button data-tab="schools" onclick="switchTab('schools')">目标院校</button>
 <button data-tab="plan" onclick="switchTab('plan')">备考规划</button>
 <button data-tab="faq" onclick="switchTab('faq')">常见问题</button>
+<span class="quota-pill" id="quota">今日免费 5 次</span>
+<button class="code-btn" id="codeBtnNav" onclick="openCodeModal()">卡密</button>
 </div>
 </nav>
 
@@ -285,8 +289,6 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <button class="track-btn" data-tr="3" onclick="setTrack(3)">数三</button>
 </div>
 <button class="solve-btn" id="aiSolveBtn" onclick="switchSub('study','solve')">AI 解题</button>
-<span class="quota-pill" id="quota">今日免费 5 次</span>
-<button class="code-btn" onclick="openCodeModal()">卡密</button>
 </div>
 <div class="subnav" id="studySubnav">
 <button data-sub="kb" class="active" id="tabKb" onclick="switchSub('study','kb')">知识点</button>
@@ -1077,7 +1079,7 @@ box.appendChild(li);
 /* ---------- 弹窗 ---------- */
 function openCodeModal(){ document.getElementById("codeInput").value=ls("xsk_code"); document.getElementById("codeMask").classList.add("show");}
 function closeCodeModal(){ document.getElementById("codeMask").classList.remove("show");}
-function saveCode(){ ls("xsk_code",document.getElementById("codeInput").value.trim()); closeCodeModal(); renderQuota();}
+// saveCode（带 /verify 验证版）已在上方定义，此处不重复
 function changeApi(){
 var v=prompt("后端接口地址：",apiBase());
 if(v&&v.trim()){ ls("xsk_worker",v.trim().replace(/\/*$/,"/")); alert("已更新，刷新页面生效。");}
@@ -1093,6 +1095,6 @@ el.innerHTML="<span>"+s1+"</span><span class=\"cdot\">·</span><span>"+s2+"</spa
 }
 setTrack(curTrack()); renderQuota(); renderZs(); renderCountdown();
 </script>
-<script src="js/app.js?v=20261018b"></script>
+<script src="js/app.js?v=20261018c"></script>
 </body>
 </html>
