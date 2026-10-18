@@ -6,24 +6,37 @@
 <title>卡密管理 · 学士库</title>
 <meta name="robots" content="noindex,nofollow">
 <style>
-:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;}
+:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;--ok:#059669;--warn:#b45309;--bad:#dc2626;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
 .topbar{background:var(--chsi);color:#fff;padding:14px 20px;font-size:18px;font-weight:700}
-.wrap{max-width:600px;margin:0 auto;padding:24px 20px}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
 .card{background:#fff;border-radius:10px;padding:24px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .card h2{font-size:18px;margin-bottom:14px}
 label{display:block;font-size:14px;margin:12px 0 4px;color:var(--muted)}
 input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:15px}
 .btn{display:inline-block;background:var(--chsi);color:#fff;border:none;border-radius:6px;padding:10px 28px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px}
 .btn:disabled{background:#9ca3af;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--chsi);border:1px solid var(--chsi)}
 .result{margin-top:16px;padding:14px;border-radius:8px;font-size:15px;display:none}
 .result.ok{display:block;background:#f0fdf4;border:1px solid #bbf7d0}
 .result.err{display:block;background:#fef2f2;border:1px solid #fecaca}
 .result .code{font-size:24px;font-weight:800;letter-spacing:4px;color:var(--chsi);margin:8px 0}
 .hist{margin-top:8px;font-size:13px}
 .hist div{padding:8px 0;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between}
-.warn{font-size:13px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:18px}
+.warn{font-size:13px;color:var(--warn);background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th,td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap;background:#f8fafc}
+td .cd{font-weight:800;letter-spacing:1px;color:var(--chsi)}
+.left{font-weight:700;color:var(--ok)}
+.left.zero{color:var(--bad)}
+.ips{font-size:12px;color:var(--muted);line-height:1.5}
+.ips .ip{display:inline-block;margin:1px 4px 1px 0;padding:1px 6px;background:#f2f4f7;border-radius:4px;white-space:nowrap}
+.ips .ip.many{background:#fef3c7;color:var(--warn)}
+.tabwrap{overflow-x:auto}
+.muted{color:var(--muted);font-size:12px}
+.share{color:var(--warn);font-weight:700}
 </style>
 </head>
 <body>
@@ -31,11 +44,16 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
 <div class="wrap">
 <div class="warn">此页面仅管理员使用，请勿公开链接。需要 Worker 的 <b>ADMIN_KEY</b> 才能生成卡密。</div>
 <div class="card">
-<h2>生成卡密</h2>
+<h2>查询全部卡密</h2>
 <label>后端 Worker 地址</label>
 <input id="workerUrl" placeholder="https://xxx.workers.dev/" value="https://api.xskai.com/">
 <label>管理员密码（ADMIN_KEY）</label>
 <input id="adminKey" type="password" placeholder="Worker 环境变量里设置的 ADMIN_KEY">
+<button class="btn" id="qBtn" onclick="queryCodes()">查询全部卡密</button>
+<div id="qResult"></div>
+</div>
+<div class="card">
+<h2>生成卡密</h2>
 <label>卡密类型</label>
 <select id="quota">
 <option value="500">次卡 · 500 次（¥9.9）</option>
@@ -57,6 +75,74 @@ document.getElementById("workerUrl").value = localStorage.getItem(LS_W) || DEFAU
 document.getElementById("adminKey").value = localStorage.getItem(LS_K) || "";
 renderHist();
 
+function workerUrl(){ return document.getElementById("workerUrl").value.trim().replace(/\/*$/, "/"); }
+function adminKey(){ return document.getElementById("adminKey").value.trim(); }
+function saveLogin(){ localStorage.setItem(LS_W, workerUrl()); localStorage.setItem(LS_K, adminKey()); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function fmtTime(ms){
+  if(!ms) return "—";
+  var d = new Date(ms);
+  function p(n){ return n<10 ? "0"+n : n; }
+  return (d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+
+/* ---------- 查询全部卡密 ---------- */
+function queryCodes(){
+  var w = workerUrl(), k = adminKey();
+  var btn = document.getElementById("qBtn"), box = document.getElementById("qResult");
+  if(!w || !k){ box.innerHTML = '<div class="result err">请填写 Worker 地址和管理员密码</div>'; return; }
+  saveLogin();
+  btn.disabled = true; btn.textContent = "查询中…";
+  fetch(w + "admin/codes", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({admin_key: k})
+  }).then(function(r){ return r.json().then(function(d){ return {s: r.status, d: d}; }); })
+  .then(function(r){
+    btn.disabled = false; btn.textContent = "查询全部卡密";
+    if(r.s === 200 && r.d.codes){
+      renderCodes(r.d.codes);
+    } else {
+      box.innerHTML = '<div class="result err">'+esc(r.d.error || ("失败（"+r.s+"）"))+'</div>';
+    }
+  }).catch(function(){
+    btn.disabled = false; btn.textContent = "查询全部卡密";
+    box.innerHTML = '<div class="result err">网络错误，请检查 Worker 地址</div>';
+  });
+}
+function renderCodes(list){
+  var box = document.getElementById("qResult");
+  if(!list.length){
+    box.innerHTML = '<div class="result ok">还没有任何卡密</div>';
+    return;
+  }
+  var totalUsed = 0;
+  var rows = list.map(function(c){
+    totalUsed += c.used;
+    var ips = c.ips || {};
+    var ipKeys = Object.keys(ips);
+    var ipHtml = ipKeys.length
+      ? ipKeys.map(function(ip){
+          var many = ipKeys.length >= 3 || (ips[ip] >= 10);
+          return '<span class="ip'+(many?' many':'')+'">'+esc(ip)+' ×'+ips[ip]+'</span>';
+        }).join("")
+      : '<span class="muted">未使用</span>';
+    var shareFlag = ipKeys.length >= 3 ? ' <span class="share">⚠疑似共享</span>' : '';
+    var leftCls = c.left <= 0 ? "left zero" : "left";
+    return '<tr><td><span class="cd">'+esc(c.code)+'</span></td>'+
+      '<td>'+c.quota+'</td>'+
+      '<td>'+c.used+'</td>'+
+      '<td class="'+leftCls+'">'+c.left+'</td>'+
+      '<td><div class="ips">'+ipHtml+shareFlag+'</div></td>'+
+      '<td class="muted">'+fmtTime(c.last_used)+'</td>'+
+      '<td class="muted">'+fmtTime(c.created)+'</td></tr>';
+  }).join("");
+  box.innerHTML =
+    '<div class="muted" style="margin-top:14px">共 '+list.length+' 张卡密 · 累计已用 '+totalUsed+' 次 · IP 记录自 2026-10-18 后的调用开始统计</div>'+
+    '<div class="tabwrap"><table><thead><tr><th>卡密</th><th>总额度</th><th>已用</th><th>剩余</th><th>使用 IP（×次数）</th><th>最后使用</th><th>生成时间</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ---------- 生成卡密 ---------- */
 function renderHist(){
   var h = JSON.parse(localStorage.getItem("xsk_code_hist") || "[]");
   var el = document.getElementById("hist");
@@ -67,12 +153,11 @@ function renderHist(){
 }
 
 function genCode(){
-  var w = document.getElementById("workerUrl").value.trim().replace(/\/*$/, "/");
-  var k = document.getElementById("adminKey").value.trim();
+  var w = workerUrl(), k = adminKey();
   var q = document.getElementById("quota").value;
   var btn = document.getElementById("genBtn"), res = document.getElementById("result");
-  if(!w || !k){ showErr("请填写 Worker 地址和管理员密码"); return; }
-  localStorage.setItem(LS_W, w); localStorage.setItem(LS_K, k);
+  if(!w || !k){ showErr("请填写 Worker 地址和管理员密码（在上方查询卡密卡片里）"); return; }
+  saveLogin();
   btn.disabled = true; btn.textContent = "生成中…";
   res.className = "result"; res.style.display = "none";
   fetch(w + "admin/generate", {
@@ -89,6 +174,7 @@ function genCode(){
       h.unshift({code: r.d.code, quota: r.d.quota, time: new Date().toLocaleString()});
       localStorage.setItem("xsk_code_hist", JSON.stringify(h.slice(0, 50)));
       renderHist();
+      queryCodes();
     } else {
       showErr(r.d.error || ("失败（"+r.s+"）"));
     }
