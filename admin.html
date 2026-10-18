@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡密管理 · 学士库</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+.topbar{background:var(--chsi);color:#fff;padding:14px 20px;font-size:18px;font-weight:700}
+.wrap{max-width:600px;margin:0 auto;padding:24px 20px}
+.card{background:#fff;border-radius:10px;padding:24px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:18px;margin-bottom:14px}
+label{display:block;font-size:14px;margin:12px 0 4px;color:var(--muted)}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:15px}
+.btn{display:inline-block;background:var(--chsi);color:#fff;border:none;border-radius:6px;padding:10px 28px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px}
+.btn:disabled{background:#9ca3af;cursor:not-allowed}
+.result{margin-top:16px;padding:14px;border-radius:8px;font-size:15px;display:none}
+.result.ok{display:block;background:#f0fdf4;border:1px solid #bbf7d0}
+.result.err{display:block;background:#fef2f2;border:1px solid #fecaca}
+.result .code{font-size:24px;font-weight:800;letter-spacing:4px;color:var(--chsi);margin:8px 0}
+.hist{margin-top:8px;font-size:13px}
+.hist div{padding:8px 0;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between}
+.warn{font-size:13px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<div class="topbar">卡密管理 · 学士库</div>
+<div class="wrap">
+<div class="warn">此页面仅管理员使用，请勿公开链接。需要 Worker 的 <b>ADMIN_KEY</b> 才能生成卡密。</div>
+<div class="card">
+<h2>生成卡密</h2>
+<label>后端 Worker 地址</label>
+<input id="workerUrl" placeholder="https://xxx.workers.dev/">
+<label>管理员密码（ADMIN_KEY）</label>
+<input id="adminKey" type="password" placeholder="Worker 环境变量里设置的 ADMIN_KEY">
+<label>卡密类型</label>
+<select id="quota">
+<option value="500">次卡 · 500 次（¥9.9）</option>
+<option value="1500">月卡 · 1500 次（¥15）</option>
+<option value="100">试用卡 · 100 次</option>
+</select>
+<button class="btn" id="genBtn" onclick="genCode()">生成</button>
+<div class="result" id="result"></div>
+</div>
+<div class="card">
+<h2>已生成记录（本机）</h2>
+<div class="hist" id="hist"><div style="color:var(--muted)">暂无记录</div></div>
+</div>
+</div>
+<script>
+var LS_W = "xsk_admin_worker", LS_K = "xsk_admin_key";
+document.getElementById("workerUrl").value = localStorage.getItem(LS_W) || "";
+document.getElementById("adminKey").value = localStorage.getItem(LS_K) || "";
+renderHist();
+
+function renderHist(){
+  var h = JSON.parse(localStorage.getItem("xsk_code_hist") || "[]");
+  var el = document.getElementById("hist");
+  if(!h.length){ el.innerHTML = '<div style="color:var(--muted)">暂无记录</div>'; return; }
+  el.innerHTML = h.map(function(r){
+    return '<div><span><b>'+r.code+'</b> · '+r.quota+'次</span><span style="color:var(--muted)">'+r.time+'</span></div>';
+  }).join("");
+}
+
+function genCode(){
+  var w = document.getElementById("workerUrl").value.trim().replace(/\/*$/, "/");
+  var k = document.getElementById("adminKey").value.trim();
+  var q = document.getElementById("quota").value;
+  var btn = document.getElementById("genBtn"), res = document.getElementById("result");
+  if(!w || !k){ showErr("请填写 Worker 地址和管理员密码"); return; }
+  localStorage.setItem(LS_W, w); localStorage.setItem(LS_K, k);
+  btn.disabled = true; btn.textContent = "生成中…";
+  res.className = "result"; res.style.display = "none";
+  fetch(w + "admin/generate", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({admin_key: k, quota: parseInt(q)})
+  }).then(function(r){ return r.json().then(function(d){ return {s: r.status, d: d}; }); })
+  .then(function(r){
+    btn.disabled = false; btn.textContent = "生成";
+    if(r.s === 200 && r.d.code){
+      res.className = "result ok";
+      res.innerHTML = '生成成功（'+r.d.quota+' 次）<div class="code">'+r.d.code+'</div><button class="btn" style="margin-top:4px;padding:6px 18px;font-size:14px" onclick="copyCode(\''+r.d.code+'\')">复制卡密</button>';
+      var h = JSON.parse(localStorage.getItem("xsk_code_hist") || "[]");
+      h.unshift({code: r.d.code, quota: r.d.quota, time: new Date().toLocaleString()});
+      localStorage.setItem("xsk_code_hist", JSON.stringify(h.slice(0, 50)));
+      renderHist();
+    } else {
+      showErr(r.d.error || ("失败（"+r.s+"）"));
+    }
+  }).catch(function(){
+    btn.disabled = false; btn.textContent = "生成";
+    showErr("网络错误，请检查 Worker 地址");
+  });
+}
+function showErr(m){
+  var res = document.getElementById("result");
+  res.className = "result err"; res.textContent = m;
+}
+function copyCode(c){
+  if(navigator.clipboard) navigator.clipboard.writeText(c);
+  else { var t = document.createElement("textarea"); t.value = c; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  alert("已复制：" + c);
+}
+</script>
+</body>
+</html>
