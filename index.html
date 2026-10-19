@@ -262,8 +262,8 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 </header>
 <nav class="mainnav">
 <div class="wrap">
-<button onclick="location.href='today.html'">📅 今日该学什么</button>
 <button onclick="location.href='diagnose.html'">📊 测测我的高数水平</button>
+<button onclick="location.href='today.html'">📅 今日该学什么</button>
 <button onclick="goStudy('zt')">📝 开始做一套真题</button>
 <button onclick="goStudy('solve')">📷 拍照问 AI</button>
 <button onclick="location.href='formulas.html'">公式速查</button>
@@ -277,17 +277,17 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <section id="tab-home">
 <div class="countdown" id="countdownBar"></div>
 <div class="home-grid">
-<a class="hg-card c1" href="today.html">
-<div class="hg-ico">📅</div>
-<div class="hg-t">今日该学什么</div>
-<div class="hg-d">AI 根据倒计时和你的诊断结果，每天生成具体任务清单</div>
-<div class="hg-go">开始今天的学习 →</div>
-</a>
-<a class="hg-card c2" href="diagnose.html">
+<a class="hg-card c1" href="diagnose.html">
 <div class="hg-ico">📊</div>
 <div class="hg-t">测测我的高数水平</div>
 <div class="hg-d">15 分钟测出你的高数薄弱点，区分概念不懂 / 方法不会 / 计算失误</div>
 <div class="hg-go">免费开始诊断 →</div>
+</a>
+<a class="hg-card c2" href="today.html">
+<div class="hg-ico">📅</div>
+<div class="hg-t">今日该学什么</div>
+<div class="hg-d">AI 根据倒计时和你的诊断结果，每天生成具体任务清单</div>
+<div class="hg-go">开始今天的学习 →</div>
 </a>
 <a class="hg-card c3" href="javascript:goStudy('zt')">
 <div class="hg-ico">📝</div>
@@ -882,7 +882,7 @@ return {data:d,servedBy:servedBy};});
 function extractText(data){
 return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"抱歉，没有拿到有效回答。";
 }
-var SERVED_NAME={gemini:"Gemini",qwen:"千问",deepseek:"DeepSeek"};
+var SERVED_NAME={gemini:"Gemini",qwen:"千问",deepseek:"DeepSeek","gemini-vision":"Gemini 视觉","qwen-vl":"千问 VL"};
 
 /* ---------- 数据 ---------- */
 var KB=[
@@ -1189,7 +1189,7 @@ el.innerHTML="<span>"+s1+"</span><span class=\"cdot\">·</span><span>"+s2+"</spa
 }
 setTrack(curTrack()); renderQuota(); renderZs(); renderCountdown();
 </script>
-<script src="js/app.js?v=20261019a"></script>
+<script src="js/app.js?v=20261019b"></script>
 <!-- Cloudflare Web Analytics -->
 <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "36249ee97c60467d97de75d60b512604"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

@@ -506,38 +506,38 @@ function solveImage(input){
     // 预览
     document.getElementById("imgPrev").innerHTML =
       '<img src="'+dataUrl+'" style="max-width:100%;max-height:240px;border-radius:8px;border:1px solid var(--line)">';
-    // 发送
-    var aiEl = document.getElementById("chat");
-    aiEl.innerHTML = "<div class='loading'>正在识别图片并解题…</div>";
-    var code = localStorage.getItem("xsk_code") || "";
-    fetchWorker(apiBase()+"ocr-solve", {
-      method: "POST",
-      headers: Object.assign({"Content-Type":"application/json"}, code?{"X-Access-Code":code}:{}),
-      body: JSON.stringify({image: dataUrl, track: String(curTrack())})
-    }).then(function(r){
-      if(r.status===402) throw {code:402,msg:"今日免费次数已用完，输入卡密可继续使用"};
-      if(r.status===403) throw {code:403,msg:"卡密无效或已用完，请重新输入"};
-      if(r.status===413) throw {code:413,msg:"图片过大，请压缩后重试"};
-      if(!r.ok) return r.json().then(function(d){
-        throw {code:r.status,msg:(d && d.detail) ? ("解题失败（"+r.status+"）："+d.detail).substring(0,180) : ("解题失败（"+r.status+"），请重试")};
-      });
-      return r.json();
-    }).then(function(d){
-      var text = extractText(d);
+    if(solving){ input.value=""; return; }
+    // 图片题入对话区（与文字题同一套聊天流）
+    var uEl = addMsg("user");
+    uEl.innerHTML = '<div style="font-size:12.5px;color:var(--muted);margin-bottom:4px">📷 图片题目</div><img src="'+dataUrl+'" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--line)">';
+    var aiEl = addMsg("ai"); aiEl.classList.add("loading"); aiEl.textContent="识别图片并解题中…";
+    solving=true; var btn=document.getElementById("solveBtn"); if(btn) btn.disabled=true;
+    // 图片消息写入对话历史，后续文字追问 AI 能记住图里的题目
+    solveHistory.push({role:"user",content:[
+      {type:"text",text:"请识别图片中的数学题目并完整解答。"},
+      {type:"image_url",image_url:{url:dataUrl}}
+    ]});
+    var msgs=[{role:"system",content:sysSolve()}].concat(solveHistory.slice(-6));
+    var useQuota=!ls("xsk_code");
+    callWorker(msgs,2000).then(function(res){
+      var text=extractText(res.data);
       aiEl.classList.remove("loading");
-      renderAI(aiEl, text);
-      var s = document.createElement("div");
-      s.className = "served";
-      var by = (d.servedBy||"");
-      s.textContent = "由 " + (by.indexOf("vision")>=0 ? by.replace("-vision","")+" 识图" : "AI") + " 作答";
+      renderAI(aiEl,text);
+      var s=document.createElement("div");
+      s.className="served";
+      s.textContent="由 "+(SERVED_NAME[res.servedBy]||"AI")+" 作答";
       aiEl.appendChild(s);
-      if(code) bumpCode(); else bumpFree();
+      solveHistory.push({role:"assistant",content:text});
+      if(useQuota) bumpFree();
     }).catch(function(e){
       aiEl.classList.remove("loading");
-      aiEl.textContent = e.msg || "网络异常，请重试";
+      aiEl.textContent=e.msg||"网络异常，请重试";
+      solveHistory.pop();
       if(e.code===402||e.code===403) setTimeout(openCodeModal,600);
+    }).finally(function(){
+      solving=false; if(btn) btn.disabled=false;
     });
-    input.value = "";
+    input.value="";
   };
   reader.readAsDataURL(f);
 }
