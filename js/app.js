@@ -106,7 +106,7 @@ b.classList.toggle("active", b.dataset.sub===name);
 document.querySelectorAll('.subsec[data-group="'+group+'"]').forEach(function(s){
 s.style.display = s.dataset.sub===name? "": "none";
 });
-if(group==="study"){ var sb=document.getElementById("aiSolveBtn"); if(sb) sb.classList.toggle("active", name==="solve"); }
+if(group==="study"){ var sb=document.getElementById("aiSolveBtn"); if(sb) sb.classList.toggle("active", name==="solve"); var st=document.getElementById("tab-study"); if(st) st.classList.toggle("solve-mode", name==="solve"); }
 }
 function goStudy(sub){ switchTab("study"); switchSub("study",sub);}
 
