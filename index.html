@@ -255,16 +255,16 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 
 <header class="sitehead">
 <div class="wrap">
-<div class="brand">学士库<span class="brand-en">xskAi</span><span class="brand-sub">考研高数备考</span></div>
+<div class="brand"><a href="index.html" style="text-decoration:none;color:inherit">学士库<span class="brand-en">xskAi</span><span class="brand-sub">考研高数备考</span></a></div>
 </div>
 </header>
 <nav class="mainnav">
 <div class="wrap">
-<button data-tab="home" class="active" onclick="switchTab('home')">首页</button>
-<button data-tab="study" onclick="switchTab('study')">高数学习</button>
-<button data-tab="schools" onclick="switchTab('schools')">目标院校</button>
-<button data-tab="home" onclick="location.href='diagnose.html'">高数诊断</button>
-<button data-tab="home" onclick="location.href='formulas.html'">公式速查</button>
+<button onclick="location.href='today.html'">📅 今日该学什么</button>
+<button onclick="location.href='diagnose.html'">📊 测测我的高数水平</button>
+<button onclick="goStudy('zt')">📝 开始做一套真题</button>
+<button onclick="goStudy('solve')">📷 拍照问 AI</button>
+<button onclick="location.href='formulas.html'">公式速查</button>
 <span class="quota-pill" id="quota">今日免费 5 次</span>
 <button class="code-btn" id="codeBtnNav" onclick="openCodeModal()">卡密</button>
 </div>
@@ -701,6 +701,7 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <a href="javascript:void(0)" onclick="showAbout('disclaimer')">免责声明</a>
 <a href="javascript:switchTab('plan')">备考规划</a>
 <a href="javascript:switchTab('faq')">常见问题</a>
+<a href="javascript:switchTab('schools')">目标院校</a>
 </div>
 </div>
 </footer>
