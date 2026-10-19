@@ -283,8 +283,216 @@ var BANK = [
  q:"设 $\\boldsymbol{a}=(1,0,2)$，$\\boldsymbol{b}=(0,1,1)$，则 $\\boldsymbol{a}\\times\\boldsymbol{b} = $（　）",
  opts:["$(-2,-1,1)$","$(2,1,-1)$","$(1,1,3)$","$(-2,-1,-1)$"], ans:0,
  why:{1:"method",2:"concept",3:"calc"},
- tip:"叉积行列式展开：$(0\\cdot1-2\\cdot1,\\ 2\\cdot0-1\\cdot1,\\ 1\\cdot1-0\\cdot0)=(-2,-1,1)$；结果差一个负号是把 $\\boldsymbol{a}\\times\\boldsymbol{b}$ 与 $\\boldsymbol{b}\\times\\boldsymbol{a}$ 弄反，加起来 $(1,1,3)$ 是根本没用叉积。"}
+ tip:"叉积行列式展开：$(0\\cdot1-2\\cdot1,\\ 2\\cdot0-1\\cdot1,\\ 1\\cdot1-0\\cdot0)=(-2,-1,1)$；结果差一个负号是把 $\\boldsymbol{a}\\times\\boldsymbol{b}$ 与 $\\boldsymbol{b}\\times\\boldsymbol{a}$ 弄反，加起来 $(1,1,3)$ 是根本没用叉积。"},
+// ---- 以下为扩充题库（每次检测按学习情况随机抽题） ----
+// 专题1 函数与极限 补充
+{topic:"函数与极限", tracks:[1,2,3],
+ type:"concept",
+ q:"函数 $f(x)$ 在 $x_0$ 的去心邻域内有定义，且 $\\lim\\limits_{x\\to x_0^-}f(x)=\\lim\\limits_{x\\to x_0^+}f(x)=A$，则 $\\lim\\limits_{x\\to x_0}f(x)$（　）",
+ opts:["存在，但不一定等于 $A$","存在，且等于 $A$","不一定存在","与 $f(x_0)$ 的值有关"], ans:1,
+ why:{0:"concept",2:"concept",3:"concept"},
+ tip:"左右极限都存在且相等是极限存在的充要条件，极限值就是 $A$；与 $f(x_0)$ 处是否有定义无关。"},
+{topic:"函数与极限", tracks:[1,2,3],
+ type:"calc",
+ q:"$\\lim\\limits_{x \\to 0} \\dfrac{e^x - 1 - x}{x^2} = $（　）",
+ opts:["$\\dfrac{1}{2}$","$1$","$0$","$\\dfrac{1}{6}$"], ans:0,
+ why:{1:"method",2:"calc",3:"calc"},
+ tip:"泰勒展开 $e^x=1+x+\\dfrac{x^2}{2}+o(x^2)$，故 $\\dfrac{x^2/2+o(x^2)}{x^2}\\to\\dfrac12$；写成 $1$ 是只展开到一阶就急着取极限。"},
+{topic:"函数与极限", tracks:[1,2,3],
+ type:"method",
+ q:"$\\lim\\limits_{n \\to \\infty} (\\sqrt{n^2+n} - n) = $（　）",
+ opts:["$\\dfrac{1}{2}$","$1$","$0$","$\\infty$"], ans:0,
+ why:{1:"method",2:"calc",3:"concept"},
+ tip:"有理化：$\\dfrac{n}{\\sqrt{n^2+n}+n}\\to\\dfrac12$；直接把 $\\infty-\\infty$ 当 $0$ 是没先做恒等变形。"},
+// 专题2 导数与微分 补充
+{topic:"导数与微分", tracks:[1,2,3],
+ type:"concept",
+ q:"函数 $f(x)=|x|$ 在 $x=0$ 处（　）",
+ opts:["连续且可导","连续但不可导","可导但不连续","既不连续也不可导"], ans:1,
+ why:{0:"concept",2:"concept",3:"concept"},
+ tip:"$|x|$ 在 0 处连续，但左导数 $-1$、右导数 $1$ 不相等，故不可导；连续只是可导的必要条件。"},
+{topic:"导数与微分", tracks:[1,2,3],
+ type:"calc",
+ q:"设 $f(x)=\\ln(1+x)$，则 $f''(0) = $（　）",
+ opts:["$-1$","$1$","$0$","$\\dfrac{1}{2}$"], ans:0,
+ why:{1:"calc",2:"method",3:"calc"},
+ tip:"$f'(x)=\\dfrac{1}{1+x}$，$f''(x)=-\\dfrac{1}{(1+x)^2}$，故 $f''(0)=-1$；丢负号是复合求导符号出错。"},
+{topic:"导数与微分", tracks:[1,2,3],
+ type:"calc",
+ q:"由方程 $x^2+y^2=1$ 确定的隐函数在 $x=\\dfrac{\\sqrt2}{2},y=\\dfrac{\\sqrt2}{2}$ 处的 $\\dfrac{dy}{dx} = $（　）",
+ opts:["$-1$","$1$","$0$","$\\dfrac{\\sqrt2}{2}$"], ans:0,
+ why:{1:"method",2:"method",3:"calc"},
+ tip:"两边对 $x$ 求导：$2x+2yy'=0\\Rightarrow y'=-\\dfrac{x}{y}=-1$；对 $y^2$ 求导漏掉 $y'$ 是隐函数最常见错误。"},
+// 专题3 中值定理 补充
+{topic:"中值定理", tracks:[1,2,3],
+ type:"concept",
+ q:"拉格朗日中值定理要求 $f(x)$ 满足（　）",
+ opts:["在 $[a,b]$ 上连续即可","在 $(a,b)$ 上可导即可","在 $[a,b]$ 连续、$(a,b)$ 可导","在 $[a,b]$ 上可导"], ans:2,
+ why:{0:"concept",1:"concept",3:"concept"},
+ tip:"闭区间连续 + 开区间可导（端点只要求连续，不要求可导）；条件写得更严是概念不清。"},
+{topic:"中值定理", tracks:[1,2,3],
+ type:"calc",
+ q:"$f(x)=x^3$ 在 $[1,2]$ 上满足拉格朗日中值定理，则满足 $f'(\\xi)=\\dfrac{f(2)-f(1)}{2-1}$ 的 $\\xi=$（　）",
+ opts:["$\\sqrt{\\dfrac{7}{3}}$","$\\dfrac{7}{3}$","$1$","$\\sqrt{7}$"], ans:0,
+ why:{1:"calc",2:"method",3:"calc"},
+ tip:"$f'(x)=3x^2$，$\\dfrac{f(2)-f(1)}{1}=7$，故 $3\\xi^2=7\\Rightarrow\\xi=\\sqrt{\\dfrac73}$；写 $\\dfrac73$ 是漏了开方。"},
+{topic:"中值定理", tracks:[1,2,3],
+ type:"method",
+ q:"要证存在 $\\xi\\in(a,b)$ 使 $f'(\\xi)=\\dfrac{f(b)-f(a)}{b-a}$，应使用（　）",
+ opts:["罗尔定理","拉格朗日中值定理","柯西中值定理","泰勒中值定理"], ans:1,
+ why:{0:"method",2:"concept",3:"concept"},
+ tip:"这正是拉格朗日中值定理的结论公式；柯西定理是 $\\dfrac{f(b)-f(a)}{g(b)-g(a)}=\\dfrac{f'(\\xi)}{g'(\\xi)}$，取 $g(x)=x$ 才退化为它。"},
+// 专题4 一元积分 补充
+{topic:"一元积分", tracks:[1,2,3],
+ type:"concept",
+ q:"$\\displaystyle\\int_{-2}^{2} x^3\\,dx = $（　）",
+ opts:["$0$","$8$","$16$","$4$"], ans:0,
+ why:{1:"method",2:"method",3:"calc"},
+ tip:"$x^3$ 是奇函数，在对称区间上的积分为 $0$；先积出 $\\int_0^2x^3dx=4$ 再乘 2 是把奇函数当偶函数用了。"},
+{topic:"一元积分", tracks:[1,2,3],
+ type:"method",
+ q:"$\\displaystyle\\int_0^{\\pi} x\\sin x\\,dx = $（　）",
+ opts:["$\\pi$","$2\\pi$","$0$","$1$"], ans:0,
+ why:{1:"method",2:"calc",3:"calc"},
+ tip:"分部积分：$\\int x\\sin x\\,dx=-x\\cos x+\\sin x$，代上下限得 $\\pi$；得 $2\\pi$ 是 $-x\\cos x$ 的符号错。"},
+{topic:"一元积分", tracks:[1,2,3],
+ type:"method",
+ q:"$\\displaystyle\\int_0^1 \\frac{1}{1+x^2}\\,dx = $（　）",
+ opts:["$\\dfrac{\\pi}{4}$","$\\dfrac{\\pi}{2}$","$1$","$\\ln 2$"], ans:0,
+ why:{1:"concept",2:"method",3:"method"},
+ tip:"$\\arctan x$ 在 $[0,1]$ 上积得 $\\dfrac{\\pi}{4}$；$\\ln2$ 是对 $\\int\\dfrac{dx}{1+x}$ 才会出现，别把 $1+x^2$ 当 $1+x$。"},
+// 专题5 多元微分 补充
+{topic:"多元微分", tracks:[1,2,3],
+ type:"calc",
+ q:"设 $z=x^2+y^2$，则 $z$ 在点 $(1,2)$ 处的全微分 $dz=$（　）",
+ opts:["$2\\,dx+4\\,dy$","$4\\,dx+2\\,dy$","$dx+\\,dy$","$2x\\,dx+2y\\,dy$"], ans:0,
+ why:{1:"method",2:"calc",3:"method"},
+ tip:"$dz=z_x\\,dx+z_y\\,dy=2x\\,dx+2y\\,dy$，代入 $(1,2)$ 得 $2dx+4dy$；$2xdx+2ydy$ 是没代入具体点。"},
+{topic:"多元微分", tracks:[1,2,3],
+ type:"concept",
+ q:"$z=f(x,y)$ 在 $(x_0,y_0)$ 的两个偏导数存在且连续，是在该点可微的（　）",
+ opts:["充分条件","必要条件","充要条件","无关条件"], ans:0,
+ why:{1:"concept",2:"concept",3:"concept"},
+ tip:"偏导数连续是可微的充分条件（可微推不出偏导连续）；偏导存在只是可微的必要条件，二者方向别反。"},
+{topic:"多元微分", tracks:[1,2,3],
+ type:"method",
+ q:"设 $f(x,y)=e^{xy}$，则 $\\dfrac{\\partial^2 f}{\\partial x\\partial y}\\Big|_{(0,0)}=$（　）",
+ opts:["$1$","$0$","$e$","$2$"], ans:0,
+ why:{1:"method",2:"concept",3:"calc"},
+ tip:"$f_x=ye^{xy}$，$f_{xy}=e^{xy}+xy\\,e^{xy}$，代入 $(0,0)$ 得 $1$；只求了 $e^{xy}$ 是没注意到要对 $y$ 再求一次。"},
+// 专题6 微分方程 补充
+{topic:"微分方程", tracks:[1,2,3],
+ type:"method",
+ q:"方程 $y''-3y'+2y=0$ 的通解是（　）",
+ opts:["$y=C_1e^{x}+C_2e^{2x}$","$y=C_1e^{-x}+C_2e^{-2x}$","$y=C_1e^{x}+C_2e^{-2x}$","$y=C_1e^{2x}+C_2e^{-x}$"], ans:0,
+ why:{1:"method",2:"calc",3:"calc"},
+ tip:"特征方程 $r^2-3r+2=0\\Rightarrow r=1,2$，两不等实根对应 $C_1e^x+C_2e^{2x}$。"},
+{topic:"微分方程", tracks:[1,2,3],
+ type:"calc",
+ q:"满足 $y'=e^x$ 且 $y(0)=0$ 的特解是（　）",
+ opts:["$y=e^x-1$","$y=e^x$","$y=e^x+1$","$y=xe^x$"], ans:0,
+ why:{1:"calc",2:"calc",3:"method"},
+ tip:"积分 $y=e^x+C$，代入 $y(0)=1+C=0$ 得 $C=-1$；忘了用初始条件定常数是最常见错误。"},
+{topic:"微分方程", tracks:[1,2,3],
+ type:"method",
+ q:"一阶线性齐次方程 $y'+P(x)y=0$ 的通解是（　）",
+ opts:["$y=Ce^{-\\int P(x)\\,dx}$","$y=Ce^{\\int P(x)\\,dx}$","$y=e^{-\\int P(x)\\,dx}+C$","$y=Ce^{\\int P(x)\\,dx}+1$"], ans:0,
+ why:{1:"method",2:"method",3:"concept"},
+ tip:"分离变量得 $\\dfrac{dy}{y}=-P(x)\\,dx$，积分得通解 $y=Ce^{-\\int P\\,dx}$；指数里忘负号是最常见错误。"},
+// 专题7 无穷级数 补充（数一/三）
+{topic:"无穷级数", tracks:[1,3],
+ type:"concept",
+ q:"级数 $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{1}{n}$（　）",
+ opts:["收敛，因为通项趋于 $0$","发散，但通项趋于 $0$","收敛，和等于 $\\ln 2$","发散，因为通项不趋于 $0$"], ans:1,
+ why:{0:"concept",2:"concept",3:"concept"},
+ tip:"调和级数发散，是「通项趋于 0 但级数发散」的经典反例；通项趋于 0 只是收敛的必要条件。"},
+{topic:"无穷级数", tracks:[1,3],
+ type:"method",
+ q:"级数 $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n}{2^n}$（　）",
+ opts:["收敛，比值判别法 $\\rho=\\dfrac12<1$","发散，比值 $\\rho=2>1$","条件收敛","无法判断"], ans:0,
+ why:{1:"method",2:"concept",3:"concept"},
+ tip:"$\\rho=\\lim\\dfrac{a_{n+1}}{a_n}=\\dfrac{n+1}{2^{n+1}}\\cdot\\dfrac{2^n}{n}=\\dfrac12<1$，绝对收敛。"},
+// 专题8 空间解析几何 补充（仅数一）
+{topic:"空间解析几何", tracks:[1],
+ type:"calc",
+ q:"设 $\\boldsymbol{a}=(1,-2,2)$，则 $|\\boldsymbol{a}|=$（　）",
+ opts:["$3$","$\\sqrt{5}$","$5$","$9$"], ans:0,
+ why:{1:"calc",2:"method",3:"calc"},
+ tip:"模长 $=\\sqrt{1^2+(-2)^2+2^2}=\\sqrt{9}=3$；写成 $9$ 是忘了开平方。"},
+{topic:"空间解析几何", tracks:[1],
+ type:"method",
+ q:"平面 $2x+y+z=1$ 的一个法向量是（　）",
+ opts:["$(2,1,1)$","$(2,-1,1)$","$(1,1,1)$","$(2,-1,-1)$"], ans:0,
+ why:{1:"concept",2:"method",3:"calc"},
+ tip:"平面 $Ax+By+Cz=D$ 的法向量就是系数向量 $(A,B,C)=(2,1,1)$。"}
 ];
+
+/* ================= 智能抽题 =================
+// 规则：薄弱专题（上次诊断 weak）> 今日学习计划相关专题 > 其余专题；
+// 无任何学习记录时：每专题等额随机抽，每次检测题目都不同 */
+var TOPIC_KEYWORDS = {
+  "函数与极限":["极限","无穷小","无穷大","洛必达","等价"],
+  "导数与微分":["导数","求导","微分学"],
+  "中值定理":["中值","罗尔","拉格朗日","柯西","泰勒"],
+  "一元积分":["积分","不定积","定积"],
+  "多元微分":["多元","偏导","全微分"],
+  "微分方程":["微分方程","通解","特解"],
+  "无穷级数":["级数","收敛","幂级数"],
+  "空间解析几何":["向量","空间","平面","直线","解析几何"]
+};
+function shuffle(arr){
+  for(var i=arr.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+  }
+  return arr;
+}
+function weightTopics(){
+  var w = {};
+  var diag = null, plan = null;
+  try{ diag = JSON.parse(localStorage.getItem("xsk_diag")||"null"); }catch(e){}
+  try{ plan = JSON.parse(localStorage.getItem("xsk_plan")||"null"); }catch(e){}
+  // 上次诊断薄弱专题（做错过的专题）加权
+  var weak = (diag && diag.weak) ? diag.weak : [];
+  weak.forEach(function(n){ w[n] = (w[n]||0) + 2; });
+  // 今日学习计划命中的专题加权（关键词匹配）
+  var planTxt = "";
+  if(plan && plan.tasks){ plan.tasks.forEach(function(t){ planTxt += " " + (t.text||""); }); }
+  if(plan && plan.theme) planTxt += " " + plan.theme;
+  if(planTxt){
+    Object.keys(TOPIC_KEYWORDS).forEach(function(topic){
+      TOPIC_KEYWORDS[topic].forEach(function(kw){
+        if(planTxt.indexOf(kw) >= 0) w[topic] = (w[topic]||0) + 1;
+      });
+    });
+  }
+  return w;
+}
+function buildQuiz(){
+  var pool = BANK.filter(function(q){ return q.tracks.indexOf(track) >= 0; });
+  var byTopic = {};
+  pool.forEach(function(q){ (byTopic[q.topic] = byTopic[q.topic] || []).push(q); });
+  var topics = Object.keys(byTopic);
+  var target = topics.length * 2;      // 每专题默认 2 题（数一 16 / 数二 12 / 数三 14）
+  var per = {};
+  topics.forEach(function(t){ per[t] = 1; });
+  var remain = target - topics.length;   // 每专题保底 1 题后，剩余名额按权重分配
+  var w = weightTopics();
+  while(remain > 0){
+    var best = null;
+    topics.forEach(function(t){
+      if(per[t] >= byTopic[t].length || per[t] >= 4) return;  // 池子与上限保护
+      if(!best || w[t] > w[best] || (w[t] === w[best] && per[t] < per[best])) best = t;
+    });
+    if(!best) break;
+    per[best]++; remain--;
+  }
+  var quiz = [];
+  topics.forEach(function(t){
+    quiz = quiz.concat(shuffle(byTopic[t].slice()).slice(0, per[t]));
+  });
+  return shuffle(quiz);
+}
 
 /* ================= 状态 ================= */
 var track = 0, quiz = [], answers = [], cur = 0;
@@ -297,7 +505,7 @@ function pickTrack(t){
     el.classList.toggle("sel", +el.dataset.tr === t);
   });
   document.getElementById("startBtn").disabled = false;
-  quiz = BANK.filter(function(q){ return q.tracks.indexOf(track) >= 0; });
+  quiz = buildQuiz();
   document.getElementById("startBtn").textContent = "开始诊断（" + quiz.length + " 题 · 约 15 分钟）";
 }
 function startQuiz(){
