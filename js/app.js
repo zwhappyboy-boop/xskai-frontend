@@ -545,4 +545,36 @@ function solveImage(input){
   };
   reader.readAsDataURL(f);
 }
+
+/* ---------- 真题下载：统一拦截，扣次（卡密 1 次 / 无卡密每日免费 5 次） ---------- */
+document.addEventListener("click", function(e){
+  var a = e.target && e.target.closest ? e.target.closest('a[href*="/zhenti/"]') : null;
+  if(!a) return;
+  e.preventDefault();
+  var href = a.getAttribute("href");
+  var file = decodeURIComponent(href.split("/").pop());
+  var name = file.replace(/^math([123])-(\d{4})(-ans)?\.pdf$/, function(m,r,y,ans){
+    return "考研" + (r==="1"?"数学一":r==="2"?"数学二":"数学三") + y + "年" + (ans?"真题解答":"真题") + ".pdf";
+  });
+  var code = ls("xsk_code");
+  var headers = {};
+  if(code) headers["X-Access-Code"] = code;
+  var oldTxt = a.textContent;
+  a.textContent = "下载中…";
+  fetch(href, { headers: headers }).then(function(r){
+    if(r.status===402){ openCodeModal(); throw {msg:"今日免费下载次数已用完，输入卡密可继续下载"}; }
+    if(r.status===403){ clearCode(); openCodeModal(); throw {msg:"卡密无效或次数已用完，请重新输入"}; }
+    if(!r.ok){ throw {msg:"下载失败（"+r.status+"），请稍后再试"}; }
+    return r.blob();
+  }).then(function(blob){
+    var url = URL.createObjectURL(blob);
+    var tmp = document.createElement("a");
+    tmp.href = url; tmp.download = name;
+    document.body.appendChild(tmp); tmp.click();
+    setTimeout(function(){ document.body.removeChild(tmp); URL.revokeObjectURL(url); }, 2000);
+    if(code){ var l=parseInt(ls("xsk_code_left")||"0",10); if(l>0) ls("xsk_code_left",String(l-1)); renderQuota(); }
+  }).catch(function(e){
+    alert((e && e.msg) ? e.msg : "下载失败，请稍后再试");
+  }).finally(function(){ a.textContent = oldTxt; });
+});
 updateTabLabel();
