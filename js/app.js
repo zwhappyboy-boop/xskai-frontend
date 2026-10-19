@@ -486,9 +486,13 @@ if(v&&v.trim()){ ls("xsk_worker",v.trim().replace(/\/*$/,"/")); alert("已更新
 }
 
 function renderCountdown(){
-var el=document.getElementById("countdownBar"); if(!el) return;
+var hd=document.getElementById("heroDays");
+var hs=document.getElementById("heroSub");
 var d0=new Date(); d0.setHours(0,0,0,0);
 var dE=Math.round((new Date(2026,11,19)-d0)/864e5), dR=Math.round((new Date(2026,9,24)-d0)/864e5);
+if(hd) hd.textContent=dE>0?dE:(dE>=-1?"冲刺":"考完");
+if(hs) hs.textContent=(dE>0?"距 2027 研考初试（12.19）还有 "+dE+" 天":(dE>=-1?"2027 研考初试进行中，加油！":"2027 研考初试已结束"))+" · "+(dR>0?"正式报名 "+dR+" 天后截止（10.24 22:00）":(dR===0?"正式报名今日 22:00 截止":"正式报名已结束"));
+var el=document.getElementById("countdownBar"); if(!el) return;
 var s1=dE>0?"距离2027年研考初试（12月19日）还有 <b>"+dE+" 天</b>":(dE>=-1?"2027年研考初试进行中，加油！":"2027年研考初试已结束");
 var s2=dR>0?"正式报名进行中，<b>"+dR+" 天</b>后截止（10月24日 22:00）":(dR===0?"<b>正式报名今日 22:00 截止</b>":"正式报名已结束");
 el.innerHTML="<span>"+s1+"</span><span class=\"cdot\">·</span><span>"+s2+"</span>";

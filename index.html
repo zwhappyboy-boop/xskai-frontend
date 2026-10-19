@@ -63,14 +63,16 @@ nav.mainnav button.active { color: var(--chsi); box-shadow: inset 0 -3px 0 var(-
 nav.mainnav .code-btn { padding: 4px 12px; font-size: 12.5px; font-weight: 400; margin-left: 8px;}
 nav.mainnav .quota-pill { flex-shrink: 0;}
 .home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}
-.hg-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;text-decoration:none;color:var(--ink);display:block;position:relative;overflow:hidden;transition:.15s}
-.hg-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08)}
-.hg-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px}
-.hg-card.c1::before{background:#2563eb}.hg-card.c2::before{background:#7c3aed}.hg-card.c3::before{background:#059669}.hg-card.c4::before{background:#ea580c}
-.hg-ico{font-size:28px;margin-bottom:8px}
+.hg-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;text-decoration:none;color:var(--ink);display:block;position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.hg-card:hover{transform:translateY(-4px);box-shadow:0 14px 26px rgba(8,47,122,.12);border-color:#c7d4ec}
+.hg-card::before{content:'';position:absolute;left:0;top:0;right:0;height:3px}
+.hg-card.c1::before{background:linear-gradient(90deg,#2563eb,#60a5fa)}.hg-card.c2::before{background:linear-gradient(90deg,#7c3aed,#a78bfa)}.hg-card.c3::before{background:linear-gradient(90deg,#059669,#34d399)}.hg-card.c4::before{background:linear-gradient(90deg,#ea580c,#fb923c)}
+.hg-ico{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:27px;margin-bottom:14px;box-shadow:0 6px 14px rgba(8,47,122,.14)}
+.hg-card.c1 .hg-ico{background:linear-gradient(135deg,#2563eb,#60a5fa)}.hg-card.c2 .hg-ico{background:linear-gradient(135deg,#7c3aed,#a78bfa)}.hg-card.c3 .hg-ico{background:linear-gradient(135deg,#059669,#34d399)}.hg-card.c4 .hg-ico{background:linear-gradient(135deg,#ea580c,#fb923c)}
 .hg-t{font-size:19px;font-weight:800;margin-bottom:6px}
-.hg-d{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
-.hg-go{font-size:13.5px;font-weight:700}
+.hg-d{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.hg-go{font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;transition:gap .15s}
+.hg-card:hover .hg-go{gap:8px}
 .hg-card.c1 .hg-go{color:#2563eb}.hg-card.c2 .hg-go{color:#7c3aed}.hg-card.c3 .hg-go{color:#059669}.hg-card.c4 .hg-go{color:#ea580c}
 @media(max-width:640px){.home-grid{grid-template-columns:1fr}}
 .zt-freq{display:flex;align-items:center;gap:10px;margin:7px 0}
@@ -242,9 +244,24 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
   .vid-meta { margin-left: 8px; font-size: 12px; color: #6b7280; }
   .kb-a .vid iframe { width: 100%; height: 320px; border: 0; border-radius: 8px; background: #000; }
   @media (max-width: 640px) { .kb-a .vid iframe { height: 220px; } }
-  .countdown { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 8px; padding: 10px 16px; font-size: 14px; color: var(--ink); margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .countdown b { color: var(--red); }
-  .countdown .cdot { color: var(--muted); }
+  .hero{position:relative;overflow:hidden;border-radius:18px;padding:34px 36px;margin-bottom:20px;color:#fff;background:linear-gradient(125deg,var(--navy) 0%,var(--chsi) 58%,#2e6cd6 125%);box-shadow:0 16px 36px rgba(8,47,122,.25);display:flex;align-items:center;justify-content:space-between;gap:20px}
+  .hero-tag{display:inline-block;font-size:12.5px;font-weight:600;padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);margin-bottom:14px;letter-spacing:.02em}
+  .hero-count{display:flex;align-items:baseline;line-height:1}
+  .hero-count b{font-size:68px;font-weight:900;letter-spacing:-1px}
+  .hero-count span{font-size:26px;font-weight:600;margin-left:8px;opacity:.92}
+  .hero-sub{font-size:14px;opacity:.94;margin-top:12px}
+  .hero-cta{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}
+  .hero-btn{display:inline-flex;align-items:center;gap:6px;padding:11px 24px;border-radius:999px;font-size:14.5px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s}
+  .hero-btn:hover{transform:translateY(-2px)}
+  .hero-btn.primary{background:#fff;color:var(--chsi);box-shadow:0 6px 16px rgba(0,0,0,.18)}
+  .hero-btn.ghost{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.55)}
+  .hero-deco{position:absolute;right:0;top:0;bottom:0;width:46%;pointer-events:none}
+  .hero-deco .sym{position:absolute;color:#fff;font-family:Georgia,'Times New Roman',serif;font-weight:700;opacity:.13}
+  .hero-deco .s1{font-size:130px;right:26px;top:-14px}
+  .hero-deco .s2{font-size:96px;right:205px;bottom:-8px}
+  .hero-deco .s3{font-size:62px;right:340px;top:40px}
+  .hero-deco .s4{font-size:44px;right:96px;bottom:48px}
+  @media(max-width:640px){.hero{padding:26px 22px}.hero-count b{font-size:50px}.hero-deco{opacity:.55}}
   .off-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 4px; }
   .off-link { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
   .off-link:hover { border-color: var(--chsi); }
@@ -275,7 +292,20 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <main>
 <!-- ============ 首页 ============ -->
 <section id="tab-home">
-<div class="countdown" id="countdownBar"></div>
+<section class="hero">
+<div>
+<div class="hero-tag">🏆 2027 考研冲刺 · 数一 / 数二 / 数三</div>
+<div class="hero-count"><b id="heroDays">—</b><span>天</span></div>
+<div class="hero-sub" id="heroSub">距 2027 研考初试（12月19日）· 正式报名进行中</div>
+<div class="hero-cta">
+<a class="hero-btn primary" href="today.html">📅 开始今天的学习</a>
+<a class="hero-btn ghost" href="diagnose.html">📊 免费水平诊断</a>
+</div>
+</div>
+<div class="hero-deco" aria-hidden="true">
+<span class="sym s1">∑</span><span class="sym s2">∫</span><span class="sym s3">∞</span><span class="sym s4">√</span>
+</div>
+</section>
 <div class="home-grid">
 <a class="hg-card c1" href="diagnose.html">
 <div class="hg-ico">📊</div>
@@ -1180,16 +1210,20 @@ if(v&&v.trim()){ ls("xsk_worker",v.trim().replace(/\/*$/,"/")); alert("已更新
 }
 
 function renderCountdown(){
-var el=document.getElementById("countdownBar"); if(!el) return;
+var hd=document.getElementById("heroDays");
+var hs=document.getElementById("heroSub");
 var d0=new Date(); d0.setHours(0,0,0,0);
 var dE=Math.round((new Date(2026,11,19)-d0)/864e5), dR=Math.round((new Date(2026,9,24)-d0)/864e5);
+if(hd) hd.textContent=dE>0?dE:(dE>=-1?"冲刺":"考完");
+if(hs) hs.textContent=(dE>0?"距 2027 研考初试（12.19）还有 "+dE+" 天":(dE>=-1?"2027 研考初试进行中，加油！":"2027 研考初试已结束"))+" · "+(dR>0?"正式报名 "+dR+" 天后截止（10.24 22:00）":(dR===0?"正式报名今日 22:00 截止":"正式报名已结束"));
+var el=document.getElementById("countdownBar"); if(!el) return;
 var s1=dE>0?"距离2027年研考初试（12月19日）还有 <b>"+dE+" 天</b>":(dE>=-1?"2027年研考初试进行中，加油！":"2027年研考初试已结束");
 var s2=dR>0?"正式报名进行中，<b>"+dR+" 天</b>后截止（10月24日 22:00）":(dR===0?"<b>正式报名今日 22:00 截止</b>":"正式报名已结束");
 el.innerHTML="<span>"+s1+"</span><span class=\"cdot\">·</span><span>"+s2+"</span>";
 }
 setTrack(curTrack()); renderQuota(); renderZs(); renderCountdown();
 </script>
-<script src="js/app.js?v=20261019b"></script>
+<script src="js/app.js?v=20261019c"></script>
 <!-- Cloudflare Web Analytics -->
 <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "36249ee97c60467d97de75d60b512604"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
