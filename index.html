@@ -52,6 +52,8 @@ a { text-decoration: none;}
 .track-btn +.track-btn { border-left: 1.5px solid var(--chsi);}
 .track-btn.active { background: var(--chsi); color: #fff;}
 .track-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; }
+  /* 拍照问AI（solve 模式）：隐藏上半部分，只留 AI 解题区 */
+  #tab-study.solve-mode > .track-hint, #tab-study.solve-mode > .track-row, #tab-study.solve-mode > .subnav, #tab-study.solve-mode > #simCard { display: none; }
 .track-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 nav.mainnav { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40;}
 nav.mainnav .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; display: flex; overflow-x: auto;}
@@ -463,7 +465,7 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 </div>
 </div>
 </div>
-<div class="card">
+<div class="card" id="simCard">
 <h3 class="sec">AI 仿真题</h3>
 <div class="sec-sub">AI 按真题考频出一整套试卷（10 选择 + 6 填空 + 6 解答），高频章节多出题，原创无版权风险</div>
 <div class="quiz-box">
@@ -481,7 +483,7 @@ footer.sitefoot button { background: none; border: none; color: #aebddf; font-si
 <div class="subsec" data-group="study" data-sub="solve" style="display:none">
 <div class="card">
 <h3 class="sec">AI 解题</h3>
-<div class="sec-sub">按作答，公式自动渲染</div>
+<div class="sec-sub">文字 / 拍照提问，AI 分步作答，公式自动渲染</div>
 <textarea id="prob" placeholder="粘贴题目，比如：求 lim(x→0) (e^x - 1 - x) / x²"></textarea>
 <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
 <button class="btn btn-primary" id="solveBtn" onclick="solve()">解题</button>
@@ -800,7 +802,7 @@ b.classList.toggle("active", b.dataset.sub===name);
 document.querySelectorAll('.subsec[data-group="'+group+'"]').forEach(function(s){
 s.style.display = s.dataset.sub===name? "": "none";
 });
-if(group==="study"){ var sb=document.getElementById("aiSolveBtn"); if(sb) sb.classList.toggle("active", name==="solve"); }
+if(group==="study"){ var sb=document.getElementById("aiSolveBtn"); if(sb) sb.classList.toggle("active", name==="solve"); var st=document.getElementById("tab-study"); if(st) st.classList.toggle("solve-mode", name==="solve"); }
 }
 function goStudy(sub){ switchTab("study"); switchSub("study",sub);}
 
