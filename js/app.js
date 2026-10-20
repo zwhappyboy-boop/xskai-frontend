@@ -539,31 +539,44 @@ function solveImage(input){
     // 图片题入对话区（与文字题同一套聊天流）
     var uEl = addMsg("user");
     uEl.innerHTML = '<div style="font-size:12.5px;color:var(--muted);margin-bottom:4px">📷 图片题目</div><img src="'+dataUrl+'" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--line)">';
-    var aiEl = addMsg("ai"); aiEl.classList.add("loading"); aiEl.textContent="识别图片并解题中…";
+    var aiEl = addMsg("ai"); aiEl.classList.add("loading"); aiEl.textContent="识别图片中的题目…";
     solving=true; var btn=document.getElementById("solveBtn"); if(btn) btn.disabled=true;
-    // 图片消息写入对话历史，后续文字追问 AI 能记住图里的题目
-    solveHistory.push({role:"user",content:[
-      {type:"text",text:"请识别图片中的数学题目并完整解答。"},
-      {type:"image_url",image_url:{url:dataUrl}}
-    ]});
-    var msgs=[{role:"system",content:sysSolve()}].concat(solveHistory.slice(-6));
-    var useQuota=!ls("xsk_code");
-    callWorker(msgs,2000).then(function(res){
-      var text=extractText(res.data);
+    var base = apiBase().replace(/\/+$/,"");
+    var userPushed=false;
+    // 第一步：视觉模型快速提取题目文本（短输出，稳定在 30 秒内）
+    fetchWorker(base+"/ocr-extract",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:dataUrl,track:curTrack()})})
+    .then(function(r){
+      if(!r.ok){ throw {code:r.status,msg:"图片识别失败（"+r.status+"），请重试"}; }
+      return r.json();
+    })
+    .then(function(oc){
+      var questionText = (oc.text||"").trim();
+      if(!questionText || questionText.indexOf("未识别到题目")>=0){ throw {code:922,msg:"图片中没有识别到题目，请拍清晰一点再试"}; }
+      aiEl.textContent="题目已识别，AI 解题中…";
+      // 第二步：题目文本走文字链解题（快且稳），扣次
+      solveHistory.push({role:"user",content:"📷 图片题目：\n"+questionText});
+      userPushed=true;
+      var msgs=[{role:"system",content:sysSolve()}].concat(solveHistory.slice(-6));
+      var useQuota=!ls("xsk_code");
+      return callWorker(msgs,2000).then(function(res){
+        var text=extractText(res.data);
+        aiEl.classList.remove("loading");
+        renderAI(aiEl,text);
+        var s=document.createElement("div");
+        s.className="served";
+        s.textContent="由 "+(SERVED_NAME[res.servedBy]||"AI")+" 作答";
+        aiEl.appendChild(s);
+        solveHistory.push({role:"assistant",content:text});
+        if(useQuota) bumpFree();
+      });
+    })
+    .catch(function(e){
       aiEl.classList.remove("loading");
-      renderAI(aiEl,text);
-      var s=document.createElement("div");
-      s.className="served";
-      s.textContent="由 "+(SERVED_NAME[res.servedBy]||"AI")+" 作答";
-      aiEl.appendChild(s);
-      solveHistory.push({role:"assistant",content:text});
-      if(useQuota) bumpFree();
-    }).catch(function(e){
-      aiEl.classList.remove("loading");
-      aiEl.textContent=e.msg||"网络异常，请重试";
-      solveHistory.pop();
-      if(e.code===402||e.code===403) setTimeout(openCodeModal,600);
-    }).finally(function(){
+      aiEl.textContent=(e&&e.msg)?e.msg:"网络异常，请重试";
+      if(userPushed && solveHistory.length && solveHistory[solveHistory.length-1].role==="user") solveHistory.pop();
+      if(e&&e.code===402||e&&e.code===403) setTimeout(openCodeModal,600);
+    })
+    .finally(function(){
       solving=false; if(btn) btn.disabled=false;
     });
     input.value="";
