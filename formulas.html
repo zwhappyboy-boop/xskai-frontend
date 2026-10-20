@@ -173,7 +173,71 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 </div>
 
+<!-- 线性代数 -->
+<div class="card" data-g="la" style="display:none">
+<h2>线性代数 · 速查 <span class="tag t3">数一/二/三</span></h2>
+<div class="fgroup"><h3>行列式</h3>
+<div class="fitem"><span>$\left|A^T\right|=\left|A\right|,\quad \left|AB\right|=\left|A\right|\cdot\left|B\right|$</span><span class="fn">转置不变，乘积可拆</span></div>
+<div class="fitem"><span>$\left|kA\right|=k^n\left|A\right|,\quad \left|A^{-1}\right|=\dfrac{1}{\left|A\right|}$</span><span class="fn">数乘提 k 的 n 次方</span></div>
+<div class="fitem"><span>$\left|A^*\right|=\left|A\right|^{n-1}$</span><span class="fn">伴随的行列式</span></div>
+<div class="fitem"><span>副对角行列式 $=(-1)^{\frac{n(n-1)}{2}}\prod a_{i\,(n+1-i)}$</span><span class="fn">n=2、3 时为负</span></div>
+<div class="fitem"><span>范德蒙德 $V_n=\prod_{1\le i<j\le n}(x_j-x_i)$</span><span class="fn">下标大的减小的</span></div>
+</div>
+<div class="fgroup"><h3>矩阵运算与秩</h3>
+<div class="fitem"><span>$A^{-1}=\dfrac{1}{\left|A\right|}A^*,\quad AA^*=A^*A=\left|A\right|E$</span><span class="fn">伴随矩阵万能公式</span></div>
+<div class="fitem"><span>$(AB)^{-1}=B^{-1}A^{-1},\quad (AB)^T=B^TA^T$</span><span class="fn">取逆/转置均反序</span></div>
+<div class="fitem"><span>$r(A+B)\le r(A)+r(B),\quad r(AB)\le\min\{r(A),r(B)\}$</span><span class="fn">和秩不超和、积秩不增</span></div>
+<div class="fitem"><span>$r(AB)\ge r(A)+r(B)-n$（$A$ 为 $m\times n$）</span><span class="fn">Sylvester 下界</span></div>
+<div class="fitem"><span>$r(A^TA)=r(A)$</span><span class="fn">列满秩关键结论</span></div>
+</div>
+<div class="fgroup"><h3>线性方程组</h3>
+<div class="fitem"><span>齐次 $Ax=0$：基础解系含 $n-r(A)$ 个解向量</span><span class="fn">解空间维数</span></div>
+<div class="fitem"><span>非齐次 $Ax=b$：$r(A)=r(A\,|\,b)$ 有解；$=n$ 时唯一解</span><span class="fn">有解判定两问</span></div>
+<div class="fitem"><span>通解 $=$ 特解 $+$ 齐次通解</span><span class="fn">解的结构</span></div>
+</div>
+<div class="fgroup"><h3>特征值与二次型</h3>
+<div class="fitem"><span>$\left|\lambda E-A\right|=0,\quad A\xi=\lambda\xi$</span><span class="fn">特征方程求特征值/向量</span></div>
+<div class="fitem"><span>$\sum\lambda_i=\mathrm{tr}(A),\quad \prod\lambda_i=\left|A\right|$</span><span class="fn">特征值之和=迹，之积=行列式</span></div>
+<div class="fitem"><span>$A$ 可对角化 $\iff$ 有 $n$ 个线性无关特征向量；实对称矩阵必可正交对角化</span><span class="fn">对角化判定</span></div>
+<div class="fitem"><span>正定：各阶顺序主子式全 $>0$；或 $x^TAx>0\ (x\ne0)$</span><span class="fn">正定判别</span></div>
+</div>
+</div>
 
+<!-- 概率统计 -->
+<div class="card" data-g="prob" style="display:none">
+<h2>概率统计 · 速查 <span class="tag t1">数一/三</span></h2>
+<div class="fgroup"><h3>概率公式</h3>
+<div class="fitem"><span>$P(A\cup B)=P(A)+P(B)-P(AB)$</span><span class="fn">加法公式</span></div>
+<div class="fitem"><span>$P(AB)=P(B)P(A\mid B)$</span><span class="fn">乘法公式</span></div>
+<div class="fitem"><span>全概率 $P(A)=\sum_i P(B_i)P(A\mid B_i)$</span><span class="fn">完备事件组加权</span></div>
+<div class="fitem"><span>贝叶斯 $P(B_j\mid A)=\dfrac{P(B_j)P(A\mid B_j)}{\sum_i P(B_i)P(A\mid B_i)}$</span><span class="fn">由果溯因</span></div>
+<div class="fitem"><span>独立：$P(AB)=P(A)P(B)$；伯努利 $P(X=k)=C_n^k p^k(1-p)^{n-k}$</span><span class="fn">独立 + n 重试验</span></div>
+</div>
+<div class="fgroup"><h3>常见分布</h3>
+<div class="fitem"><span>二项 $X\sim B(n,p)$：$E(X)=np,\ D(X)=np(1-p)$</span><span class="fn">n 重伯努利</span></div>
+<div class="fitem"><span>泊松 $X\sim P(\lambda)$：$P(X=k)=\dfrac{\lambda^k e^{-\lambda}}{k!}$，$E=D=\lambda$</span><span class="fn">稀有事件</span></div>
+<div class="fitem"><span>均匀 $U(a,b)$：$f(x)=\dfrac{1}{b-a}$，$E=\dfrac{a+b}{2}$</span><span class="fn">区间等可能</span></div>
+<div class="fitem"><span>指数 $E(\lambda)$：$f(x)=\lambda e^{-\lambda x}$，$E=\dfrac{1}{\lambda}$</span><span class="fn">无记忆性</span></div>
+<div class="fitem"><span>正态 $N(\mu,\sigma^2)$：$f(x)=\dfrac{1}{\sqrt{2\pi}\,\sigma}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$，$\dfrac{X-\mu}{\sigma}\sim N(0,1)$</span><span class="fn">标准化是核心</span></div>
+</div>
+<div class="fgroup"><h3>数字特征</h3>
+<div class="fitem"><span>$E(X)=\sum x_ip_i=\int_{-\infty}^{+\infty}xf(x)dx$</span><span class="fn">均值定义（离散/连续）</span></div>
+<div class="fitem"><span>$D(X)=E(X^2)-(EX)^2,\quad D(aX+b)=a^2D(X)$</span><span class="fn">方差公式与性质</span></div>
+<div class="fitem"><span>$\mathrm{Cov}(X,Y)=E(XY)-E(X)E(Y)$</span><span class="fn">协方差</span></div>
+<div class="fitem"><span>$\rho_{XY}=\dfrac{\mathrm{Cov}(X,Y)}{\sqrt{D(X)D(Y)}}$</span><span class="fn">相关系数（$|\rho|\le1$）</span></div>
+<div class="fitem"><span>切比雪夫：$P\left(|X-E(X)|\ge\varepsilon\right)\le\dfrac{D(X)}{\varepsilon^2}$</span><span class="fn">概率上界</span></div>
+<div class="fitem"><span>中心极限：$\dfrac{\sum_{i=1}^{n}X_i-n\mu}{\sqrt{n}\,\sigma}\xrightarrow{d}N(0,1)$</span><span class="fn">n 大时近似正态</span></div>
+</div>
+<div class="fgroup"><h3>数理统计</h3>
+<div class="fitem"><span>$\bar X=\dfrac{1}{n}\sum X_i,\quad S^2=\dfrac{1}{n-1}\sum(X_i-\bar X)^2$</span><span class="fn">样本均值/方差（无偏）</span></div>
+<div class="fitem"><span>$\chi^2,\ t,\ F$ 三大抽样分布与正态总体抽样定理</span><span class="fn">数一</span></div>
+<div class="fitem"><span>矩估计：样本矩=总体矩；极大似然：求 $L(\theta)$ 最大点</span><span class="fn">点估计两法</span></div>
+<div class="fitem"><span>无偏：$E(\hat\theta)=\theta$</span><span class="fn">评选标准</span></div>
+</div>
+</div>
+
+<!-- 易混点 -->
+<div class="card" data-g="vs" style="display:none">
 <h2>易混点对比 · 8 组高频陷阱</h2>
 <div class="note">左：正确理解 / 右：典型错误 — 考场上先对照自查</div>
 
@@ -196,13 +260,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="r"><b>❌ 拉格朗日 ≠ 罗尔</b>拉氏结论含 $\frac{f(b)-f(a)}{b-a}$<div class="key">证明「ξ 处导数=某定值」选对定理</div></div></div>
 
 <div class="vs"><div class="l"><b>变限求导：代上限</b>$\left(\int_0^{g(x)}f\right)'=f[g(x)]\cdot g'(x)$<div class="key">只有「上限是被积变量函数」才需要链式</div></div>
-<div class="r"><b>❌ 「减下限」多余操作</b>$\int_a^x f$ 求导不需要 $-f(a)$<div class="key">定积分值是常数，导数规则别套错</div></div></div>
+<div class="r"><b>❌ 「减下限」多余操作</b>$\int_a^x f$ 求导不需要 $-f(a)$<div class="key">定积分值是常数，求导规则别套错</div></div></div>
 
 <div class="vs"><div class="l"><b>一致收敛 / 一致连续（数一）</b>$\forall\varepsilon\ \exists\delta$ 与点无关<div class="key">闭区间连续必一致连续（Cantor）</div></div>
 <div class="r"><b>❌ 逐点 ⟹ 一致</b>$x^n$ 在 (0,1) 逐点收敛 0 但不一致<div class="key">端点行为是判断关键</div></div></div>
 </div>
 
-
+<div class="foot-note">公式速查用于快速回忆 · 系统学习请回首页「知识学习」· 易混点配合诊断功能食用更佳</div>
 </div>
 
 <script>
