@@ -833,11 +833,19 @@ if(v===undefined) return localStorage.getItem(k)||"";
 if(v) localStorage.setItem(k,v); else localStorage.removeItem(k);
 }
 function renderAI(el,text){
-var html = esc(text).replace(/\n{2,}/g,"</p><p>").replace(/\n/g,"<br>");
-el.innerHTML = "<p>"+html+"</p>";
+var pieces=String(text).split(/\$\$([\s\S]+?)\$\$/), html="";
+for(var i=0;i<pieces.length;i++){
+if(i%2===1){
+var block="";
+try{ if(window.katex) block=katex.renderToString(pieces[i],{displayMode:true,throwOnError:false}); }catch(e){ block=""; }
+html += block? '<div class="ai-block">'+block+"</div>" : "<p>"+esc("$$"+pieces[i]+"$$")+"</p>";
+}else{
+html += "<p>"+esc(pieces[i]).replace(/\n{2,}/g,"</p><p>").replace(/\n/g,"<br>")+"</p>";
+}
+}
+el.innerHTML = html;
 if(window.renderMathInElement){
 renderMathInElement(el,{delimiters:[
-{left:"$$",right:"$$",display:true},
 {left:"$",right:"$",display:false}
 ],throwOnError:false});
 }
