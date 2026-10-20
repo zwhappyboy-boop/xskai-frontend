@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冲刺速查 · 公式总表 + 易错清单 · 学士库</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;--red:#d33030;--ok:#059669}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#fff;color:var(--ink);line-height:1.65}
+.sitehead{background:#fff;border-bottom:1px solid var(--line)}
+.sitehead .wrap{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:18px;font-weight:800}
+.brand a{color:var(--ink);text-decoration:none}
+.brand .en{color:var(--chsi)}
+.toolbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wrap{max-width:900px;margin:0 auto;padding:20px 20px 60px}
+.track-btn{border:1.5px solid var(--chsi);background:#fff;color:var(--chsi);font-size:14px;font-weight:600;padding:6px 18px;border-radius:8px;cursor:pointer}
+.track-btn.active{background:var(--chsi);color:#fff}
+.print-btn{margin-left:auto;background:var(--chsi);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:14px;font-weight:700;cursor:pointer}
+h1{font-size:23px;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+h2{font-size:17px;color:var(--chsi);border-left:4px solid var(--chsi);padding-left:9px;margin:26px 0 10px}
+.kbrow{border-bottom:1px dashed var(--line);padding:8px 2px}
+.kbrow .q{font-weight:700;font-size:14.5px}
+.kbrow .f{font-size:11px;font-weight:700;border-radius:4px;padding:1px 7px;color:#fff;margin-left:6px;vertical-align:1px}
+.kbrow .f.high{background:var(--red)}.kbrow .f.mid{background:#d97706}
+.kbrow .core{font-size:13px;color:#374151;margin-top:3px}
+.kbrow .pit-line{font-size:13px;color:#9d174d;background:#fdf2f8;border-left:3px solid #fbcfe8;padding:5px 9px;margin-top:5px;border-radius:0 4px 4px 0}
+.pitrow{border-bottom:1px dashed var(--line);padding:8px 2px}
+.pitrow .q{font-weight:700;font-size:14px;color:var(--chsi)}
+.pitrow .pit{font-size:13px;color:#374151;margin-top:2px}
+.none{color:var(--muted);font-size:13px;padding:8px 2px}
+.foot-note{margin-top:30px;color:var(--muted);font-size:12.5px;text-align:center;border-top:1px solid var(--line);padding-top:14px}
+@media print{
+  .sitehead,.toolbar,.print-btn{display:none !important}
+  body{background:#fff}
+  .wrap{max-width:100%;padding:0}
+  h2{page-break-after:avoid}
+  .kbrow,.pitrow{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="sitehead"><div class="wrap">
+  <div class="brand"><a href="index.html">学士库 <span class="en">xSkAi</span></a> · 冲刺速查</div>
+  <a class="back" href="index.html" style="font-size:14px;color:#6b7280;text-decoration:none">← 返回首页</a>
+</div></div>
+
+<div class="toolbar">
+  <span style="font-size:13px;color:#6b7280">考试科目：</span>
+  <button class="track-btn" data-t="1" onclick="pick(1)">数一</button>
+  <button class="track-btn" data-t="2" onclick="pick(2)">数二</button>
+  <button class="track-btn" data-t="3" onclick="pick(3)">数三</button>
+  <button class="print-btn" onclick="window.print()">🖨 打印 / 导出 PDF</button>
+</div>
+
+<div class="wrap">
+  <h1>冲刺速查：公式总表 + 易错点总清单</h1>
+  <div class="sub">按章节一眼扫完 · 内容与「高数学习」知识点库同源（含线代/概率）· 建议打印贴墙，每天过一遍</div>
+
+  <h2>📝 公式总表（按章速查）</h2>
+  <div id="formulaBox"></div>
+
+  <h2>⚠️ 易错点总清单</h2>
+  <div id="pitBox"></div>
+
+  <div class="foot-note">学士库 xSkAi · 数据与知识点库同源 · 每日过一遍，考前不慌</div>
+</div>
+
+<script src="js/kb-data.js?v=20261020a"></script>
+<script>
+var track = parseInt(localStorage.getItem("xsk_track")||"1",10);
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function itemShown(it, chT){ var t = it.t || chT || [1,2,3]; return t.indexOf(track) >= 0; }
+function render(){
+  document.querySelectorAll(".track-btn").forEach(function(b){ b.classList.toggle("active", +b.dataset.t === track); });
+  var fb = document.getElementById("formulaBox"); fb.innerHTML = "";
+  var pb = document.getElementById("pitBox"); pb.innerHTML = "";
+  KB.forEach(function(sec){
+    var items = sec.items.filter(function(it){ return itemShown(it, sec.t); });
+    if(!items.length) return;
+    var h = document.createElement("h2"); h.textContent = sec.ch; fb.appendChild(h);
+    items.forEach(function(it){
+      var d = document.createElement("div"); d.className = "kbrow";
+      d.innerHTML = '<div class="q">' + esc(it.q) + '<span class="f ' + it.f + '">' + (it.f==="high"?"高频":"中频") + '</span></div>' +
+        '<div class="core">' + esc(it.core) + '</div>';
+      fb.appendChild(d);
+      var dp = document.createElement("div"); dp.className = "pitrow";
+      dp.innerHTML = '<div class="q">' + esc(it.q) + '</div>' +
+        (it.pit ? '<div class="pit">⚠️ ' + esc(it.pit) + '</div>' : '<div class="pit" style="color:#9ca3af">（暂无专门易错提示，重点看公式总表）</div>');
+      pb.appendChild(dp);
+    });
+    if(!items.some(function(it){ return it.pit; })){
+      var hint = document.createElement("div"); hint.className = "none"; hint.textContent = "本章暂无专门易错提示"; pb.appendChild(hint);
+    }
+  });
+  if(window.renderMathInElement){
+    document.querySelectorAll(".kbrow .core, .pitrow .pit").forEach(function(el){
+      try { renderMathInElement(el, katexOpts()); } catch(e) {}
+    });
+  }
+}
+function katexOpts(){ return {delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false}; }
+function pick(t){ track = t; localStorage.setItem("xsk_track", String(t)); render(); }
+window.addEventListener("load", function(){
+  render();
+});
+</script>
+</body>
+</html>

@@ -69,8 +69,8 @@ function renderScope(){
 var nCh=0,nIt=0;
 visChapters().forEach(function(sec){ nCh++; sec.items.forEach(function(it){ if(itemShown(it,sec.t)) nIt++;});});
 var ex=TRACKS[curTrack()].excl;
-var _sn=document.getElementById("scopeNote"); if(_sn) _sn.textContent="当前：数"+TRACK_CN[curTrack()]+" · "+nCh+" 章 "+nIt+" 考点"+(ex?" · "+ex:" · 覆盖全部 8 章");
-var _bs=document.getElementById("bannerScope"); if(_bs) _bs.textContent="数"+TRACK_CN[curTrack()]+(ex?" · "+ex:"覆盖全部 8 章")+" · 先啃高频，再补中频";
+var _sn=document.getElementById("scopeNote"); if(_sn) _sn.textContent="当前：数"+TRACK_CN[curTrack()]+" · "+nCh+" 章 "+nIt+" 考点"+(ex?" · "+ex:" · 覆盖全部 "+KB.length+" 章");
+var _bs=document.getElementById("bannerScope"); if(_bs) _bs.textContent="数"+TRACK_CN[curTrack()]+(ex?" · "+ex:"覆盖全部 "+KB.length+" 章")+" · 先啃高频，再补中频";
 var _a=document.getElementById("stCh"); if(_a) _a.textContent=nCh;
 var _b=document.getElementById("stIt"); if(_b) _b.textContent=nIt;
 }
