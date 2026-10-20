@@ -508,13 +508,30 @@ el.innerHTML="<span>"+s1+"</span><span class=\"cdot\">·</span><span>"+s2+"</spa
 setTrack(curTrack()); renderQuota(); renderZs(); renderCountdown();
 
 /* ---------- 图片解题 ---------- */
+function compressImage(dataUrl, cb){
+  var img = new Image();
+  img.onload = function(){
+    var MAX=1500, w=img.width, h=img.height, scale=1;
+    if(!w||!h){ cb(dataUrl); return; }
+    if(w>MAX||h>MAX){ scale = w>=h ? MAX/w : MAX/h; w=Math.round(w*scale); h=Math.round(h*scale); }
+    var c=document.createElement("canvas"); c.width=w; c.height=h;
+    var ctx=c.getContext("2d");
+    ctx.fillStyle="#fff"; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img,0,0,w,h);
+    var out = c.toDataURL("image/jpeg", 0.85);
+    if(out.length > 7000000){ out = c.toDataURL("image/jpeg", 0.5); } // 兜底再压
+    cb(out);
+  };
+  img.onerror = function(){ cb(dataUrl); };
+  img.src = dataUrl;
+}
 function solveImage(input){
   var f = input.files && input.files[0];
   if(!f) return;
   if(!f.type.startsWith("image/")){ alert("请选择图片文件"); return; }
   var reader = new FileReader();
   reader.onload = function(){
-    var dataUrl = reader.result;
+    compressImage(reader.result, function(dataUrl){
     // 预览
     document.getElementById("imgPrev").innerHTML =
       '<img src="'+dataUrl+'" style="max-width:100%;max-height:240px;border-radius:8px;border:1px solid var(--line)">';
@@ -550,6 +567,7 @@ function solveImage(input){
       solving=false; if(btn) btn.disabled=false;
     });
     input.value="";
+    });
   };
   reader.readAsDataURL(f);
 }
