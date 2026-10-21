@@ -3,24 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>今日该学什么 · AI 每日备考计划 · 学士库</title>
+<title>今日计划 · 学士库xskAi考研数学</title>
+<link rel="stylesheet" href="css/nav.css?v=20261021b">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
-:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;--ok:#059669;--bad:#dc2626;--purple:#7c3aed;}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
-.sitehead{background:#fff;border-bottom:1px solid var(--line)}
-.sitehead .wrap{max-width:760px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-.brand{font-size:18px;font-weight:800}
-.brand a{color:var(--ink);text-decoration:none}
-.brand .en{color:var(--chsi)}
-.back{font-size:14px;color:var(--muted);text-decoration:none}
-.wrap{max-width:760px;margin:0 auto;padding:22px 20px 70px}
+:root{--ok:#059669;--bad:#dc2626;--purple:#7c3aed;}
+.twrap{max-width:760px;margin:0 auto;padding:22px 20px 70px}
+.page-hero{background:linear-gradient(135deg,#5b21b6,#7c3aed 55%,#a78bfa)}
 .card{background:#fff;border-radius:14px;padding:26px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-h1{font-size:22px;margin-bottom:6px}
 h2{font-size:17px;margin-bottom:10px}
+.page-hero h1{font-size:26px}
 .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
 .count-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 .cs{background:#eef3fb;border:1px solid #d3e0f5;color:var(--chsi);border-radius:10px;padding:8px 16px;font-size:13.5px;font-weight:600}
@@ -58,16 +52,35 @@ h2{font-size:17px;margin-bottom:10px}
 </style>
 </head>
 <body>
-<header class="sitehead"><div class="wrap">
-<div class="brand"><a href="index.html">学士库<span class="en">xskAi</span></a></div>
-<a class="back" href="index.html">← 返回首页</a>
-</div></header>
+<header class="sitehead">
+  <div class="wrap topbar">
+    <div class="brand"><a href="index.html">学士库<span class="en">xskAi</span></a><span class="slogan">考研高数备考</span></div>
+    <div class="topbar-right"><span class="quota-chip" id="quota">今日免费 5 次</span><button class="kami-btn" onclick="openCodeModal()">卡密</button></div>
+  </div>
+</header>
+<nav class="mainnav">
+  <div class="wrap navwrap">
+    <a class="nav-btn nav-diag" href="diagnose.html"><span class="ni">📊</span>高数测评</a>
+    <a class="nav-btn nav-plan" href="today.html"><span class="ni">📅</span>今日计划</a>
+    <a class="nav-btn nav-lect" href="lectures.html"><span class="ni">🎓</span>名师讲堂</a>
+    <a class="nav-btn nav-zt" href="zhenti.html"><span class="ni">📝</span>历年真题</a>
+    <a class="nav-btn nav-fm" href="formulas.html"><span class="ni">📐</span>公式速查</a>
+    <a class="nav-btn nav-kb" href="knowledge.html"><span class="ni">📚</span>知识汇总</a>
+  </div>
+</nav>
 
-<div class="wrap">
+<div class="page-hero">
+  <div class="wrap">
+    <h1><span class="ph-ico">📅</span>今日计划</h1>
+    <p>AI 根据考试倒计时、目标分数、每日可用时间和你的诊断结果，生成今天的具体任务清单。</p>
+  </div>
+</div>
+
+<div class="wrap twrap">
 
 <!-- 无计划：生成表单 -->
 <div id="stageSetup" class="card">
-<h1>📅 今日该学什么</h1>
+<h2 style="font-size:22px;margin-bottom:6px">今日该学什么</h2>
 <div class="sub">AI 根据考试倒计时、目标分数、每日可用时间（和你的诊断结果）生成今天的具体任务。做完勾选，明天的计划会自动跟着调整。</div>
 <div class="count-strip" id="countStrip"></div>
 <div id="diagBox"></div>
@@ -102,6 +115,7 @@ h2{font-size:17px;margin-bottom:10px}
 
 </div>
 
+<script src="js/nav.js?v=20261021b"></script>
 <script>
 var EXAM = new Date(2026,11,19);
 var LS_PLAN = "xsk_plan", LS_HIST = "xsk_plan_hist";
@@ -189,8 +203,8 @@ function callAI(prompt, type){
     method:"POST", headers:headers,
     body:JSON.stringify({messages:[{role:"system",content:prompt.sys},{role:"user",content:prompt.user}],max_tokens:2000})
   }).then(function(r){
-    if(r.status===402) throw {msg:"今日免费次数已用完，输入卡密可继续使用（回首页右上角「卡密」输入）"};
-    if(r.status===403) throw {msg:"卡密无效或已用完"};
+    if(r.status===402) throw {code:402,msg:"今日免费次数已用完，输入卡密可继续使用"};
+    if(r.status===403) throw {code:403,msg:"卡密无效或已用完，请重新输入"};
     if(!r.ok) throw {msg:"生成失败（"+r.status+"），请稍后再试"};
     return r.json();
   }).then(function(j){
@@ -212,6 +226,7 @@ function callAI(prompt, type){
     restore();
   }).catch(function(e){
     alert(e.msg||"网络异常，请重试");
+    if(e && (e.code===402 || e.code===403)) setTimeout(openCodeModal, 500);
     restore();
   });
 }

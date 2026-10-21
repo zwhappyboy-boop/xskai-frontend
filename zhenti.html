@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>历年真题 · 学士库xskAi考研数学</title>
+<link rel="stylesheet" href="css/nav.css?v=20261021b">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+.zt-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.zt-tab{background:#fff;border:2px solid var(--line);border-radius:18px;padding:18px 20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;text-align:left}
+.zt-tab:hover{transform:translateY(-3px);box-shadow:0 12px 24px -10px var(--ts)}
+.zt-tab .tt{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.zt-tab .td{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.zt-tab .badge{position:absolute;top:14px;right:14px;font-size:11px;font-weight:700;color:#fff;background:var(--tc);border-radius:20px;padding:2px 10px}
+.zt-tab .ico{font-size:24px}
+.zt-tab.on{border-color:var(--tc);background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 8%,#fff),#fff 60%);box-shadow:0 10px 22px -8px var(--ts)}
+.zt-tab.on .tt{color:var(--tc)}
+.zt1{--tc:#2563eb;--ts:rgba(37,99,235,.35)}
+.zt2{--tc:#059669;--ts:rgba(5,150,105,.35)}
+.zt3{--tc:#ea580c;--ts:rgba(234,88,12,.35)}
+.sec-title{font-size:18px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.sec-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.zt-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+.zt-table th,.zt-table td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+.zt-table th{background:#f8fafc;font-size:12.5px}
+.zt-tip{font-size:12.5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;color:#166534}
+.zpc{display:inline-block;border:1.5px solid var(--line);border-radius:16px;padding:4px 14px;font-size:12.5px;cursor:pointer;margin:0 6px 8px 0;transition:all .18s;color:var(--muted);user-select:none}
+.zpc:hover{border-color:var(--tc,#2563eb);color:var(--tc,#2563eb)}
+.zpc.on{background:var(--tc,#2563eb);border-color:var(--tc,#2563eb);color:#fff;font-weight:700}
+.zp-row{margin-bottom:12px}
+.zp-row label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.zp-inline{display:flex;gap:16px;flex-wrap:wrap}
+.zp-inline select{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13.5px;background:#fff}
+.zp-btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:12px;padding:11px 26px;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--tc,#2563eb),color-mix(in srgb,var(--tc,#2563eb) 68%,#000));cursor:pointer;transition:all .2s}
+.zp-btn:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 8px 16px -6px var(--ts,rgba(37,99,235,.4))}
+.zp-btn:disabled{opacity:.6;cursor:wait;transform:none}
+.zp-out{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;font-size:14px}
+.zp-out.show{display:block}
+.ai-block{margin:10px 0;padding:6px 4px;overflow-x:auto}
+/* 考点分布 */
+.zt-freq{display:flex;align-items:center;gap:10px;margin:7px 0}
+.zt-freq .fname{width:150px;font-size:12.5px;text-align:right;flex-shrink:0;color:var(--muted)}
+.zt-freq .fbar{flex:1;height:14px;background:#f1f5f9;border-radius:8px;overflow:hidden}
+.zt-freq .fbar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--tc,#2563eb),color-mix(in srgb,var(--tc,#2563eb) 55%,#fff))}
+.zt-freq .flv{width:56px;font-size:11.5px;font-weight:800;flex-shrink:0}
+.zt-freq .flv.high{color:#dc2626}
+.zt-freq .flv.mid{color:#d97706}
+/* AI 仿真题 */
+.quiz-q{display:none;background:#f8fafc;border:1.5px dashed var(--line);border-radius:12px;padding:18px;margin-top:14px;font-size:14px}
+.quiz-q.show{display:block}
+.quiz-q .ans{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.quiz-q.show-ans .ans{display:block}
+.ans-label{margin:16px 0 8px;padding:10px 14px;background:color-mix(in srgb,var(--tc,#2563eb) 8%,#fff);border-left:4px solid var(--tc,#2563eb);border-radius:0 8px 8px 0;font-weight:800;color:var(--tc,#2563eb);display:none}
+.zt-dec{margin-bottom:12px;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.zt-dec-btn{width:100%;display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:none;padding:13px 18px;font-size:14.5px;font-weight:800;cursor:pointer;transition:background .2s}
+.zt-dec-btn:hover{background:#f1f5f9}
+.zt-dec-btn span{font-size:12px;color:var(--muted);font-weight:500}
+.zt-dec.open .zt-dec-btn{border-bottom:1px solid var(--line)}
+.zt-years{display:none;padding:6px 14px}
+.zt-dec.open .zt-years{display:block}
+.zt-year{display:flex;align-items:center;justify-content:space-between;padding:9px 6px;border-bottom:1px dashed var(--line)}
+.zt-year:last-child{border-bottom:none}
+.zt-year b{font-size:15px;width:56px;color:var(--tc,#2563eb)}
+.zt-dl{display:flex;gap:10px}
+.dl-btn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:12.5px;font-weight:700;border-radius:9px;padding:6px 16px;transition:all .2s;border:1.5px solid var(--tc,#2563eb)}
+.dl-btn.paper{background:var(--tc,#2563eb);color:#fff}
+.dl-btn.paper:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.dl-btn.ans{background:#fff;color:var(--tc,#2563eb)}
+.dl-btn.ans:hover{background:color-mix(in srgb,var(--tc,#2563eb) 8%,#fff);transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<header class="sitehead">
+  <div class="wrap topbar">
+    <div class="brand"><a href="index.html">学士库<span class="en">xskAi</span></a><span class="slogan">考研高数备考</span></div>
+    <div class="topbar-right"><span class="quota-chip" id="quota">今日免费 5 次</span><button class="kami-btn" onclick="openCodeModal()">卡密</button></div>
+  </div>
+</header>
+<nav class="mainnav">
+  <div class="wrap navwrap">
+    <a class="nav-btn nav-diag" href="diagnose.html"><span class="ni">📊</span>高数测评</a>
+    <a class="nav-btn nav-plan" href="today.html"><span class="ni">📅</span>今日计划</a>
+    <a class="nav-btn nav-lect" href="lectures.html"><span class="ni">🎓</span>名师讲堂</a>
+    <a class="nav-btn nav-zt" href="zhenti.html"><span class="ni">📝</span>历年真题</a>
+    <a class="nav-btn nav-fm" href="formulas.html"><span class="ni">📐</span>公式速查</a>
+    <a class="nav-btn nav-kb" href="knowledge.html"><span class="ni">📚</span>知识汇总</a>
+  </div>
+</nav>
+
+<div class="page-hero ph-zt" id="hero">
+  <div class="wrap">
+    <h1><span class="ph-ico">📝</span>历年真题 <span id="heroTrack" style="font-size:18px;opacity:.9">数一</span></h1>
+    <p>1987–2025 · 39 年真题与解答 · 下载扣次（卡密 1 次 / 每日免费 5 次）· 按科目独立呈现，重点突出不拥挤。</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="zt-tabs fade-in">
+    <div class="zt-tab zt1 on" onclick="pickTrack(1)" id="tabT1">
+      <span class="badge">推荐</span>
+      <div class="tt"><span class="ico">🔵</span>数学一</div>
+      <div class="td">工学门类大部分专业<br>机械 / 电子信息 / 计算机 / 土木 / 材料等</div>
+    </div>
+    <div class="zt-tab zt2" onclick="pickTrack(2)" id="tabT2">
+      <div class="tt"><span class="ico">🟢</span>数学二</div>
+      <div class="td">工学门类部分专业<br>纺织 / 轻工 / 农业工程 / 食品工程等</div>
+    </div>
+    <div class="zt-tab zt3" onclick="pickTrack(3)" id="tabT3">
+      <div class="tt"><span class="ico">🟠</span>数学三</div>
+      <div class="td">经济・管理门类<br>金融 / 会计 / 工商管理 / 应用统计等</div>
+    </div>
+  </div>
+
+  <div class="gcard fade-in d1">
+    <div class="sec-title">📋 试卷结构</div>
+    <div class="sec-sub">满分 150 分 · 考试时间 180 分钟 · 2021 年改革后结构</div>
+    <table class="zt-table">
+      <tr><th>题型</th><th>题量</th><th>分值</th><th>难度分布</th></tr>
+      <tr><td>一、单项选择题</td><td>10 题</td><td>50 分</td><td>前 6 题基础 · 后 4 题中等偏难（含易错陷阱）</td></tr>
+      <tr><td>二、填空题</td><td>6 题</td><td>30 分</td><td>前 3 题基础 · 后 3 题中等</td></tr>
+      <tr><td>三、解答题</td><td>6 题</td><td>70 分</td><td>第 1–2 题中等 · 第 3–5 题偏难（知识点交叉）· 第 6 题压轴</td></tr>
+    </table>
+    <div class="zt-tip"><b>用法建议：</b>基础阶段按「章节 → 高频优先」刷选择题；强化阶段主攻解答题高频章节；冲刺阶段整卷计时模拟，压轴题量力取舍。</div>
+  </div>
+
+  <div class="gcard fade-in d2" id="freqCard">
+    <div class="sec-title">📊 历年考点分布 · <span id="freqTrack" style="color:var(--tc,#2563eb)">数学一</span></div>
+    <div class="sec-sub">按近十年真题考频整理 · 高频章节覆盖历年约 70% 分值，优先吃透</div>
+    <div id="ztFreqBox"></div>
+  </div>
+
+  <div class="gcard fade-in d3" id="zpCard">
+    <div class="sec-title">🤖 AI 智能组卷<span style="font-size:13px;color:var(--muted);font-weight:500" id="quizTrack"></span></div>
+    <div class="sec-sub">选章节与难度，AI 按真题风格定制一套练习卷（消耗 1 次 AI 额度）</div>
+    <div class="zp-row"><label>章节（可多选，默认覆盖<span id="ztTrackLabel">数一</span>全部考章）</label><div id="zpChapters"></div></div>
+    <div class="zp-row zp-inline">
+      <div><label>参考年份风格</label><select id="zpYears"><option value="10">近 10 年</option><option value="5">近 5 年</option><option value="20">近 20 年</option></select></div>
+      <div><label>难度倾向</label><select id="zpDiff"><option value="基础巩固（选择+填空为主）">基础巩固</option><option value="中等提升（选择+填空+中等解答）" selected>中等提升</option><option value="难点冲刺（偏难解答+压轴题）">难点冲刺</option></select></div>
+    </div>
+    <button class="zp-btn" id="zpBtn" onclick="genSmartPaper()">AI 组卷 →</button>
+    <div class="zp-out" id="zpOut"></div>
+  </div>
+
+  <div class="gcard fade-in d4" id="simCard">
+    <div class="sec-title">🎯 AI 仿真题<span style="font-size:13px;color:var(--muted);font-weight:500" id="simTrack"></span></div>
+    <div class="sec-sub">AI 按真题考频出一整套试卷（10 选择 + 6 填空 + 6 解答），高频章节多出题，原创无版权风险（消耗 1 次 AI 额度）</div>
+    <button class="zp-btn" id="quizBtn" onclick="genPaper()">出一套仿真卷 →</button>
+    <div class="quiz-q" id="quizQ">
+      <div id="quizQText"></div>
+      <div class="ans-label" id="ansLabel">📝 参考答案（题号与上方题目对应）</div>
+      <div class="ans" id="quizAns"></div>
+      <div style="margin-top:12px"><button class="zp-btn" id="quizAnsBtn" onclick="genPaperAns()">看答案</button></div>
+    </div>
+  </div>
+
+  <div class="gcard fade-in d5" id="dlCard">
+    <div class="sec-title">📥 真题下载 · <span id="dlTrack" style="color:var(--tc,#2563eb)">数学一</span></div>
+    <div class="sec-sub">按年代展开 · 每年提供「真题」与「解答」两份 PDF · 点击即下载</div>
+    <div id="ztDecades"></div>
+  </div>
+
+  <div class="foot-note">历年真题 · 考点讲解见「知识汇总」· 视频精讲见「名师讲堂」· 公式记不牢用「公式速查」</div>
+</main>
+
+<script src="js/kb-data.js?v=20261021b"></script>
+<script src="js/nav.js?v=20261021b"></script>
+<script>
+var curT = curTrack();
+var TCOLOR = {1:"#2563eb",2:"#059669",3:"#ea580c"};
+var YEARS = [];
+for(var y=2025; y>=1987; y--) YEARS.push(y);
+var zpSel=[], quizAsking=false;
+
+function pickTrack(t){
+  curT = t; ls("xsk_track", String(t));
+  [1,2,3].forEach(function(n){
+    document.getElementById("tabT"+n).classList.toggle("on", n===t);
+  });
+  var tc = TCOLOR[t];
+  var hero = document.getElementById("hero");
+  hero.className = "page-hero ph-zt t"+t;
+  document.getElementById("heroTrack").textContent = "数"+TRACK_CN[t];
+  document.getElementById("dlTrack").textContent = "数学"+TRACK_CN[t];
+  document.getElementById("dlTrack").style.color = tc;
+  document.getElementById("quizTrack").textContent = "（数"+TRACK_CN[t]+"）";
+  document.getElementById("simTrack").textContent = "（数"+TRACK_CN[t]+"）";
+  document.getElementById("freqTrack").textContent = "数学"+TRACK_CN[t];
+  ["freqCard","zpCard","simCard","dlCard"].forEach(function(id){
+    document.getElementById(id).style.setProperty("--tc", tc);
+  });
+  zpSel = [];
+  renderZpChapters();
+  renderDecades();
+  renderFreq();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function renderZpChapters(){
+  var box = document.getElementById("zpChapters");
+  var chapters = FREQ.filter(function(r){ return (r.t||[1,2,3]).indexOf(curT)>=0; }).map(function(r){return r.ch;});
+  box.innerHTML = "";
+  chapters.forEach(function(ch){
+    var b = document.createElement("span");
+    b.className = "zpc" + (zpSel.indexOf(ch)>=0 ? " on" : "");
+    b.style.setProperty("--tc", TCOLOR[curT]);
+    b.textContent = ch;
+    b.onclick = function(){ var i=zpSel.indexOf(ch); if(i>=0) zpSel.splice(i,1); else zpSel.push(ch); renderZpChapters(); };
+    box.appendChild(b);
+  });
+}
+function renderDecades(){
+  var box = document.getElementById("ztDecades");
+  var tc = TCOLOR[curT];
+  var groups = [[2025,2020,"2020年代"],[2019,2010,"2010年代"],[2009,2000,"2000年代"],[1999,1990,"1990年代"],[1989,1987,"1980年代"]];
+  var html = "";
+  groups.forEach(function(g, gi){
+    var rows = "";
+    for(var y=g[1]; y<=g[0]; y++){
+      rows += '<div class="zt-year"><b>'+y+'</b>'
+        + '<div class="zt-dl">'
+        + '<a class="dl-btn paper" style="--tc:'+tc+'" href="'+apiBase()+'zhenti/math'+curT+'-'+y+'.pdf" download>📄 真题</a>'
+        + '<a class="dl-btn ans" style="--tc:'+tc+'" href="'+apiBase()+'zhenti/math'+curT+'-'+y+'-ans.pdf" download>✅ 解答</a>'
+        + '</div></div>';
+    }
+    html += '<div class="zt-dec'+(gi===0?" open":"")+'">'
+      + '<button class="zt-dec-btn" onclick="toggleDecade(this)">'+g[2]+'<span>'+g[1]+'–'+g[0]+' · '+(g[0]-g[1]+1)+'年</span></button>'
+      + '<div class="zt-years">'+rows+'</div></div>';
+  });
+  box.innerHTML = html;
+}
+function toggleDecade(btn){
+  var dec = btn.parentNode;
+  var yrs = dec.querySelector(".zt-years");
+  var open = dec.classList.toggle("open");
+  yrs.style.display = open ? "" : "none";
+}
+function genSmartPaper(){
+  var out = document.getElementById("zpOut");
+  var btn = document.getElementById("zpBtn");
+  var chapters = zpSel.slice();
+  var years = document.getElementById("zpYears").value;
+  var diff = document.getElementById("zpDiff").value;
+  if(quizAsking) return;
+  if(!chapters.length){ alert("请至少选择一个章节（点上方章节标签选中）"); return; }
+  quizAsking = true;
+  btn.disabled = true; btn.textContent = "AI 组卷中…（约 30 秒）";
+  out.classList.add("show");
+  out.innerHTML = "<span style='color:#9ca3af'>AI 正在按你的要求定制试卷（章节："+chapters.join("、")+"），请稍候…</span>";
+  var sys = "你是考研数学（数"+TRACK_CN[curT]+"）命题助手。请出一套定制练习卷，要求：\n1. 只考查以下章节："+chapters.join("、")+"\n2. 难度定位："+diff+"\n3. 参考近"+years+"年真题的命题风格与计算量\n4. 题量：8~12 题（难度低就多出，难度高就少出），每题标注分值\n5. 题末用一行「考点：xxx」标注每题考查的具体知识点\n6. 不给答案，末尾提示「做完后可把答案拍照发给本站 AI 解题批改」\n7. 公式用 LaTeX（$...$ / $$...$$）";
+  callWorker([{role:"system",content:sys},{role:"user",content:"请出这套定制练习卷。"}], 3000).then(function(res){
+    renderAI(out, extractText(res.data));
+    if(window.renderMathInElement) renderMathInElement(out,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+  }).catch(function(e){
+    out.textContent = e.msg || "组卷失败，请重试";
+    if(e.code===402||e.code===403) setTimeout(openCodeModal, 600);
+  }).finally(function(){
+    quizAsking = false; btn.disabled = false; btn.textContent = "AI 组卷 →";
+  });
+}
+/* ---------- 考点分布 ---------- */
+function renderFreq(){
+  var box = document.getElementById("ztFreqBox"); if(!box) return;
+  var rows = FREQ.filter(function(r){ return (r.t||[1,2,3]).indexOf(curT)>=0; });
+  var highs = rows.filter(function(r){return r.f==="high";}).length;
+  var html = rows.map(function(r){
+    var high = r.f==="high";
+    var w = high?92:58;
+    return '<div class="zt-freq"><div class="fname">'+esc(r.ch)+'</div><div class="fbar"><i style="width:'+w+'%"></i></div><div class="flv '+(high?"high":"mid")+'">'+(high?"高频":"中频")+'</div></div>';
+  }).join("");
+  box.innerHTML = html + '<div style="font-size:12px;color:var(--muted);margin-top:10px">高频 '+highs+' 章（条形长度示意考频强度）· 建议优先吃透高频章节再补中频</div>';
+}
+
+/* ---------- AI 仿真题 ---------- */
+function sysQuiz(){
+  var t=curT;
+  var highs=[],mids=[];
+  FREQ.forEach(function(r){
+    if((r.t||[1,2,3]).indexOf(t)<0) return;
+    if(r.f==="high") highs.push(r.ch); else mids.push(r.ch);
+  });
+  var freqTxt="\n【考频权重】按以下真实考试频率分配 22 道题：\n";
+  freqTxt+="高频章节（多出题，选择+填空优先覆盖）："+highs.join("、")+"\n";
+  if(mids.length) freqTxt+="中频章节（少量覆盖）："+mids.join("、")+"\n";
+  freqTxt+="解答题 6 道中至少 4 道出自高频章节，压轴题从高频章节出。\n";
+  return "你是考研数学（数"+TRACK_CN[t]+"）命题助手。"+TRACKS[t].scope+"出一整套真题风格的模拟试卷，结构对标 2021 年后考研数学：\n一、选择题：10 小题，每小题 5 分，共 50 分\n二、填空题：6 小题，每小题 5 分，共 30 分\n三、解答题：6 小题，共 70 分\n"+freqTxt+"难度对标近 5 年真题。公式用 LaTeX（$...$ / $$...$$）。只输出题干，不要给答案和解析。";
+}
+var quizAsking=false, lastQuizQ="", lastQuizA="";
+function genPaper(){
+  if(quizAsking) return;
+  quizAsking=true;
+  var btn=document.getElementById("quizBtn"); btn.disabled=true; btn.textContent="出卷中…（约 30 秒）";
+  var qbox=document.getElementById("quizQ");
+  qbox.classList.add("show"); qbox.classList.remove("show-ans");
+  document.getElementById("ansLabel").style.display="none";
+  var qEl=document.getElementById("quizQText");
+  qEl.innerHTML="<span style='color:#9ca3af'>AI 正在出一整套仿真试卷（22 题），请稍候…</span>";
+  document.getElementById("quizAns").innerHTML="";
+  callWorker([
+    {role:"system",content:sysQuiz()},
+    {role:"user",content:"请出一套数"+TRACK_CN[curT]+"仿真试卷。"}
+  ],3000).then(function(res){
+    lastQuizQ=extractText(res.data);
+    lastQuizA="";
+    renderAI(qEl,lastQuizQ);
+  }).catch(function(e){
+    qEl.textContent=e.msg||"出题失败，请重试";
+    if(e.code===402||e.code===403) setTimeout(openCodeModal,600);
+  }).finally(function(){
+    quizAsking=false; btn.disabled=false; btn.textContent="出一套仿真卷 →";
+  });
+}
+function genPaperAns(){
+  if(!lastQuizQ||quizAsking) return;
+  if(lastQuizA){
+    renderAI(document.getElementById("quizAns"),lastQuizA);
+    document.getElementById("quizQ").classList.add("show-ans");
+    document.getElementById("ansLabel").style.display="block";
+    return;
+  }
+  quizAsking=true;
+  var btn=document.getElementById("quizAnsBtn"); btn.disabled=true; btn.textContent="生成中…";
+  var ansEl=document.getElementById("quizAns");
+  ansEl.innerHTML="<span style='color:#9ca3af'>正在生成答案…</span>";
+  document.getElementById("quizQ").classList.add("show-ans");
+  callWorker([
+    {role:"system",content:"你是考研数学（数"+TRACK_CN[curT]+"）解题助手。"+TRACKS[curT].scope},
+    {role:"user",content:"下面是一套模拟试卷，请给出每道题的答案。格式要求：分三节，每节用【选择题答案】【填空题答案】【解答题答案】作标题；选择题每题一行如(1) B；填空题每题一行如(11) 4/5；解答题每题分段，先给关键步骤再给最终结果，每题之间空一行。公式用 LaTeX（$...$ / $$...$$）。\n"+lastQuizQ}
+  ],3000).then(function(res){
+    lastQuizA=extractText(res.data);
+    renderAI(ansEl,lastQuizA);
+    document.getElementById("ansLabel").style.display="block";
+  }).catch(function(e){
+    ansEl.textContent=e.msg||"生成失败，请重试";
+    if(e.code===402||e.code===403) setTimeout(openCodeModal,600);
+  }).finally(function(){
+    quizAsking=false; btn.disabled=false; btn.textContent="看答案";
+  });
+}
+/* 初始化：按本地保存的科目同步 Tab、hero 颜色与全部区块 */
+pickTrack(curT);
+</script>
+</body>
+</html>

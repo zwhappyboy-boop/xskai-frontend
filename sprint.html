@@ -3,25 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>冲刺速查 · 公式总表 + 易错清单 · 学士库</title>
+<title>冲刺速查 · 学士库xskAi考研数学</title>
+<link rel="stylesheet" href="css/nav.css?v=20261021b">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
-:root{--chsi:#1e4fa3;--ink:#1f2937;--muted:#6b7280;--line:#e3e7ee;--bg:#f2f4f7;--red:#d33030;--ok:#059669}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#fff;color:var(--ink);line-height:1.65}
-.sitehead{background:#fff;border-bottom:1px solid var(--line)}
-.sitehead .wrap{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-.brand{font-size:18px;font-weight:800}
-.brand a{color:var(--ink);text-decoration:none}
-.brand .en{color:var(--chsi)}
-.toolbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.wrap{max-width:900px;margin:0 auto;padding:20px 20px 60px}
+:root{--red:#d33030;--ok:#059669}
+body{background:#fff}
+.page-hero{background:linear-gradient(135deg,#b91c1c,#dc2626 55%,#ef4444)}
+.swrap{max-width:900px;margin:0 auto;padding:20px 20px 60px}
+.toolbar{background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .track-btn{border:1.5px solid var(--chsi);background:#fff;color:var(--chsi);font-size:14px;font-weight:600;padding:6px 18px;border-radius:8px;cursor:pointer}
 .track-btn.active{background:var(--chsi);color:#fff}
 .print-btn{margin-left:auto;background:var(--chsi);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:14px;font-weight:700;cursor:pointer}
 h1{font-size:23px;margin-bottom:4px}
+.page-hero h1{font-size:26px}
 .sub{color:var(--muted);font-size:13.5px;margin-bottom:18px}
 h2{font-size:17px;color:var(--chsi);border-left:4px solid var(--chsi);padding-left:9px;margin:26px 0 10px}
 .kbrow{border-bottom:1px dashed var(--line);padding:8px 2px}
@@ -36,19 +33,38 @@ h2{font-size:17px;color:var(--chsi);border-left:4px solid var(--chsi);padding-le
 .none{color:var(--muted);font-size:13px;padding:8px 2px}
 .foot-note{margin-top:30px;color:var(--muted);font-size:12.5px;text-align:center;border-top:1px solid var(--line);padding-top:14px}
 @media print{
-  .sitehead,.toolbar,.print-btn{display:none !important}
+  .sitehead,.mainnav,.page-hero,.toolbar,.print-btn{display:none !important}
   body{background:#fff}
-  .wrap{max-width:100%;padding:0}
+  .swrap{max-width:100%;padding:0}
   h2{page-break-after:avoid}
   .kbrow,.pitrow{page-break-inside:avoid}
 }
 </style>
 </head>
 <body>
-<div class="sitehead"><div class="wrap">
-  <div class="brand"><a href="index.html">学士库 <span class="en">xSkAi</span></a> · 冲刺速查</div>
-  <a class="back" href="index.html" style="font-size:14px;color:#6b7280;text-decoration:none">← 返回首页</a>
-</div></div>
+<header class="sitehead">
+  <div class="wrap topbar">
+    <div class="brand"><a href="index.html">学士库<span class="en">xskAi</span></a><span class="slogan">考研高数备考</span></div>
+    <div class="topbar-right"><span class="quota-chip" id="quota">今日免费 5 次</span><button class="kami-btn" onclick="openCodeModal()">卡密</button></div>
+  </div>
+</header>
+<nav class="mainnav">
+  <div class="wrap navwrap">
+    <a class="nav-btn nav-diag" href="diagnose.html"><span class="ni">📊</span>高数测评</a>
+    <a class="nav-btn nav-plan" href="today.html"><span class="ni">📅</span>今日计划</a>
+    <a class="nav-btn nav-lect" href="lectures.html"><span class="ni">🎓</span>名师讲堂</a>
+    <a class="nav-btn nav-zt" href="zhenti.html"><span class="ni">📝</span>历年真题</a>
+    <a class="nav-btn nav-fm" href="formulas.html"><span class="ni">📐</span>公式速查</a>
+    <a class="nav-btn nav-kb" href="knowledge.html"><span class="ni">📚</span>知识汇总</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="wrap">
+    <h1><span class="ph-ico">🖨️</span>冲刺速查</h1>
+    <p>公式总表 + 易错点总清单 · 按章节一眼扫完 · 建议打印贴墙，每天过一遍。</p>
+  </div>
+</div>
 
 <div class="toolbar">
   <span style="font-size:13px;color:#6b7280">考试科目：</span>
@@ -58,9 +74,9 @@ h2{font-size:17px;color:var(--chsi);border-left:4px solid var(--chsi);padding-le
   <button class="print-btn" onclick="window.print()">🖨 打印 / 导出 PDF</button>
 </div>
 
-<div class="wrap">
+<div class="swrap">
   <h1>冲刺速查：公式总表 + 易错点总清单</h1>
-  <div class="sub">按章节一眼扫完 · 内容与「高数学习」知识点库同源（含线代/概率）· 建议打印贴墙，每天过一遍</div>
+  <div class="sub">按章节一眼扫完 · 内容与「知识汇总」同源（含线代/概率）· 建议打印贴墙，每天过一遍</div>
 
   <h2>📝 公式总表（按章速查）</h2>
   <div id="formulaBox"></div>
@@ -71,7 +87,8 @@ h2{font-size:17px;color:var(--chsi);border-left:4px solid var(--chsi);padding-le
   <div class="foot-note">学士库 xSkAi · 数据与知识点库同源 · 每日过一遍，考前不慌</div>
 </div>
 
-<script src="js/kb-data.js?v=20261021a"></script>
+<script src="js/kb-data.js?v=20261021b"></script>
+<script src="js/nav.js?v=20261021b"></script>
 <script>
 var track = parseInt(localStorage.getItem("xsk_track")||"1",10);
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }

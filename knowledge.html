@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识汇总 · 学士库xskAi考研数学</title>
+<link rel="stylesheet" href="css/nav.css?v=20261021b">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+.track-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.track-label{font-size:13px;color:var(--muted);font-weight:600}
+.track-sel{display:flex;gap:8px}
+.track-btn{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:7px 20px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;color:var(--muted)}
+.track-btn:hover{border-color:var(--c-kb);color:var(--c-kb);transform:translateY(-1px)}
+.track-btn.active{background:linear-gradient(135deg,#4f46e5,#6366f1);border-color:transparent;color:#fff;box-shadow:0 6px 14px -4px rgba(79,70,229,.4)}
+.track-hint{font-size:12.5px;color:var(--muted)}
+.track-hint b{color:var(--c-kb)}
+.scope-note{font-size:13px;color:var(--muted);margin-bottom:14px}
+.kb-layout{display:grid;grid-template-columns:190px 1fr;gap:18px;align-items:start}
+.kb-side{position:sticky;top:120px;display:flex;flex-direction:column;gap:6px;background:#fff;border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(15,23,42,.05);max-height:calc(100vh - 150px);overflow-y:auto}
+.kb-side button{border:none;background:transparent;text-align:left;padding:9px 12px;border-radius:10px;font-size:13.5px;cursor:pointer;color:var(--muted);font-weight:600;transition:all .18s}
+.kb-side button:hover{background:#eef2ff;color:var(--c-kb)}
+.kb-side button.active{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-weight:700;box-shadow:0 4px 10px -3px rgba(79,70,229,.4)}
+.kb-item{background:#fff;border-radius:14px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:all .2s;border:1.5px solid transparent;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.kb-item:hover{border-color:#c7d2fe;box-shadow:0 8px 18px -8px rgba(79,70,229,.25)}
+.kb-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.kb-q{font-size:15.5px;font-weight:800}
+.badge{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:700;flex-shrink:0}
+.badge.high{background:#fee2e2;color:#dc2626}
+.badge.mid{background:#fef3c7;color:#b45309}
+.kb-a{display:none;margin-top:12px;font-size:13.8px;border-top:1px dashed var(--line);padding-top:12px}
+.kb-item.open .kb-a{display:block;animation:fadeUp .3s ease both}
+.kb-a p{margin-bottom:8px}
+.kb-a .lbl{color:var(--c-kb);font-weight:800;margin-right:4px}
+.kb-a .ex{background:#f8fafc;border-radius:10px;padding:10px 12px}
+.kb-a .zhen{background:#fffbeb;border-radius:10px;padding:10px 12px}
+.kb-a .vid{margin-top:10px}
+.vid-btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:8px 18px;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#4f46e5,#6366f1);cursor:pointer;transition:all .2s}
+.vid-btn:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 6px 14px -4px rgba(79,70,229,.4)}
+.vid-meta{font-size:12px;color:var(--muted);margin-left:8px}
+.kb-a iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;margin-top:10px}
+@media(max-width:760px){.kb-layout{grid-template-columns:1fr}.kb-side{position:static;flex-direction:row;flex-wrap:wrap;max-height:none}}
+</style>
+</head>
+<body>
+<header class="sitehead">
+  <div class="wrap topbar">
+    <div class="brand"><a href="index.html">学士库<span class="en">xskAi</span></a><span class="slogan">考研高数备考</span></div>
+    <div class="topbar-right"><span class="quota-chip" id="quota">今日免费 5 次</span><button class="kami-btn" onclick="openCodeModal()">卡密</button></div>
+  </div>
+</header>
+<nav class="mainnav">
+  <div class="wrap navwrap">
+    <a class="nav-btn nav-diag" href="diagnose.html"><span class="ni">📊</span>高数测评</a>
+    <a class="nav-btn nav-plan" href="today.html"><span class="ni">📅</span>今日计划</a>
+    <a class="nav-btn nav-lect" href="lectures.html"><span class="ni">🎓</span>名师讲堂</a>
+    <a class="nav-btn nav-zt" href="zhenti.html"><span class="ni">📝</span>历年真题</a>
+    <a class="nav-btn nav-fm" href="formulas.html"><span class="ni">📐</span>公式速查</a>
+    <a class="nav-btn nav-kb" href="knowledge.html"><span class="ni">📚</span>知识汇总</a>
+  </div>
+</nav>
+
+<div class="page-hero ph-kb">
+  <div class="wrap">
+    <h1><span class="ph-ico">📚</span>知识汇总</h1>
+    <p>21 章考点全收录：核心讲解 · 易错警示 · 记忆口诀 · 例题解析 · 真题回放 · 名师视频，一站式学透每个考点。</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="track-row fade-in">
+    <span class="track-label">考试科目：</span>
+    <div class="track-sel">
+      <button class="track-btn" data-tr="1" onclick="setTrack(1)">数一</button>
+      <button class="track-btn" data-tr="2" onclick="setTrack(2)">数二</button>
+      <button class="track-btn" data-tr="3" onclick="setTrack(3)">数三</button>
+    </div>
+    <span class="track-hint" id="trackHint"></span>
+  </div>
+  <div class="scope-note" id="scopeNote"></div>
+  <div class="kb-layout fade-in d1">
+    <div class="kb-side" id="chNav"></div>
+    <div class="kb-main" id="kbContent"></div>
+  </div>
+  <div class="foot-note">知识汇总 · 配套视频精讲见「名师讲堂」· 冲刺速记见「公式速查」</div>
+</main>
+
+<script src="js/kb-data.js?v=20261021b"></script>
+<script src="js/nav.js?v=20261021b"></script>
+<script>
+var activeCh=0;
+function itemShown(item,chT){ var t=item.t||chT||[1,2,3]; return t.indexOf(curTrack())>=0;}
+function visChapters(){ return KB.filter(function(sec){ return sec.items.some(function(it){ return itemShown(it,sec.t);});});}
+function setTrack(t){
+  ls("xsk_track",String(t));
+  var th=document.getElementById("trackHint"); if(th&&TRACK_HINT[t]) th.innerHTML="<b>"+TRACK_HINT[t][0]+"适用</b>："+TRACK_HINT[t][1];
+  document.querySelectorAll(".track-btn").forEach(function(b){ b.classList.toggle("active",parseInt(b.dataset.tr,10)===t);});
+  activeCh=0; renderChNav(); renderKb(); renderScope();
+}
+function renderScope(){
+  var nCh=0,nIt=0;
+  visChapters().forEach(function(sec){ nCh++; sec.items.forEach(function(it){ if(itemShown(it,sec.t)) nIt++;});});
+  var ex=TRACKS[curTrack()].excl;
+  var sn=document.getElementById("scopeNote");
+  if(sn) sn.textContent="当前：数"+TRACK_CN[curTrack()]+" · "+nCh+" 章 "+nIt+" 考点"+(ex?" · "+ex:" · 覆盖全部章节");
+}
+function renderChNav(){
+  var nav=document.getElementById("chNav"); nav.innerHTML="";
+  var secs=visChapters();
+  if(activeCh>=secs.length) activeCh=0;
+  secs.forEach(function(sec,i){
+    var b=document.createElement("button");
+    b.textContent=sec.ch.split(" · ")[0];
+    b.title=sec.ch;
+    b.className=i===activeCh?"active":"";
+    b.onclick=function(){ activeCh=i; renderChNav(); renderKb();};
+    nav.appendChild(b);
+  });
+}
+function renderKb(){
+  var box=document.getElementById("kbContent"); box.innerHTML="";
+  var secs=visChapters();
+  if(activeCh>=secs.length) activeCh=0;
+  var sec=secs[activeCh];
+  if(!sec) return;
+  sec.items.forEach(function(item){
+    if(!itemShown(item,sec.t)) return;
+    var d=document.createElement("div");
+    d.className="kb-item";
+    d.innerHTML='<div class="kb-head"><div class="kb-q">'+esc(item.q)+'</div>'
+      +'<span class="badge '+(item.f==="high"?"high":"mid")+'">'+(item.f==="high"?"高频":"中频")+'</span></div>'
+      +'<div class="kb-a"><p><span class="lbl">核心：</span>'+esc(item.core)+'</p>'
+      +'<p><span class="lbl">易错：</span>'+esc(item.pit)+'</p>'
+      +'<p><span class="lbl">口诀：</span>'+esc(item.tip)+'</p>'
+      +(item.ex?'<p class="ex"><span class="lbl">例题：</span>'+esc(item.ex)+'<br><span class="lbl">解析：</span>'+esc(item.exa)+'</p>':'')
+      +(item.z?'<p class="zhen"><span class="lbl">真题：</span><b>'+esc(item.z.y)+'</b> '+esc(item.z.q)+'<br><span class="lbl">思路：</span>'+esc(item.z.a)+'</p>':'')
+      +(item.v?'<p class="vid"><button class="vid-btn" data-bv="'+esc(item.v)+'" onclick="playVid(event,this)">▶ 视频讲解</button>'+(item.vt?'<span class="vid-meta">'+esc(item.vt)+'</span>':'')+'</p>':'<p class="vid"><a href="https://search.bilibili.com/all?keyword='+encodeURIComponent(item.q+' 考研数学')+'" target="_blank" rel="noopener">视频讲解 →</a></p>')
+      +'</div>';
+    d.onclick=function(){ d.classList.toggle("open"); };
+    box.appendChild(d);
+  });
+  if(window.renderMathInElement){
+    renderMathInElement(box,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+  }
+}
+function playVid(e,btn){
+  e.stopPropagation();
+  var raw=btn.getAttribute("data-bv"), bv=raw, p="";
+  var qi=raw.indexOf("?p=");
+  if(qi>=0){ bv=raw.slice(0,qi); p=raw.slice(qi+3); }
+  var url="https://player.bilibili.com/player.html?bvid="+encodeURIComponent(bv);
+  if(p) url+="&p="+encodeURIComponent(p);
+  btn.parentNode.innerHTML='<iframe src="'+url+'" width="100%" height="320" frameborder="0" allowfullscreen="true" style="border-radius:12px;background:#000"></iframe>';
+}
+window.addEventListener("load",function(){
+  if(window.renderMathInElement) renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+});
+setTrack(curTrack());
+</script>
+</body>
+</html>
