@@ -39,11 +39,26 @@
 .pt-card .tea-line{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:10px}
 .vid-btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--tc,#d97706),color-mix(in srgb,var(--tc,#d97706) 70%,#000));cursor:pointer;transition:all .2s}
 .vid-btn:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 6px 14px -4px rgba(0,0,0,.25)}
-.vid-box{margin-top:12px;display:none}
-.vid-box.open{display:block;animation:fadeUp .3s ease both}
-.vid-box iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000}
-.vid-meta{font-size:12px;color:var(--muted);margin-top:6px}
+.vid-btn.playing{outline:2px solid var(--tc,#d97706);outline-offset:2px}
 .no-video{font-size:12px;color:#9ca3af}
+/* ---- 高清视频弹窗播放器 ---- */
+.vid-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(6,10,22,.74);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:22px}
+.vid-modal.show{display:flex}
+.vid-modal-card{width:min(1120px,94vw);background:#0d1526;border-radius:18px;overflow:hidden;box-shadow:0 40px 110px rgba(0,0,0,.55);animation:fadeUp .25s ease both}
+.vid-modal-head{display:flex;align-items:center;gap:12px;padding:13px 18px;background:#131d33;color:#fff}
+.vid-modal-head b{font-size:14.5px;line-height:1.45;flex:1;min-width:0;font-weight:700}
+.vid-modal-head .vm{font-size:12px;color:#9fb0cc;white-space:nowrap;flex-shrink:0}
+.vid-close{border:none;background:rgba(255,255,255,.12);color:#fff;width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;flex-shrink:0;transition:all .2s}
+.vid-close:hover{background:#dc2626;transform:rotate(90deg)}
+.vid-modal-body{aspect-ratio:16/9;background:#000}
+.vid-modal-body iframe{width:100%;height:100%;border:0;display:block}
+.vid-modal-foot{padding:10px 18px;font-size:12px;color:#8296b4;background:#131d33;border-top:1px solid rgba(255,255,255,.08)}
+.vid-modal-foot a{color:#9fc3ff;font-weight:600}
+@media(max-width:640px){.vid-modal{padding:10px}.vid-modal-card{width:96vw;border-radius:14px}.vid-modal-head .vm{display:none}.vid-modal-head b{font-size:13px}}
+/* 矮窗口自适应：保证弹窗头/尾完整可见，视频按高度逐步缩宽 */
+@media(max-height:760px){.vid-modal-card{width:min(880px,94vw)}}
+@media(max-height:640px){.vid-modal-card{width:min(700px,94vw)}}
+@media(max-height:520px){.vid-modal-card{width:min(560px,94vw)}}
 @media(max-width:640px){.pts-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -68,7 +83,7 @@
 <div class="page-hero ph-lect">
   <div class="wrap">
     <h1><span class="ph-ico">🎓</span>名师讲堂</h1>
-    <p>高数 · 武忠祥 ｜ 线代 · 李永乐 ｜ 概率 · 王式安 ｜ 空间几何 · 张宇。按章节精讲，点击卡片直接在页内观看，不跳转 B 站。</p>
+    <p>高数 · 武忠祥 ｜ 线代 · 李永乐 ｜ 概率 · 王式安 ｜ 空间几何 · 张宇。按章节精讲，点击「视频讲解」在高清弹窗中观看，不跳转 B 站。</p>
   </div>
 </div>
 
@@ -90,8 +105,20 @@
 
   <div id="lectContent"></div>
 
-  <div class="foot-note">名师讲堂 · 精讲视频页内播放 · 配套文字讲解见「知识汇总」· 冲刺串记见「公式速查」</div>
+  <div class="foot-note">名师讲堂 · 视频高清弹窗播放 · 配套文字讲解见「知识汇总」· 冲刺串记见「公式速查」</div>
 </main>
+
+<!-- 高清视频弹窗播放器 -->
+<div class="vid-modal" id="vidModal" onclick="if(event.target===this)closeVidModal()">
+  <div class="vid-modal-card">
+    <div class="vid-modal-head">
+      <b id="vmTitle"></b><span class="vm" id="vmMeta"></span>
+      <button class="vid-close" onclick="closeVidModal()" title="关闭">✕</button>
+    </div>
+    <div class="vid-modal-body"><iframe id="vmFrame" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; fullscreen" src=""></iframe></div>
+    <div class="vid-modal-foot">视频来自 B 站 · 播放器右下角可全屏 / 倍速 · 按 Esc 或点击空白处关闭 · <a id="vmBili" href="#" target="_blank" rel="noopener">B 站观看</a></div>
+  </div>
+</div>
 
 <script src="js/kb-data.js?v=20261021b"></script>
 <script src="js/nav.js?v=20261021b"></script>
@@ -127,9 +154,8 @@ function renderLectures(){
         + '<div class="q">'+esc(it.q)+'</div>'
         + '<div class="tea-line"><span class="tag tea">'+esc(tea)+'</span><span>'+esc((it.vt||"").replace(/^[^·]*·[^·]*·\s*/,""))+'</span></div>'
         + (it.v
-          ? '<button class="vid-btn" onclick="toggleVid(this,\''+it.v+'\')">▶ 视频讲解</button>'
+          ? '<button class="vid-btn" onclick="openVidModal(this,\''+it.v+'\')">▶ 视频讲解</button>'
           : '<span class="no-video">视频整理中</span>')
-        + '<div class="vid-box"></div>'
         + '</div>';
     });
     if(!cards) return;
@@ -140,18 +166,37 @@ function renderLectures(){
   });
   box.innerHTML = html;
 }
-function toggleVid(btn, bv){
-  var box = btn.parentElement.querySelector(".vid-box");
-  var isOpen = box.classList.contains("open");
-  document.querySelectorAll(".vid-box.open").forEach(function(b){ b.classList.remove("open"); b.innerHTML=""; });
-  document.querySelectorAll(".vid-btn").forEach(function(b){ if(b.textContent.indexOf("收起")>=0) b.innerHTML="▶ 视频讲解"; });
-  if(isOpen) return;
-  var src = "https://player.bilibili.com/player.html?bvid=" + bv.replace(/\?p=(\d+)/, "&p=$1") + "&autoplay=0";
-  box.innerHTML = '<iframe src="'+src+'" scrolling="no" frameborder="0" allowfullscreen="true"></iframe>'
-    + '<div class="vid-meta">视频来自 B 站（页内播放）· 若无法播放请检查网络或点击 <a href="https://www.bilibili.com/video/'+bv.split("?")[0]+'/" target="_blank" rel="noopener" style="color:var(--chsi)">B 站观看</a></div>';
-  box.classList.add("open");
-  btn.innerHTML = "✕ 收起视频";
+/* ---------- 高清弹窗播放 ---------- */
+var vidBtnCur = null;
+function bvSplit(bv){
+  var m = String(bv).match(/^(BV[0-9A-Za-z]+)(?:\?p=(\d+))?$/);
+  return m ? {bvid:m[1], p:m[2]||""} : {bvid:String(bv).split("?")[0], p:""};
 }
+function openVidModal(btn, bv){
+  var modal = document.getElementById("vidModal");
+  if(modal.classList.contains("show") && vidBtnCur===btn){ closeVidModal(); return; }
+  var card = btn.closest(".pt-card");
+  document.getElementById("vmTitle").textContent = card.querySelector(".q").textContent;
+  var teaEl = card.querySelector(".tag.tea");
+  var spans = card.querySelectorAll(".tea-line span");
+  var tea = teaEl ? teaEl.textContent : "";
+  var meta = spans.length>1 ? spans[spans.length-1].textContent : "";
+  document.getElementById("vmMeta").textContent = (tea?tea+" · ":"")+meta;
+  if(vidBtnCur){ vidBtnCur.innerHTML = "▶ 视频讲解"; vidBtnCur.classList.remove("playing"); }
+  vidBtnCur = btn; btn.innerHTML = "▶ 正在播放"; btn.classList.add("playing");
+  var b = bvSplit(bv);
+  document.getElementById("vmFrame").src = "https://player.bilibili.com/player.html?bvid="+b.bvid+(b.p?("&p="+b.p):"")+"&autoplay=1";
+  document.getElementById("vmBili").href = "https://www.bilibili.com/video/"+b.bvid+(b.p?("?p="+b.p):"")+"/";
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+function closeVidModal(){
+  document.getElementById("vmFrame").src = "about:blank";
+  document.getElementById("vidModal").classList.remove("show");
+  document.body.style.overflow = "";
+  if(vidBtnCur){ vidBtnCur.innerHTML = "▶ 视频讲解"; vidBtnCur.classList.remove("playing"); vidBtnCur = null; }
+}
+document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeVidModal(); });
 function filterTeacher(t){
   curFilter = t;
   document.querySelectorAll("#filterRow .fchip").forEach(function(c){
